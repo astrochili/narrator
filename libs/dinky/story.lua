@@ -1,4 +1,4 @@
-local localFolder = (...):match("(.-)[^%.]+$")
+local localFolder = (...):match("(.-)[^%.]+$") or (...)
 local Object = require(localFolder .. "classic")
 local Story = Object:extend()
 
@@ -11,7 +11,7 @@ end
 
 function Story:canContinue()
 	-- TODO: Can we continue?
-	return true
+	return false
 end
 
 function Story:continue(pause)
@@ -32,6 +32,7 @@ function Story:choices()
 end
 
 function Story:choose(index)
+	local index = index or 0
 	-- TODO: Make a choice
 	print("Your choice is " .. index)
 end

@@ -1,4 +1,5 @@
-local Story = require(... .. ".story")
+local localFolder = (...):match("(.-)[^%.]+$") or (...)
+local Story = require(localFolder .. ".story")
 local Dinky = { }
 
 function Dinky:parseStory(inkFile)

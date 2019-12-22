@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "type": "lua-local",
+            "request": "launch",
+            "name": "Debug",
+            "program": {
+              "lua": "lua5.1",
+              "file": "${workspaceFolder}/game.lua"
+            }
+        },
+        {
+            "type": "lua-local",
+            "request": "launch",
+            "name": "Terminal",
+            "program": {
+                "command": "sh"
+            },
+            "args": [
+                "~/vscode-lua.sh ${workspaceFolder}/game.lua"
+              ]
+            }
+        }
+    ]
+}
