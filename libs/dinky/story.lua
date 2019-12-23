@@ -1,6 +1,6 @@
 local localFolder = (...):match("(.-)[^%.]+$") or (...)
-local Object = require(localFolder .. "classic")
-local Story = Object:extend()
+local Class = require(localFolder .. "classic")
+local Story = Class:extend()
 
 function Story:new(tree)
 	self.tree = tree
