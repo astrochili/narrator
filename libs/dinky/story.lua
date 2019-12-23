@@ -32,9 +32,13 @@ function Story:choices()
 end
 
 function Story:choose(index)
-	local index = index or 0
 	-- TODO: Make a choice
-	print("Your choice is " .. index)
+	local choices = self:choices()
+	local index = index or 1
+	index = (index <= #choices and index > 0) and index or 1
+
+	local text = choices[index].text
+	return text
 end
 
 function Story:teleport(path)

@@ -1,10 +1,4 @@
-if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
-    local separator = string.sub(package.config, 1, 1)
-    local filePath = debug.getinfo(1).short_src
-    local rootFolder = string.gsub(filePath, "^(.+"..separator..")[^"..separator.."]+$", "%1");
-    package.path = rootFolder .. [[?.lua]]
-end
-
+require("utils")
 local dinky = require("libs.dinky.dinky")
 
 -- local story = dinky.parseStory("stories/main")
@@ -21,7 +15,14 @@ while story:canContinue() or #story:choices() > 0 do
         print(i .. ") " .. choice.title)
     end
 
-    local answer = tonumber(io.read())
-    local text = "1" --choices[answer].text
-    story:choose(answer)
+    local answer
+    if debugging then
+        answer = math.random(1, #choices)
+        sleep(1)
+    else
+        answer = tonumber(io.read())
+    end
+    
+    local text = story:choose(answer)
+    print(text)
 end
