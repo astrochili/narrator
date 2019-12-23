@@ -1,9 +1,10 @@
-local separator = string.sub(package.config, 1, 1)
-local filePath = debug.getinfo(1).short_src
-local rootFolder = string.gsub(filePath, "^(.+"..separator..")[^"..separator.."]+$", "%1");
-package.path = rootFolder .. [[?.lua]]
+if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+    local separator = string.sub(package.config, 1, 1)
+    local filePath = debug.getinfo(1).short_src
+    local rootFolder = string.gsub(filePath, "^(.+"..separator..")[^"..separator.."]+$", "%1");
+    package.path = rootFolder .. [[?.lua]]
+end
 
-local test = require("test")
 local dinky = require("libs.dinky.dinky")
 
 -- local story = dinky.parseStory("stories/main")
@@ -22,6 +23,5 @@ while story:canContinue() or #story:choices() > 0 do
 
     local answer = tonumber(io.read())
     local text = "1" --choices[answer].text
-    print(text)
     story:choose(answer)
 end
