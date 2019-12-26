@@ -2,29 +2,37 @@ local localFolder = (...):match("(.-)[^%.]+$") or (...)
 local Class = require(localFolder .. "classic")
 local Story = Class:extend()
 
-function Story:new(tree)
-	self.tree = tree
+function Story:new(model)
+	self.model = model
 	self.currentPath = nil
 	self.visits = { }
 	self.variables = { }
+	self.queue = { }
 end
 
 function Story:canContinue()
-	-- TODO: Can we continue?
-	return false
+	return #self.queue
 end
 
-function Story:continue(pause)
-	-- TODO: Continue with pause or not
-	local pause = pause or true
-	if pause then
-		return "text [pause]"
-	else 
-		return "text text text"
+function Story:continue(byStep)
+	if not self:canContiinue() then return end
+	local step = byStep or true
+
+	local text
+	if step then
+		text = self.queue[1]
+		table.remove(self.queue, 1)
+	else
+		-- TODO: вернуть всю очередь с переносами 
+		text = "paragraph\nparagraph\nparagraph"
+		for i, _ in pairs(self.queue) do self.queue[i] = nil end
 	end
+
+	return text
 end
 
 function Story:choices()
+	if self:canContiinue() then return nil end
 	-- TODO: Return current choices
 	local choice1 = { title = "Choice 1", text = "Choice 1 full" }
 	local choice2 = { title = "Choice 2", text = "Choice 2 full" }
@@ -41,27 +49,20 @@ function Story:choose(index)
 	return text
 end
 
-function Story:teleport(path)
+function Story:moveTo(path)
 	-- TODO: Go to the knot or the stitch
-	self.path = path
-end
-
-function Story:visitsForPath(path)
-	return self.visits[path]
 end
 
 function Story:globalTags()
-	-- TODO: Return global tags
-	return { "tag1" }
+	return self.model.globalTags
+end
+
+function Story:currentTags()
+	return self:pathTags(self.currentPath)
 end
 
 function Story:pathTags(path)
 	-- TODO: Return knot or stitch tags
-	return { "tag1" }
-end
-
-function Story:currentTags()
-	-- TODO: Return current tags
 	return { "tag1" }
 end
 
@@ -75,8 +76,7 @@ function Story:saveState()
 end
 
 function Story:loadState(state)
-	self.variables = state.variables
-	self.teleport(state.path)
+	-- TODO: Load state
 end
 
 function Story:observe(variable, func)

@@ -2,6 +2,8 @@ local self = { }
 
 self.includes = { "newspaper", "journeys/pyramid" }
 
+self.globalTags = { "globalTag1", "globalTag2" }
+
 self.vars = {
     name = "Kate",
     age = 23,
@@ -9,12 +11,16 @@ self.vars = {
     inventory = { "knife", "compass", "water" }
 }
 
-self.root = {
-    { text = "Hello world! <>" },
-    { text = "Again and again", divert = "back_in_london" }
-}
-
 self.knots = {
+
+    -- Корневой узел
+
+    _ = {
+        { text = "Hello world! <>" },
+        { text = "Again and again", divert = "back_in_london" }    
+    },
+
+    -- Вложенные узлы
 
     nestedExample = {
         { gather = "My name is $name and I looked at Monsieur Fogg" },
