@@ -1,57 +1,67 @@
+require("utils")
 local localFolder = (...):match("(.-)[^%.]+$") or (...)
 local Class = require(localFolder .. "classic")
 local Story = Class:extend()
 
 function Story:new(model)
-	self.model = model
-	self.currentPath = nil
-	self.visits = { }
-	self.variables = { }
-	self.queue = { }
+	self.model = model -- passive model of story
+	self.visits = { } -- dictionary of visits [knot.stitch = 3]
+	self.variables = { } -- dictionary of variables and constants
+
+	self.currentPath = "_"
+	self.currentTags = { }
+	self.choices = { } -- array of { title = "title", text = "text", path = "knot.stitch:3.2" }
+	self.queue = { } -- array of "text"
+
+	self:process(self.currentPath)
 end
 
 function Story:canContinue()
 	return #self.queue
 end
 
-function Story:continue(byStep)
+function Story:continue(steps)
 	if not self:canContiinue() then return end
-	local step = byStep or true
+	local steps = steps or #self.queue
 
-	local text
-	if step then
-		text = self.queue[1]
+	local lines
+	for _ = 1, steps do
+		table.insert(lines, 1, self.queue[i])
 		table.remove(self.queue, 1)
-	else
-		-- TODO: вернуть всю очередь с переносами 
-		text = "paragraph\nparagraph\nparagraph"
-		for i, _ in pairs(self.queue) do self.queue[i] = nil end
 	end
 
-	return text
+	return lines
 end
 
 function Story:choices()
 	if self:canContiinue() then return nil end
-	-- TODO: Return current choices
-	local choice1 = { title = "Choice 1", text = "Choice 1 full" }
-	local choice2 = { title = "Choice 2", text = "Choice 2 full" }
-	return { choice1, choice2 }
+	return self.choices
 end
 
 function Story:choose(index)
-	-- TODO: Make a choice
 	local choices = self:choices()
 	local index = index or 1
-	index = (index <= #choices and index > 0) and index or 1
+	index = index > 0 and index or 1
+	index = index <= #choices and index or #choices
 
-	local text = choices[index].text
-	return text
+	local choice = choices[index]
+	self:process(choice.path)
+	return choice.text
 end
 
 function Story:moveTo(path)
-	-- TODO: Go to the knot or the stitch
+	self.currentPath = path
+	self:process(path)
 end
+
+function Story:process(path)
+	self.queue = { }
+	self.choices = { }
+	-- TODO
+end
+
+
+-- Tags
 
 function Story:globalTags()
 	return self.model.globalTags
@@ -66,6 +76,9 @@ function Story:pathTags(path)
 	return { "tag1" }
 end
 
+
+-- States
+
 function Story:saveState()
 	local state = {
 		variables = self.variables,
@@ -78,6 +91,9 @@ end
 function Story:loadState(state)
 	-- TODO: Load state
 end
+
+
+-- Reactive
 
 function Story:observe(variable, func)
 	-- TODO: Observe variable changes and call the function

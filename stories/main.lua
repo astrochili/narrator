@@ -2,7 +2,13 @@ local self = { }
 
 self.includes = { "newspaper", "journeys/pyramid" }
 
-self.globalTags = { "globalTag1", "globalTag2" }
+self.tags = {
+    _ = { "globalTag1", "globalTag2" },
+    knot1 = {
+        _ = { "tag1", "tag2" },
+        sticth1 = { "tag3", "tag4" }
+    }
+}
 
 self.vars = {
     name = "Kate",
@@ -81,6 +87,7 @@ self.knots = {
 
     testKnot = {
         _ = {
+            { tags = "knotTag" },
             { gather = "", label = "testGather" },
             { text = "This is the root", tags = { "tag1", "tag2" } },
             { external = "showPuzzle", params = { "green" }, success = "You solved the green puzzle!", failure = "Damn." },
