@@ -5,29 +5,29 @@ local Story = Class:extend()
 
 function Story:new(model)
 	self.model = model -- passive model of story
-	self.visits = { } -- dictionary of visits [knot.stitch = 3]
-	self.variables = { } -- dictionary of variables and constants
+	self.visits = { } -- dictionary of visits [knot [stitch = 3]]
+	self.variables = { } -- dictionary of variables (saved to state)
+	self.constants = model.constants-- dictionary of constants (not saved to state)
 
-	self.currentPath = "_"
 	self.currentTags = { }
 	self.choices = { } -- array of { title = "title", text = "text", path = "knot.stitch:3.2" }
-	self.queue = { } -- array of "text"
+	self.pragraphs = { } -- array of "text"
 
-	self:process(self.currentPath)
+	self:process("_")
 end
 
 function Story:canContinue()
-	return #self.queue
+	return #self.pragraphs
 end
 
 function Story:continue(steps)
-	if not self:canContiinue() then return end
-	local steps = steps or #self.queue
+	if not self:canContiinue() then return nil end
+	local steps = steps or #self.pragraphs
 
 	local lines
 	for _ = 1, steps do
-		table.insert(lines, 1, self.queue[i])
-		table.remove(self.queue, 1)
+		table.insert(lines, 1, self.pragraphs[i])
+		table.remove(self.pragraphs, 1)
 	end
 
 	return lines
@@ -50,14 +50,35 @@ function Story:choose(index)
 end
 
 function Story:moveTo(path)
-	self.currentPath = path
 	self:process(path)
 end
 
 function Story:process(path)
-	self.queue = { }
+	self.pragraphs = { }
 	self.choices = { }
+
 	-- TODO
+	-- path = "knot.stitch:3.4.2"
+	local knot = "_" -- get from path
+	local stitch = "_" -- get from stitch
+	local choices = { 3, 4, 2 } -- get after ':', may be nil
+
+	local knotData = self.model.knots[knot]
+	stitchData = knotData[stitch]
+	choiceData = stitchData[3].node[4].node[2]
+
+	for _, item in data do
+		-- if item is then do this ...
+	end
+
+	local noChoices = false
+	-- if the end hasn't any choice -> get a gather from the parent level
+	if noChoices then
+		parentData = stitchData[3].node[4]
+		-- if index++ is gather then do gather
+		-- then go recursive to parent to looking foa a another gather
+	end
+	
 end
 
 
@@ -68,7 +89,7 @@ function Story:globalTags()
 end
 
 function Story:currentTags()
-	return self:pathTags(self.currentPath)
+	return self.currentTags
 end
 
 function Story:pathTags(path)

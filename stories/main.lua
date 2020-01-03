@@ -10,6 +10,8 @@ self.tags = {
     }
 }
 
+self.constants = { }
+
 self.vars = {
     name = "Kate",
     age = 23,
