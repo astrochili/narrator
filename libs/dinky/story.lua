@@ -1,7 +1,8 @@
-require("utils")
-local localFolder = (...):match("(.-)[^%.]+$") or (...)
-local Class = require(localFolder .. "classic")
+require('utils')
+local localFolder = (...):match('(.-)[^%.]+$') or (...)
+local Class = require(localFolder .. 'classic')
 local Story = Class:extend()
+lume = require(localFolder .. 'lume')
 
 function Story:new(model)
 	self.model = model -- passive model of story
@@ -10,10 +11,10 @@ function Story:new(model)
 	self.constants = model.constants-- dictionary of constants (not saved to state)
 
 	self.currentTags = { }
-	self.choices = { } -- array of { title = "title", text = "text", path = "knot.stitch:3.2" }
-	self.pragraphs = { } -- array of "text"
+	self.choices = { } -- array of { title = 'title', text = 'text', path = 'knot.stitch:3.2' }
+	self.pragraphs = { } -- array of 'text'
 
-	self:process("_")
+	self:process('_')
 end
 
 function Story:canContinue()
@@ -57,17 +58,24 @@ function Story:process(path)
 	self.pragraphs = { }
 	self.choices = { }
 
-	-- TODO
-	-- path = "knot.stitch:3.4.2"
-	local knot = "_" -- get from path
-	local stitch = "_" -- get from stitch
-	local choices = { 3, 4, 2 } -- get after ':', may be nil
+	local knot, stitch = string.match(path, '([%w_]+)%.([%w_]+):')
+	local choiceChain = lume.split(string.match(path, ':(.+)'), '.')
 
-	local knotData = self.model.knots[knot]
-	stitchData = knotData[stitch]
-	choiceData = stitchData[3].node[4].node[2]
+	local knotNode = self.model.knots[knot]
+	stitchNode = knotNode[stitch] or knotNode
+	local node = stitchNode
 
-	for _, item in data do
+	if #choiceChain then
+		local choiceIndex = choiceChain[1]
+		node = stitchNode[choiceIndex]
+		for index = 2, #choicesTree do
+			node = choiceNode.node[index]
+		end	
+	end
+
+	-- TODO	
+
+	for block in node do
 		-- if item is then do this ...
 	end
 
@@ -94,7 +102,7 @@ end
 
 function Story:pathTags(path)
 	-- TODO: Return knot or stitch tags
-	return { "tag1" }
+	return { 'tag1' }
 end
 
 
