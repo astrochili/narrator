@@ -59,24 +59,37 @@ function Story:process(path)
 	self.choices = { }
 
 	local knot, stitch = string.match(path, '([%w_]+)%.([%w_]+):')
-	local choiceChain = lume.split(string.match(path, ':(.+)'), '.')
+	local choicesChain = lume.split(string.match(path, ':(.+)'), '.')
 
 	local knotNode = self.model.knots[knot]
 	stitchNode = knotNode[stitch] or knotNode
 	local node = stitchNode
 
-	if #choiceChain then
-		local choiceIndex = choiceChain[1]
+	if #choicesChain then
 		node = stitchNode[choiceIndex]
-		for index = 2, #choicesTree do
-			node = choiceNode.node[index]
+	end
+	if #choicesChain > 1 then
+		for index = 2, #choicesChain do
+			node = node.node[index]
 		end	
 	end
 
 	-- TODO	
 
 	for block in node do
-		-- if item is then do this ...
+		if block.type == STORY_BLOCK_TYPES.text then
+
+		elseif block.type == STORY_BLOCK_TYPES.gather then
+
+		elseif block.type == STORY_BLOCK_TYPES.choice then
+
+		elseif block.type == STORY_BLOCK_TYPES.condition then
+
+		elseif block.type == STORY_BLOCK_TYPES.var then
+
+		elseif block.type == STORY_BLOCK_TYPES.external then
+
+		end
 	end
 
 	local noChoices = false
