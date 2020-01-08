@@ -1,8 +1,13 @@
-require('utils')
-local localFolder = (...):match('(.-)[^%.]+$') or (...)
-local Class = require(localFolder .. 'classic')
-local Story = Class:extend()
-lume = require(localFolder .. 'lume')
+--
+-- Dependencies
+
+local lume = require("lume")
+local Object = require("classic")
+
+--
+-- Story
+
+local Story = Object:extend()
 
 function Story:new(model)
 	self.model = model -- passive model of story
