@@ -10,10 +10,15 @@ local Story = require(localFolder .. ".story")
 
 local Dinky = { }
 
-function Dinky:parseStory(inkFile)
-    local file = io.open(inkFile, "r")
+function Dinky:parseStory(inkPath)
+    local filePath = inkPath
+    if string.sub(-#inkPath) ~= ".ink" then
+        filePath = inkPath .. ".ink"
+    end
+
+    local file = io.open(filePath, "r")
     if file == nil then
-        print("File doesn't exist: " .. inkFile)
+        print("File doesn't exist: " .. filePath)
         return nil
     end
 
@@ -23,12 +28,12 @@ function Dinky:parseStory(inkFile)
     file:close()
     
     model = parser.parse(lines)
-    model.filePath = inkFile
+    model.filePath = filePath
     return model
 end
 
-function Dinky:loadStory(luaFile)
-    local tree = require(luaFile)
+function Dinky:loadStory(luaPath)
+    local tree = require(luaPath)
     return Story(tree)
 end
 

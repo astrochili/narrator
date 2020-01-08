@@ -1,6 +1,9 @@
-debugging = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1"
+--
+-- VSCode Local Lua Debugger (https://github.com/tomblind/local-lua-debugger-vscode)
 
-if debugging then
+debug.vscode = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1"
+
+if debug.vscode then
     local separator = string.sub(package.config, 1, 1)
     local filePath = debug.getinfo(1).short_src
     local rootFolder = string.gsub(filePath, "^(.+"..separator..")[^"..separator.."]+$", "%1");

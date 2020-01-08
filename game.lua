@@ -1,28 +1,42 @@
-require("utils")
-local dinky = require("libs.dinky.dinky")
+--
+-- Dependencies
 
--- local story = dinky.parseStory("stories/main")
-local story = dinky:loadStory("stories/main")
+local dinky = require("dinky.dinky")
 
-while story:canContinue() or #story:choices() > 0 do 
-    while story:canContinue() do
-        local text = story:continue()
+--
+-- Game
+
+function game()
+    local story = dinky:loadStory("stories/main")
+
+    while story:canContinue() or #story:choices() > 0 do 
+        while story:canContinue() do
+            sleep(0.3)
+            local text = story:continue()
+            print(text)
+        end
+    
+        local choices = story:choices()
+        for i, choice in ipairs(choices) do
+            print(i .. ") " .. choice.title)
+        end
+    
+        local answer
+        if debug.vscode then
+            sleep(1.0)
+            answer = math.random(1, #choices)
+        else
+            answer = tonumber(io.read())
+        end
+        
+        local text = story:choose(answer)
         print(text)
     end
-
-    local choices = story:choices()
-    for i, choice in ipairs(choices) do
-        print(i .. ") " .. choice.title)
-    end
-
-    local answer
-    if debugging then
-        answer = math.random(1, #choices)
-        sleep(1)
-    else
-        answer = tonumber(io.read())
-    end
-    
-    local text = story:choose(answer)
-    print(text)
 end
+
+function sleep(seconds)
+    local start = os.time()
+    repeat until os.time() > start + seconds
+end
+
+game()

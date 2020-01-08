@@ -16,10 +16,10 @@ function Story:new(model)
 	self.constants = model.constants-- dictionary of constants (not saved to state)
 
 	self.currentTags = { }
-	self.choices = { } -- array of { title = 'title', text = 'text', path = 'knot.stitch:3.2' }
-	self.pragraphs = { } -- array of 'text'
+	self.choices = { } -- array of { title = "title", text = "text", path = "knot.stitch:3.2" }
+	self.pragraphs = { } -- array of "text"
 
-	self:process('_')
+	self:process("_")
 end
 
 function Story:canContinue()
@@ -63,8 +63,8 @@ function Story:process(path)
 	self.pragraphs = { }
 	self.choices = { }
 
-	local knot, stitch = string.match(path, '([%w_]+)%.([%w_]+):')
-	local choicesChain = lume.split(string.match(path, ':(.+)'), '.')
+	local knot, stitch = string.match(path, "([%w_]+)%.([%w_]+):")
+	local choicesChain = lume.split(string.match(path, ":(.+)"), ".")
 
 	local knotNode = self.model.knots[knot]
 	stitchNode = knotNode[stitch] or knotNode
@@ -98,7 +98,7 @@ function Story:process(path)
 	end
 
 	local noChoices = false
-	-- if the end hasn't any choice -> get a gather from the parent level
+	-- if the end hasn"t any choice -> get a gather from the parent level
 	if noChoices then
 		parentData = stitchData[3].node[4]
 		-- if index++ is gather then do gather
@@ -120,7 +120,7 @@ end
 
 function Story:pathTags(path)
 	-- TODO: Return knot or stitch tags
-	return { 'tag1' }
+	return { "tag1" }
 end
 
 
