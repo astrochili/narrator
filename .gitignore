@@ -25,3 +25,7 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Lua libraries that required to run 'tricky' VSCode Local Lua Debugger
+classic.lua
+lume.lua

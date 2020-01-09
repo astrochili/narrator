@@ -9,13 +9,12 @@ local dinky = require("dinky.dinky")
 function game()
     local story = dinky:loadStory("stories/dev")
 
-    print("--- Game begin ---")
+    print("\n--- Game begin ---")
 
     while story:canContinue() do 
         while story:canContinue() do
             local paragraph = story:continue()[1]
             print(paragraph)
-            sleep(0.3)
         end
     
         if not story:canChoose() then break end
@@ -33,11 +32,12 @@ function game()
             answer = tonumber(io.read())
         end
         
+        print(debug.vscode and answer .. "^" or "")
+
         local text = story:choose(answer)
         if text ~= nil then
             print(text)
-            sleep(0.3)
-        end
+        end        
     end
 
     print("--- Game over ---")
