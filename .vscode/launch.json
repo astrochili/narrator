@@ -5,7 +5,7 @@
             "request": "launch",
             "name": "Debug",
             "program": {
-              "lua": "lua5.1",
+              "lua": "lua5.3",
               "file": "${workspaceFolder}/debug.lua"
             }
         }

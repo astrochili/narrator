@@ -3,6 +3,9 @@
 
 local lpeg = require("lpeg")
 
+local localFolder = (...):match('(.-)[^%.]+$') or (...)
+local enums = require(localFolder .. ".enums")
+
 --
 -- Parser
 
@@ -13,7 +16,9 @@ function Parser:parse(lines)
         print(line)
     end
 
-    return { }
+    -- TODO
+
+    return nil
 end
 
 return Parser

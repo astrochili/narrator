@@ -12,7 +12,7 @@ local Dinky = { }
 
 function Dinky:parseStory(inkPath)
     local filePath = inkPath
-    if string.sub(-#inkPath) ~= ".ink" then
+    if inkPath:sub(-4) == ".ink" then
         filePath = inkPath .. ".ink"
     end
 
