@@ -3,6 +3,7 @@ local self = { }
 self.knots = {
 
     _ = {
+        { type = "text", divert = "nestedExample" },
         { type = "text", text = "Hello world! <>" },
         { type = "text", text = "Again and again.", divert = "back_in_london" }    
     },
@@ -31,6 +32,32 @@ self.knots = {
     as_fast_as_we_could = {
         { type = "text", text = "<> as fast as we could."},
         { type = "text", divert = "END" }
+    },
+
+    nestedExample = {
+        { type = "text", text = "My name is $name and I looked at Monsieur Fogg" },
+        { type = "choice", choice = "... and I could contain myself no longer.", node = {
+            { type = "text", text = "'What is the purpose of our journey, Monsieur?'" },
+            { type = "text", text = "'A wager,' he replied." },
+            { type = "choice", choice = "'A wager!'", text = "'A wager!' I returned", node = {
+                { type = "text", text = "He nodded." },
+                { type = "choice", choice = "'But surely that is foolishness!'" },
+                { type = "choice", choice = "'A most serious matter then!'" },
+                { type = "text", text = "He nodded again." },
+                { type = "choice", choice = "'But can we win?'", node = {
+                    { type = "text", text = "'That is what we will endeavour to find out,' he answered." }
+                }},
+                { type = "choice", choice = "'A modest wager, I trust?'", node = {
+                    { type = "text", text = "'Twenty thousand pounds,' he replied, quite flatly." }
+                }},
+                { type = "choice", choice = "I asked nothing further of him then.", text = "I asked nothing further of him then, and after a final, polite cough, he offered nothing more to me. <>" }
+            }},
+            { type = "choice", choice = "'Ah.'", text = "'Ah,' I replied, uncertain what I thought." },
+            { type = "text", text = "After that, <>" }
+        }},
+        { type = "choice", choice = "... but I said nothing", text = "... but I said nothing and <>" },
+        { type = "text", text = "we passed the day in silence." },
+        { type = "text", divert = "END"  }
     }
 
 }

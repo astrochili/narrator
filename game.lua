@@ -8,6 +8,7 @@ local dinky = require("dinky.dinky")
 
 function game()
     local story = dinky:loadStory("stories/dev")
+    local answers = { 1, 1, 1, 1, 1 }
 
     print("\n--- Game begin ---")
 
@@ -26,18 +27,16 @@ function game()
     
         local answer
         if debug.vscode then
+            answer = answers[1]
+            table.remove(answers, 1)
             math.randomseed(os.time())
-            answer = math.random(1, #choices)
+            answer = answer or math.random(1, #choices)
         else
             answer = tonumber(io.read())
         end
         
         print(debug.vscode and answer .. "^" or "")
-
-        local text = story:choose(answer)
-        if text ~= nil then
-            print(text)
-        end        
+        story:choose(answer)
     end
 
     print("--- Game over ---")

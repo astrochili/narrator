@@ -64,13 +64,14 @@ function Story:choose(index)
 	self.paragraphs = { }
 	self.choices = { }
 
+	table.insert(self.paragraphs, choice.text)
 	self:read(choice.path)
-	return choice.text
 end
 
 function Story:read(path)
 	assert(path, "Path can't be nil")
 	
+	local path = path
 	if path == "END" or path == "DONE" then return end
 
 	local pathRoute = path:match("([%w_.]+):*")
@@ -79,83 +80,133 @@ function Story:read(path)
 	local choicesChain = choiceRoute ~= nil and lume.split(choiceRoute, ".") or nil
 	choicesChain = choicesChain ~= nil and lume.map(choicesChain, function(x) return tonumber(x) end) or nil
 
+	-- Read a path node
 	local knotNode = self.model.knots[knot]
 	assert(knotNode, "The knot '" .. knot .. "' not found")
 	local stitchNode = stitch ~= nil and knotNode[stitch] or nil
-	local items = stitchNode or knotNode
+	local currentNode = stitchNode or knotNode
 
-	if choicesChain ~= nil and #choicesChain then
-		local choiceItem = items[choicesChain[1]]
-		for index = 2, #choicesChain do
-			choiceItem = choiceItem.node[index]
-		end	
-		if choiceItem.divert ~= nil then
-			self:read(choiceItem.divert)
-		else
-			self:readItems(choiceItem.node, path)
-		end
-	else
-		self:readItems(items, path)
+	if choicesChain == nil then
+		return self:readItems(currentNode, path)
 	end
 
-	-- local noChoices = false
-	-- if the end hasn"t any choice -> get a gather from the parent level
-	-- if noChoices then
-	-- 	parentData = stitchData[3].node[4]
-		-- if index++ is gather then do gather
-		-- then go recursive to parent to looking foa a another gather
-	-- end
+	-- Read a choice node
+	local choiceNodes = { currentNode }
+	local choiceItem = currentNode[choicesChain[1]]
+	
+	for index = 2, #choicesChain do
+		table.insert(choiceNodes, choiceItem.node)
+		choiceItem = choiceItem.node[choicesChain[index]]
+	end
+
+	if choiceItem.node ~= nil then
+		return self:readItems(choiceItem.node, path)
+	end
+
+	-- Read gathers
+	-- Вот это все надо бы вынести в отдельную функцию, которую можно было вызывывать как отсюда, так и из readItems()
+	local gathers = { }
+	local choicesReached = false
+	local indexShift = 0
+	
+	for i = #choiceNodes, 1, -1 do
+		if choicesReached then break end
+
+		local choiceNode = choiceNodes[i]
+		local choiceIndex = choicesChain[i]
+		local slicedNode = lume.slice(choiceNode, choiceIndex + 1)
+		local choicesPassed = false
+		indexShift = choiceIndex
+
+		for j, item in pairs(slicedNode) do
+			if not choicesPassed then
+				if item.type == enums.BLOCK_TYPE_CHOICE then
+					indexShift = indexShift + 1
+				else
+					table.insert(gathers, item)
+					choicesPassed = true
+				end
+			elseif choicesPassed and not choicesReached then
+				table.insert(gathers, item)
+				choicesReached = item.type == enums.BLOCK_TYPE_CHOICE
+			elseif choicesPassed and choicesReached then
+				if item.type == enums.BLOCK_TYPE_CHOICE then
+					table.insert(gathers, item)
+				else
+					break
+				end
+			end
+		end
+
+		path = path:sub(1, #path - #("." .. tostring(choiceIndex)))
+	end
+
+	if #gathers > 0 then
+		return self:readItems(gathers, path, indexShift)
+	end
 end
 
-function Story:readItems(items, path)
+function Story:readItems(items, path, shift)
 	assert(items, "Items can't be nil")
 
+	local diverted = false
+	local choicesReached = false
+
 	for index, item in ipairs(items) do
-		local separator = path:match(":.+") and "." or ":"
-		local route = path .. separator .. index
+		local isChoice = item.type == enums.BLOCK_TYPE_CHOICE
+		if diverted or (choicesReached and not isChoice) then
+			break
+		end
 
 		if item.type == enums.BLOCK_TYPE_TEXT then
-			self:readText(item, route)
-		elseif item.type == enums.BLOCK_TYPE_CHOICE then
-			self:readChoice(item, route)
+			self:readText(item)
+			diverted = item.divert ~= nil
 		-- elseif item.type == enums.BLOCK_TYPE_CONDITION then
 			-- self:readCondition(item)
 		-- elseif item.type == enums.BLOCK_TYPE_EXPRESSION then
 			-- self:readExpression(item)
 		-- elseif item.type == enums.BLOCK_TYPE_FUNCTION then
 			-- self:readFunction(item)
+		elseif item.type == enums.BLOCK_TYPE_CHOICE then
+			local separator = path:match(":.+") and "." or ":"
+			local choiceIndex = index + (shift or 0)
+			local choicePath = path .. separator .. choiceIndex
+			self:readChoice(item, choicePath)
+			choicesReached = true
 		end
+	end
+
+	if not choicesReached then
+		-- gathers?
+		-- Чтение gathers возможно как после выбора, так и внутри ноды с айтемами когда они заканчиваются внутри результата выбора.
+		-- Предлагаю создать функцию чтения items с указанием начального индекса, чтобы читать gathers после текущей ноды выбора
 	end
 end
 
-function Story:readText(item, path)
-	if item.text ~= nil then
-		local paragraph = item.text
-		local gluedByPrev = self.paragraphs[#self.paragraphs] == "<>"
+function Story:readText(item)
+	local text = item.text or item.gather
+
+	if text ~= nil then
+		local paragraph = text
+		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs]:sub(-2) == "<>"
 		local gluedByThis = paragraph:sub(1, 2) == "<>"
-		local glueNext = paragraph:sub(-2) == "<>"
 
 		if gluedByPrev then
-			table.remove(self.paragraphs, #self.paragraphs)
+			local prevParagraph = self.paragraphs[#self.paragraphs]
+			prevParagraph = prevParagraph:sub(1, #paragraph - 2)
+			self.paragraphs[#self.paragraphs] = prevParagraph
 		end
+
 		if gluedByThis then
 			paragraph = paragraph:sub(3)
 		end
 
 		if gluedByPrev or gluedByThis then
-			
 			local prevParagraph = self.paragraphs[#self.paragraphs]
 			prevParagraph = prevParagraph .. paragraph
 			self.paragraphs[#self.paragraphs] = prevParagraph
 		else
 			table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
-		end
-		
-		if glueNext then
-			local prevParagraph = self.paragraphs[#self.paragraphs]
-			prevParagraph = prevParagraph:sub(1, #paragraph - 2)
-			self.paragraphs[#self.paragraphs] = prevParagraph
-			table.insert(self.paragraphs, #self.paragraphs + 1, "<>")
 		end
 	end
 	
@@ -167,9 +218,10 @@ end
 function Story:readChoice(item, path)
 	local choice = {
 		title = item.choice,
-		text = #item.text > 0 and item.text or nil,
-		path = path
+		text = item.text or item.choice,
+		path = item.divert or path
 	}
+	
 	table.insert(self.choices, #self.choices + 1, choice)
 end
 
