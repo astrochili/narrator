@@ -13,17 +13,17 @@ local enums = require(localFolder .. ".enums")
 local Story = Object:extend()
 
 function Story:new(model)
-	self.model = model -- passive model of story
-	-- self.visits = { } -- dictionary of visits [knot [stitch = 3]]
+	self.model = model
+	
 	-- self.variables = { } -- dictionary of variables (saved to state)
 	-- self.constants = model.constants-- dictionary of constants (not saved to state)
-
 	-- self.currentTags = { }
+
 	self.choices = { }
 	self.paragraphs = { }
-
-	local rootPath = { knot = "_" }
-	self:read(rootPath)
+	self.visits = { _ = { _count = 1, _ = { _count = 1 } } }
+	self.currentPath = { }
+	self:read(self.currentPath)
 end
 
 function Story:canContinue()
@@ -69,62 +69,91 @@ function Story:choose(index)
 	self:read(choice.path)
 end
 
+function Story:visit(path, label)
+	if path.knot ~= self.currentPath.knot then
+		local knot = path.knot or "_"
+		local visits = self.visits[knot] or { _count = 0 }
+		visits._count = visits._count + 1
+		self.visits[knot] = visits
+	end
+
+	if path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch then
+		local knot, stitch = path.knot or "_", path.stitch or "_"
+		local visits = self.visits[knot][stitch] or { _count = 0 }
+		visits._count = visits._count + 1
+		self.visits[knot][stitch] = visits
+	end
+
+	if label ~= nil then
+		local knot, stitch = path.knot or "_", path.stitch or "_"
+		self.visits[knot] = self.visits[knot] or { _count = 1, _ = { _count = 1 } } 
+		self.visits[knot][stitch] = self.visits[knot][stitch] or { _count = 1 }
+		local visits = self.visits[knot][stitch][label] or 0
+		visits = visits + 1
+		self.visits[knot][stitch][label] = visits
+	end
+
+	self.currentPath = path
+end
+
 function Story:read(path)
+	assert(path, "The path can't be nil")
 	if path.knot == "END" or path.knot == "DONE" then return end
-	assert(path, "Path can't be nil")
 
-	local knotItems = self.model.knots[path.knot]
-	assert(knotItems, "The knot '" .. path.knot .. "' not found")
-
-	local stitchItems = path.stitch ~= nil and knotItems[path.stitch] or nil
-	local nodeItems = stitchItems or knotItems
-
-	self:readItems(nodeItems, path)
+	local rootNode = self.model.root
+	local knotNode = path.knot == nil and rootNode._ or rootNode[path.knot]
+	assert(knotNode or path.knot == nil, "The knot '" .. (path.knot or "_") .. "' not found")
+	local stitchNode = path.stitch == nil and knotNode._ or knotNode[stitch]
+	assert(stitchNode or path.stitch == nil, "The stitch '" .. (path.stitch or "_") .. "' not found")
+	local items = stitchNode or knotNode or rootNode
+	
+	self:visit(path)
+	self:readItems(items, path)
 end	
 
-function Story:readItems(items, targetPath, currentPath) 
+function Story:readItems(items, targetPath, transitPath) 
 	assert(items, "Items can't be nil")
 	assert(targetPath, "Path can't be nil")
 
-	if currentPath == nil then
-		currentPath = lume.clone(targetPath)
-		currentPath.choices = { }
+	if transitPath == nil then
+		transitPath = lume.clone(targetPath)
+		transitPath.choices = { }
 	end
 
 	local canContinue = true
-	local needToDive = targetPath.choices ~= nil and #currentPath.choices ~= #targetPath.choices
+	local needToDive = targetPath.choices ~= nil and #transitPath.choices ~= #targetPath.choices
 	local choicesIsPassed = not needToDive
 	local choicesIsReached = false
 
-	local deepChoice = needToDive and targetPath.choices[#currentPath.choices + 1] or nil
+	local deepIndex = needToDive and targetPath.choices[#transitPath.choices + 1] or nil
 	
-	for index = deepChoice or 1, #items do
+	for index = deepIndex or 1, #items do
 		local item = items[index]
 		local itemIsChoice = item.type == enums.BLOCK_TYPE_CHOICE
-		local deepChoiceIsWrong = deepChoice ~= nil and not itemIsChoice
 		local choicesOver = choicesIsReached and not itemIsChoice
 
-		canContinue = not deepChoiceIsWrong and not choicesOver
+		canContinue = not choicesOver
 		if not canContinue then break end
 
 		-- Go deep to the node
-		if index == deepChoice then
+		if index == deepIndex then
 			if item.node ~= nil then
-				local choicePath = lume.clone(currentPath)
-				choicePath.choices = lume.clone(currentPath.choices)
-				table.insert(choicePath.choices, deepChoice)
+				local choicePath = lume.clone(transitPath)
+				choicePath.choices = lume.clone(transitPath.choices)
+				table.insert(choicePath.choices, deepIndex)
 				canContinue = self:readItems(item.node, targetPath, choicePath)
 				if not canContinue then break end
 			end
-			deepChoice = nil
+			deepIndex = nil
 			choicesIsPassed = false
 		end
 
 		-- Just read the item
-		if item.type == enums.BLOCK_TYPE_CHOICE and index ~= deepChoice and choicesIsPassed then
+		local itemIsSkipped = false
+		if item.type == enums.BLOCK_TYPE_CHOICE and index ~= deepIndex and choicesIsPassed then
 			choicesIsReached = true
-			local choicePath = lume.clone(currentPath)
-			choicePath.choices = lume.clone(currentPath.choices)
+			local choicePath = lume.clone(transitPath)
+			choicePath.choices = lume.clone(transitPath.choices)
 			table.insert(choicePath.choices, index)
 			self:readChoice(item, choicePath)
 			canContinue = index < #items
@@ -133,6 +162,12 @@ function Story:readItems(items, targetPath, currentPath)
 			choicesIsPassed = true
 			canContinue = self:readText(item)
 			if not canContinue then break end
+		else
+			itemIsSkipped = true
+		end
+
+		if not itemIsSkipped and item.label ~= nil then
+			self:visit(targetPath, item.label)
 		end
 	end
 

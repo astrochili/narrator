@@ -1,6 +1,9 @@
 local self = { }
 
-self.knots = {
+self.constants = { }
+self.variables = { }
+
+self.root = {
 
     _ = {
         { type = "text", divert = { knot = "nestedExample" } },
@@ -36,7 +39,7 @@ self.knots = {
 
     nestedExample = {
         { type = "text", text = "My name is $name and I looked at Monsieur Fogg" },
-        { type = "choice", choice = "... and I could contain myself no longer.", node = {
+        { type = "choice", choice = "... and I could contain myself no longer.", label = "HELLO!!!", node = {
             { type = "text", text = "'What is the purpose of our journey, Monsieur?'" },
             { type = "text", text = "'A wager,' he replied." },
             { type = "choice", choice = "'A wager!'", text = "'A wager!' I returned", node = {
