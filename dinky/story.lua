@@ -16,13 +16,13 @@ function Story:new(model)
 	self.model = model
 	
 	-- self.variables = { } -- dictionary of variables (saved to state)
-	-- self.constants = model.constants-- dictionary of constants (not saved to state)
-	-- self.currentTags = { }
-
+	-- self.constants = model.constants -- dictionary of constants (not saved to state)
+	
+	self.currentPath = { }
 	self.choices = { }
 	self.paragraphs = { }
+	self.globalTags = self:tagsFor(self.currentPath)
 	self.visits = { _ = { _count = 1, _ = { _count = 1 } } }
-	self.currentPath = { }
 	self:read(self.currentPath)
 end
 
@@ -48,7 +48,6 @@ function Story:canChoose()
 	return self.choices ~= nil and #self.choices > 0 and not self:canContinue()
 end
 
-
 function Story:getChoices()
 	if self:canContinue() then return nil end
 	return self.choices
@@ -65,7 +64,7 @@ function Story:choose(index)
 	self.paragraphs = { }
 	self.choices = { }
 
-	table.insert(self.paragraphs, choice.text)
+	table.insert(self.paragraphs, { text = choice.text })
 	self:read(choice.path)
 end
 
@@ -96,17 +95,20 @@ function Story:visit(path, label)
 	self.currentPath = path
 end
 
-function Story:read(path)
-	assert(path, "The path can't be nil")
-	if path.knot == "END" or path.knot == "DONE" then return end
-
+function Story:itemsFor(path)
 	local rootNode = self.model.root
 	local knotNode = path.knot == nil and rootNode._ or rootNode[path.knot]
 	assert(knotNode or path.knot == nil, "The knot '" .. (path.knot or "_") .. "' not found")
 	local stitchNode = path.stitch == nil and knotNode._ or knotNode[stitch]
 	assert(stitchNode or path.stitch == nil, "The stitch '" .. (path.stitch or "_") .. "' not found")
-	local items = stitchNode or knotNode or rootNode
-	
+	return stitchNode or knotNode or rootNode
+end
+
+function Story:read(path)
+	assert(path, "The path can't be nil")
+	if path.knot == "END" or path.knot == "DONE" then return end
+
+	local items = self:itemsFor(path)	
 	self:visit(path)
 	self:readItems(items, path)
 end	
@@ -129,8 +131,8 @@ function Story:readItems(items, targetPath, transitPath)
 	
 	for index = deepIndex or 1, #items do
 		local item = items[index]
-		local itemIsChoice = item.type == enums.BLOCK_TYPE_CHOICE
-		local choicesOver = choicesIsReached and not itemIsChoice
+		local itemType = item.choice ~= nil and enums.BLOCK_TYPE_CHOICE or enums.BLOCK_TYPE_TEXT
+		local choicesOver = choicesIsReached and itemType ~= enums.BLOCK_TYPE_CHOICE
 
 		canContinue = not choicesOver
 		if not canContinue then break end
@@ -150,7 +152,7 @@ function Story:readItems(items, targetPath, transitPath)
 
 		-- Just read the item
 		local itemIsSkipped = false
-		if item.type == enums.BLOCK_TYPE_CHOICE and index ~= deepIndex and choicesIsPassed then
+		if itemType == enums.BLOCK_TYPE_CHOICE and index ~= deepIndex and choicesIsPassed then
 			choicesIsReached = true
 			local choicePath = lume.clone(transitPath)
 			choicePath.choices = lume.clone(transitPath.choices)
@@ -158,7 +160,7 @@ function Story:readItems(items, targetPath, transitPath)
 			self:readChoice(item, choicePath)
 			canContinue = index < #items
 			if not canContinue then break end
-		elseif item.type == enums.BLOCK_TYPE_TEXT then
+		elseif itemType == enums.BLOCK_TYPE_TEXT then
 			choicesIsPassed = true
 			canContinue = self:readText(item)
 			if not canContinue then break end
@@ -176,32 +178,34 @@ end
 
 function Story:readText(item)
 	local text = item.text or item.gather
+	local tags = type(item.tags) == "string" and { item.tags } or item.tags
 	local canContinue = true
 
-	if text ~= nil then
-		local paragraph = text
-		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs]:sub(-2) == "<>"
-		local gluedByThis = paragraph:sub(1, 2) == "<>"
+	if text ~= nil or tags ~= nil then
+		local paragraph = { text = text or "<>", tags = tags or { } }
+		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>"
+		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
 
 		if gluedByPrev then
 			local prevParagraph = self.paragraphs[#self.paragraphs]
-			prevParagraph = prevParagraph:sub(1, #prevParagraph - 2)
+			prevParagraph.text = prevParagraph.text:sub(1, #prevParagraph.text - 2)
 			self.paragraphs[#self.paragraphs] = prevParagraph
 		end
 
 		if gluedByThis then
-			paragraph = paragraph:sub(3)
+			paragraph.text = paragraph.text:sub(3)
 		end
 
-		if gluedByPrev or gluedByThis then
+		if gluedByPrev or (gluedByThis and #self.paragraphs > 0) then
 			local prevParagraph = self.paragraphs[#self.paragraphs]
-			prevParagraph = prevParagraph .. paragraph
+			prevParagraph.text = prevParagraph.text .. paragraph.text
+			prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
 			self.paragraphs[#self.paragraphs] = prevParagraph
 		else
 			table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
 		end
 	end
-	
+
 	if item.divert ~= nil then
 		self:read(item.divert)
 		canContinue = false
@@ -223,18 +227,18 @@ end
 
 -- Tags
 
--- function Story:globalTags()
--- 	return self.model.globalTags
--- end
+function Story:tagsFor(path)
+	local items = self:itemsFor(path)
+	local tags = { }
 
--- function Story:currentTags()
--- 	return self.currentTags
--- end
+	for _, item in ipairs(items) do
+		if lume.count(item) > 1 or item.tags == nil then break end
+		local itemTags = type(item.tags) == "string" and { item.tags } or item.tags
+		tags = lume.concat(tags, itemTags)
+	end
 
--- function Story:pathTags(path)
--- 	-- TODO: Return knot or stitch tags
--- 	return { "tag1" }
--- end
+	return tags
+end
 
 
 -- States

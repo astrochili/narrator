@@ -1,15 +1,6 @@
 local self = { }
 
 self.includes = { "newspaper", "journeys/pyramid" }
-
-self.tags = {
-    _ = { "globalTag1", "globalTag2" },
-    knot1 = {
-        _ = { "tag1", "tag2" },
-        sticth1 = { "tag3", "tag4" }
-    }
-}
-
 self.constants = { }
 
 self.vars = {

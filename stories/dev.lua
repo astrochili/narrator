@@ -6,13 +6,15 @@ self.variables = { }
 self.root = {
 
     _ = {
-        { type = "text", divert = { knot = "nestedExample" } },
-        { type = "text", text = "Hello world! <>" },
+        { tags = { "globalTag1", "globalTag2" } },
+        { type = "text", divert = { knot = "back_in_london" } },
+        { type = "text", text = "Hello world! <>", tags = { "textTag2" } },
         { type = "text", text = "Again and again.", divert = { knot = "back_in_london" } }    
     },
 
     back_in_london = {
-        { type = "text", text = "We arrived into London at 9.45pm exactly." },
+        { tags = "knotTag" },
+        { type = "text", text = "We arrived into London at 9.45pm exactly.", tags = { "textTag" }  },
         { type = "choice", choice = "«There is not a moment to lose!»", text = "«There is not a moment to lose!» I declared.", node = {
             { type = "text", divert = { knot = "hurry_outside" } }
         }},

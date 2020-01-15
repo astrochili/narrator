@@ -1,6 +1,7 @@
 --
 -- Dependencies
 
+debug.vscode = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1"
 local dinky = require("dinky.dinky")
 
 --
@@ -15,7 +16,8 @@ function game()
     while story:canContinue() do 
         while story:canContinue() do
             local paragraph = story:continue()[1]
-            print(paragraph)
+            local currentTags = paragraph.tags
+            print(paragraph.text)
         end
     
         if not story:canChoose() then break end

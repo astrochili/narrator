@@ -8,7 +8,6 @@ local self = {
 
 -- self.blockType = { 
 --     text = "text",
---     gather = "gather",
 --     choice = "choice",
 --     condition = "condition",
 --     expression = "expression",
