@@ -5,7 +5,7 @@ local lume = require("lume")
 local Object = require("classic")
 
 local localFolder = (...):match('(.-)[^%.]+$') or (...)
-local enums = require(localFolder .. ".enums")
+local enums = require(localFolder .. "enums")
 
 --
 -- Story
@@ -22,7 +22,7 @@ function Story:new(model)
 	self.choices = { }
 	self.paragraphs = { }
 	self.globalTags = self:tagsFor(self.currentPath)
-	self.visits = { _ = { _count = 1, _ = { _count = 1 } } }
+	self.visits = { _ = { _root = 1, _ = { _root = 1 } } }
 	self:read(self.currentPath)
 end
 
@@ -65,28 +65,30 @@ function Story:choose(index)
 	self.choices = { }
 
 	table.insert(self.paragraphs, { text = choice.text })
-	self:read(choice.path)
+
+	self:visit(choice.path, "_choice:" .. table.concat(choice.path.choices, "."))
+	self:read(choice.divert or choice.path)
 end
 
 function Story:visit(path, label)
 	if path.knot ~= self.currentPath.knot then
 		local knot = path.knot or "_"
-		local visits = self.visits[knot] or { _count = 0 }
-		visits._count = visits._count + 1
+		local visits = self.visits[knot] or { _root = 0 }
+		visits._root = visits._root + 1
 		self.visits[knot] = visits
 	end
 
 	if path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch then
 		local knot, stitch = path.knot or "_", path.stitch or "_"
-		local visits = self.visits[knot][stitch] or { _count = 0 }
-		visits._count = visits._count + 1
+		local visits = self.visits[knot][stitch] or { _root = 0 }
+		visits._root = visits._root + 1
 		self.visits[knot][stitch] = visits
 	end
 
 	if label ~= nil then
 		local knot, stitch = path.knot or "_", path.stitch or "_"
-		self.visits[knot] = self.visits[knot] or { _count = 1, _ = { _count = 1 } } 
-		self.visits[knot][stitch] = self.visits[knot][stitch] or { _count = 1 }
+		self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } } 
+		self.visits[knot][stitch] = self.visits[knot][stitch] or { _root = 1 }
 		local visits = self.visits[knot][stitch][label] or 0
 		visits = visits + 1
 		self.visits[knot][stitch][label] = visits
@@ -218,10 +220,16 @@ function Story:readChoice(item, path)
 	local choice = {
 		title = item.choice,
 		text = item.text or item.choice,
-		path = item.divert or path
+		path = path,
+		divert = item.divert
 	}
-	
-	table.insert(self.choices, #self.choices + 1, choice)
+
+	local label = "_choice:" .. table.concat(path.choices, ".")
+	local visits = self.visits[path.knot or "_"][path.stitch or "_"][label]
+
+	if item.sticky or visits == 0 or visits == nil then
+		table.insert(self.choices, #self.choices + 1, choice)
+	end
 end
 
 

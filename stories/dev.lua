@@ -5,9 +5,19 @@ self.variables = { }
 
 self.root = {
 
+    sticky = {
+        { choice = "Eat another donut", sticky = true, text = "", node = {
+            { text = "You eat another donut.", divert = { knot = "sticky" } } }
+        },
+        { choice = "Get off the couch", node = {
+            { text = "You struggle up off the couch to go and compose epic poetry." },
+            { divert = { knot = "END" } } }
+        }
+    },
+
     _ = {
         { tags = { "globalTag1", "globalTag2" } },
-        { type = "text", divert = { knot = "back_in_london" } },
+        { type = "text", divert = { knot = "sticky" } },
         { type = "text", text = "Hello world! <>", tags = { "textTag2" } },
         { type = "text", text = "Again and again.", divert = { knot = "back_in_london" } }    
     },
