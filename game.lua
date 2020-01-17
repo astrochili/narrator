@@ -2,7 +2,7 @@
 -- Dependencies
 
 debug.vscode = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1"
-local dinky = require("dinky.dinky")
+local dinky = require("dinky")
 
 --
 -- Game

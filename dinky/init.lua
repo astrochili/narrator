@@ -2,8 +2,8 @@
 -- Dependencies
 
 local localFolder = (...):match('(.-)[^%.]+$') or (...)
-local parser = require(localFolder .. ".parser")
-local Story = require(localFolder .. ".story")
+local parser = require(localFolder .. "dinky.parser")
+local Story = require(localFolder .. "dinky.story")
 
 --
 -- Dinky
