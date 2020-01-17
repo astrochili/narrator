@@ -1,15 +1,12 @@
 {
     "configurations": [
         {
+            "name": "Debug",
             "type": "lua-local",
             "request": "launch",
-            "name": "Debug",
             "program": {
               "lua": "lua5.3",
               "file": "${workspaceFolder}/game.lua"
-            },
-            "env": {
-                "LUA_PATH": "/usr/local/share/lua/5.3/?.lua;/usr/local/share/lua/5.3/?/init.lua;/usr/local/lib/lua/5.3/?.lua;/usr/local/lib/lua/5.3/?/init.lua;./?.lua;./?/init.lua"
             }
         }
     ]
