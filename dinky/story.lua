@@ -13,7 +13,8 @@ local enums = require(localFolder .. "enums")
 local Story = Object:extend()
 
 function Story:new(model)
-	self.model = model
+	self.model = { }
+	self:include(model)
 	
 	-- self.variables = { } -- dictionary of variables (saved to state)
 	-- self.constants = model.constants -- dictionary of constants (not saved to state)
@@ -24,6 +25,23 @@ function Story:new(model)
 	self.globalTags = self:tagsFor(self.currentPath)
 	self.visits = { _ = { _root = 1, _ = { _root = 1 } } }
 	self:read(self.currentPath)
+end
+
+function Story:include(model)
+	if model.includes ~= nil and model.luaPath ~= nil then
+		for _, include in ipairs(model.includes) do
+			local includePath = model.luaPath:match('(.-)[^%.]+$') .. include
+			local includeModel = require(includePath)
+			includeModel.luaPath = includePath
+			self:include(includeModel)
+		end
+	end
+
+	local old = self.model
+	self.model = lume.merge(self.model, model)
+	self.model.root = lume.merge(old.root or { }, model.root or { })
+	self.model.constants = lume.merge(old.constants or { }, model.constants or { })
+	self.model.variables = lume.merge(old.variables or { }, model.variables or { })
 end
 
 function Story:canContinue()

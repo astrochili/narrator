@@ -28,13 +28,14 @@ function Dinky:parseStory(inkPath)
     file:close()
     
     model = parser.parse(lines)
-    model.filePath = filePath
+    model.inkPath = filePath
     return model
 end
 
 function Dinky:loadStory(luaPath)
-    local tree = require(luaPath)
-    return Story(tree)
+    local model = require(luaPath)
+    model.luaPath = luaPath
+    return Story(model)
 end
 
 return Dinky

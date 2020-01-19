@@ -1,5 +1,6 @@
 local self = { }
 
+self.includes = { "main" }
 self.constants = { }
 self.variables = { }
 

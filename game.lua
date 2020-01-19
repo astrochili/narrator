@@ -8,7 +8,7 @@ local dinky = require("dinky")
 -- Game
 
 function game()
-    local story = dinky:loadStory("stories/dev")
+    local story = dinky:loadStory("stories.dev")
     local answers = { 1, 1, 1, 1, 1 }
 
     print("\n--- Game begin ---")

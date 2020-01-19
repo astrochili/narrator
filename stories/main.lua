@@ -1,16 +1,15 @@
 local self = { }
 
-self.includes = { "newspaper", "journeys/pyramid" }
+-- self.includes = { "newspaper", "journeys/pyramid" }
 self.constants = { }
-
-self.vars = {
+self.variables = {
     name = "Kate",
     age = 23,
     isVegan = true,
     inventory = { "knife", "compass", "water" }
 }
 
-self.knots = {
+self.root = {
 
     -- Корневой узел
 
