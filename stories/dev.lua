@@ -5,21 +5,13 @@ self.variables = { }
 
 self.root = {
 
-    sticky = {
-        { choice = "Eat another donut", sticky = true, text = "", node = {
-            { text = "You eat another donut.", divert = { knot = "sticky" } } }
-        },
-        { choice = "Get off the couch", node = {
-            { text = "You struggle up off the couch to go and compose epic poetry." },
-            { divert = { knot = "END" } } }
-        }
-    },
-
     _ = {
         { tags = { "globalTag1", "globalTag2" } },
-        { type = "text", divert = { knot = "sticky" } },
-        { type = "text", text = "Hello world! <>", tags = { "textTag2" } },
-        { type = "text", text = "Again and again.", divert = { knot = "back_in_london" } }    
+        { text = "Choose your knot"},
+        -- { choice = "Back in London", divert = { knot = "back_in_london" } },
+        -- { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
+        -- { choice = "Sticky donuts", divert = { knot = "sticky" } },
+        { choice = "Fallback choices", divert = { knot = "find_help" } }
     },
 
     back_in_london = {
@@ -49,7 +41,7 @@ self.root = {
         { type = "text", divert = { knot = "END" } }
     },
 
-    nestedExample = {
+    gathers = {
         { type = "text", text = "My name is $name and I looked at Monsieur Fogg" },
         { type = "choice", choice = "... and I could contain myself no longer.", label = "HELLO!!!", node = {
             { type = "text", text = "'What is the purpose of our journey, Monsieur?'" },
@@ -73,6 +65,26 @@ self.root = {
         { type = "choice", choice = "... but I said nothing", text = "... but I said nothing and <>" },
         { type = "text", text = "we passed the day in silence." },
         { type = "text", divert = { knot = "END" } }
+    },
+
+    sticky = {
+        { choice = "Eat another donut", sticky = true, text = "", node = {
+            { text = "You eat another donut.", divert = { knot = "sticky" } } }
+        },
+        { choice = "Get off the couch", node = {
+            { text = "You struggle up off the couch to go and compose epic poetry." },
+            { divert = { knot = "END" } } }
+        }
+    },
+
+    find_help = {
+        { text = "You search desperately for a friendly face in the crowd." },
+        { choice = "The woman in the hat?", text = "The woman in the hat pushes you roughly aside.", divert = { knot = "find_help" } },
+        { choice = "The man with the briefcase?", text = "The man with the briefcase looks disgusted as you stumble past him.", divert = { knot = "find_help" } },
+        { choice = 0, node = {
+            { text = "But it is too late: you collapse onto the station platform. This is the end." },
+            { divert = { knot = "END" } } 
+        } }
     }
 
 }

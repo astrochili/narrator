@@ -64,7 +64,9 @@ function Story:choose(index)
 	self.paragraphs = { }
 	self.choices = { }
 
-	table.insert(self.paragraphs, { text = choice.text })
+	if choice.text ~= nil and #choice.text > 0 then
+		table.insert(self.paragraphs, { text = choice.text })
+	end
 
 	self:visit(choice.path, "_choice:" .. table.concat(choice.path.choices, "."))
 	self:read(choice.divert or choice.path)
@@ -159,8 +161,7 @@ function Story:readItems(items, targetPath, transitPath)
 			local choicePath = lume.clone(transitPath)
 			choicePath.choices = lume.clone(transitPath.choices)
 			table.insert(choicePath.choices, index)
-			self:readChoice(item, choicePath)
-			canContinue = index < #items
+			canContinue = self:readChoice(item, choicePath) and index < #items
 			if not canContinue then break end
 		elseif itemType == enums.BLOCK_TYPE_TEXT then
 			choicesIsPassed = true
@@ -217,19 +218,32 @@ function Story:readText(item)
 end
 
 function Story:readChoice(item, path)
-	local choice = {
-		title = item.choice,
-		text = item.text or item.choice,
-		path = path,
-		divert = item.divert
-	}
+	local isFallback = item.choice == 0
+	local canContinue = true
 
-	local label = "_choice:" .. table.concat(path.choices, ".")
-	local visits = self.visits[path.knot or "_"][path.stitch or "_"][label]
+	if isFallback then
+		if #self.choices == 0 then
+			-- FIXME: It doesn't work when the fallback choise isn't the last choice
+			self:read(item.divert or path)
+		end
+		canContinue = false
+	else
+		local choice = {
+			title = item.choice,
+			text = item.text or item.choice,
+			divert = item.divert,
+			path = path
+		}
 
-	if item.sticky or visits == 0 or visits == nil then
-		table.insert(self.choices, #self.choices + 1, choice)
+		local label = "_choice:" .. table.concat(path.choices, ".")
+		local visits = self.visits[path.knot or "_"][path.stitch or "_"][label]
+
+		if item.sticky or visits == 0 or visits == nil then
+			table.insert(self.choices, #self.choices + 1, choice)
+		end
 	end
+
+	return canContinue
 end
 
 
