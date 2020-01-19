@@ -205,7 +205,7 @@ function Story:readText(item)
 		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
 		
 		paragraph.text = paragraph.text:gsub("($[%w_]+)", function(match)
-			return self:valueFor(match:sub(2))
+			return self:valueFor(match:sub(2)) or match
 		end)
 
 		if gluedByPrev then
