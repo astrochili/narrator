@@ -93,9 +93,9 @@ end
 function Story:itemsFor(knot, stitch)
 	local rootNode = self.root
 	local knotNode = knot == nil and rootNode._ or rootNode[knot]
-	assert(knotNode or knot == nil, "The knot '" .. (knot or "_") .. "' not found")
+	assert(knotNode or lume.isarray(rootNode), "The knot '" .. (knot or "_") .. "' not found")
 	local stitchNode = stitch == nil and knotNode._ or knotNode[stitch]
-	assert(stitchNode or stitch == nil, "The stitch '" .. (stitch or "_") .. "' not found")
+	assert(stitchNode or lume.isarray(knotNode), "The stitch '" .. (knot or "_") .. "." .. (stitch or "_") .. "' not found")
 	return stitchNode or knotNode or rootNode
 end
 
