@@ -11,14 +11,11 @@ local Story = require(localFolder .. "dinky.story")
 local Dinky = { }
 
 function Dinky:parseStory(inkPath)
-    local filePath = inkPath
-    if inkPath:sub(-4) == ".ink" then
-        filePath = inkPath .. ".ink"
-    end
-
-    local file = io.open(filePath, "r")
+    local hasExtension = inkPath:sub(-4) == ".ink"
+    local file = io.open(inkPath .. (hasExtension and "" or ".ink"), "r")
+    
     if file == nil then
-        print("File doesn't exist: " .. filePath)
+        print("File doesn't exist: " .. inkPath)
         return nil
     end
 
@@ -28,7 +25,7 @@ function Dinky:parseStory(inkPath)
     file:close()
     
     model = parser.parse(lines)
-    model.inkPath = filePath
+    model.inkPath = inkPath
     return model
 end
 
