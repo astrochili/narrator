@@ -21,7 +21,8 @@ function Story:new(model)
 	self.currentPath = { }
 	self.choices = { }
 	self.paragraphs = { }
-	self.globalTags = self:tagsFor(self.currentPath)
+	self.output = { }
+	self.globalTags = self:tagsFor(nil)
 	self.visits = { _ = { _root = 1, _ = { _root = 1 } } }
 	self:read(self.currentPath)
 end
@@ -52,7 +53,9 @@ function Story:continue(steps)
 
 	local lines = { }
 	for index = 1, steps do
-		table.insert(lines, 1, self.paragraphs[index])
+		local paragraph = self.paragraphs[index]
+		table.insert(lines, paragraph)
+		table.insert(self.output, paragraph)
 		table.remove(self.paragraphs, 1)
 	end
 
@@ -83,11 +86,11 @@ function Story:choose(index)
 		table.insert(self.paragraphs, { text = choice.text })
 	end
 
-	self:visit(choice.path, "_choice:" .. table.concat(choice.path.choices, "."))
+	self:visit(choice.path)
 	self:read(choice.divert or choice.path)
 end
 
-function Story:visit(path, label)
+function Story:visit(path)
 	if path.knot ~= self.currentPath.knot then
 		local knot = path.knot or "_"
 		local visits = self.visits[knot] or { _root = 0 }
@@ -102,24 +105,24 @@ function Story:visit(path, label)
 		self.visits[knot][stitch] = visits
 	end
 
-	if label ~= nil then
+	if path.label ~= nil then
 		local knot, stitch = path.knot or "_", path.stitch or "_"
 		self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } } 
 		self.visits[knot][stitch] = self.visits[knot][stitch] or { _root = 1 }
 		local visits = self.visits[knot][stitch][label] or 0
 		visits = visits + 1
-		self.visits[knot][stitch][label] = visits
+		self.visits[knot][stitch][path.label] = visits
 	end
 
 	self.currentPath = path
 end
 
-function Story:itemsFor(path)
+function Story:itemsFor(knot, stitch)
 	local rootNode = self.root
-	local knotNode = path.knot == nil and rootNode._ or rootNode[path.knot]
-	assert(knotNode or path.knot == nil, "The knot '" .. (path.knot or "_") .. "' not found")
-	local stitchNode = path.stitch == nil and knotNode._ or knotNode[stitch]
-	assert(stitchNode or path.stitch == nil, "The stitch '" .. (path.stitch or "_") .. "' not found")
+	local knotNode = knot == nil and rootNode._ or rootNode[knot]
+	assert(knotNode or knot == nil, "The knot '" .. (knot or "_") .. "' not found")
+	local stitchNode = stitch == nil and knotNode._ or knotNode[stitch]
+	assert(stitchNode or stitch == nil, "The stitch '" .. (stitch or "_") .. "' not found")
 	return stitchNode or knotNode or rootNode
 end
 
@@ -127,27 +130,23 @@ function Story:read(path)
 	assert(path, "The path can't be nil")
 	if path.knot == "END" or path.knot == "DONE" then return end
 
-	local items = self:itemsFor(path)	
+	local items = self:itemsFor(path.knot, path.stitch)	
 	self:visit(path)
 	self:readItems(items, path)
 end	
 
-function Story:readItems(items, targetPath, transitPath) 
+function Story:readItems(items, path, depth)
 	assert(items, "Items can't be nil")
-	assert(targetPath, "Path can't be nil")
-
-	if transitPath == nil then
-		transitPath = lume.clone(targetPath)
-		transitPath.choices = { }
-	end
-
+	assert(path, "Path can't be nil")
 	local canContinue = true
-	local needToDive = targetPath.choices ~= nil and #transitPath.choices ~= #targetPath.choices
-	local choicesIsPassed = not needToDive
+
+	local chain = path.chain or { }
+	local depth = depth or 0
+	local deepIndex = (depth < #chain) and chain[depth + 1] or nil
+
+	local choicesIsPassed = deepIndex == nil
 	local choicesIsReached = false
 
-	local deepIndex = needToDive and targetPath.choices[#transitPath.choices + 1] or nil
-	
 	for index = deepIndex or 1, #items do
 		local item = items[index]
 		local itemType = item.choice ~= nil and enums.BLOCK_TYPE_CHOICE or enums.BLOCK_TYPE_TEXT
@@ -159,10 +158,7 @@ function Story:readItems(items, targetPath, transitPath)
 		-- Go deep to the node
 		if index == deepIndex then
 			if item.node ~= nil then
-				local choicePath = lume.clone(transitPath)
-				choicePath.choices = lume.clone(transitPath.choices)
-				table.insert(choicePath.choices, deepIndex)
-				canContinue = self:readItems(item.node, targetPath, choicePath)
+				canContinue = self:readItems(item.node, path, depth + 1)
 				if not canContinue then break end
 			end
 			deepIndex = nil
@@ -173,10 +169,12 @@ function Story:readItems(items, targetPath, transitPath)
 		local itemIsSkipped = false
 		if itemType == enums.BLOCK_TYPE_CHOICE and index ~= deepIndex and choicesIsPassed then
 			choicesIsReached = true
-			local choicePath = lume.clone(transitPath)
-			choicePath.choices = lume.clone(transitPath.choices)
-			table.insert(choicePath.choices, index)
-			canContinue = self:readChoice(item, choicePath) and index < #items
+			local nextChain = lume.clone(chain)
+			nextChain[depth + 1] = index
+			local nextPath = lume.clone(path)
+			nextPath.chain = nextChain
+			nextPath.label = ">" .. table.concat(nextChain, ".")
+			canContinue = self:readChoice(item, nextPath) and index < #items
 			if not canContinue then break end
 		elseif itemType == enums.BLOCK_TYPE_TEXT then
 			choicesIsPassed = true
@@ -187,7 +185,7 @@ function Story:readItems(items, targetPath, transitPath)
 		end
 
 		if not itemIsSkipped and item.label ~= nil then
-			self:visit(targetPath, item.label)
+			self:visit(path.knot, path.stitch, item.label)
 		end
 	end
 
@@ -205,7 +203,7 @@ function Story:readText(item)
 		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
 		
 		paragraph.text = paragraph.text:gsub("($[%w_]+)", function(match)
-			return self:valueFor(match:sub(2)) or match
+			return self:getValueFor(match:sub(2)) or match
 		end)
 
 		if gluedByPrev then
@@ -242,7 +240,7 @@ function Story:readChoice(item, path)
 
 	if isFallback then
 		if #self.choices == 0 then
-			-- FIXME: It doesn't work when the fallback choise isn't the last choice
+			-- TODO: A fallback isn't the last choice
 			self:read(item.divert or path)
 		end
 		canContinue = false
@@ -254,9 +252,7 @@ function Story:readChoice(item, path)
 			path = path
 		}
 
-		local label = "_choice:" .. table.concat(path.choices, ".")
-		local visits = self.visits[path.knot or "_"][path.stitch or "_"][label]
-
+		local visits = self.visits[path.knot or "_"][path.stitch or "_"][path.label]
 		if item.sticky or visits == 0 or visits == nil then
 			table.insert(self.choices, #self.choices + 1, choice)
 		end
@@ -268,8 +264,8 @@ end
 
 -- Tags
 
-function Story:tagsFor(path)
-	local items = self:itemsFor(path)
+function Story:tagsFor(knot, stitch)
+	local items = self:itemsFor(knot, stitch)
 	local tags = { }
 
 	for _, item in ipairs(items) do
@@ -284,8 +280,22 @@ end
 
 -- Variables
 
-function Story:valueFor(variable)
-	return self.variables[variable] or self.constants[variable]
+function Story:getValueFor(variable)
+	local value = self.variables[variable] or self.constants[variable]
+	if value == nil then
+		local path, label = self:pathFor(variable)
+		local knotVisits = path ~= nil and self.visits[path.knot] or nil
+		value = label ~= nil and visits or visits._root
+	end
+	return value
+end
+
+function Story:pathFromString(string)
+	return { }
+end
+
+function Story:visitsForPath(path)
+	-- body
 end
 
 -- States
@@ -296,7 +306,8 @@ function Story:saveState()
 		visits = self.visits,
 		currentPath = self.currentPath,
 		paragraphs = self.paragraphs,
-		choices = self.choices
+		choices = self.choices,
+		output = self.output
 	}
 	return state
 end
@@ -307,6 +318,7 @@ function Story:loadState(state)
 	self.currentPath = state.path
 	self.paragraphs = state.paragraphs
 	self.choices = state.choices
+	self.output = output
 end
 
 
