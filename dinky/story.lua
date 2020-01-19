@@ -90,33 +90,6 @@ function Story:choose(index)
 	self:read(choice.divert or choice.path)
 end
 
-function Story:visit(path)
-	if path.knot ~= self.currentPath.knot then
-		local knot = path.knot or "_"
-		local visits = self.visits[knot] or { _root = 0 }
-		visits._root = visits._root + 1
-		self.visits[knot] = visits
-	end
-
-	if path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch then
-		local knot, stitch = path.knot or "_", path.stitch or "_"
-		local visits = self.visits[knot][stitch] or { _root = 0 }
-		visits._root = visits._root + 1
-		self.visits[knot][stitch] = visits
-	end
-
-	if path.label ~= nil then
-		local knot, stitch = path.knot or "_", path.stitch or "_"
-		self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } } 
-		self.visits[knot][stitch] = self.visits[knot][stitch] or { _root = 1 }
-		local visits = self.visits[knot][stitch][label] or 0
-		visits = visits + 1
-		self.visits[knot][stitch][path.label] = visits
-	end
-
-	self.currentPath = path
-end
-
 function Story:itemsFor(knot, stitch)
 	local rootNode = self.root
 	local knotNode = knot == nil and rootNode._ or rootNode[knot]
@@ -166,8 +139,17 @@ function Story:readItems(items, path, depth)
 		end
 
 		-- Just read the item
-		local itemIsSkipped = false
-		if itemType == enums.BLOCK_TYPE_CHOICE and index ~= deepIndex and choicesIsPassed then
+		local skipItem = itemType == enums.BLOCK_TYPE_CHOICE and (index == deepIndex or not choicesIsPassed)
+
+		if not skipItem and item.label ~= nil then
+			local labelPath = lume.clone(path)
+			labelPath.label = item.label
+			self:visit(labelPath)
+		end
+
+		if skipItem then
+			-- skip
+		elseif itemType == enums.BLOCK_TYPE_CHOICE then
 			choicesIsReached = true
 			local nextChain = lume.clone(chain)
 			nextChain[depth + 1] = index
@@ -180,12 +162,6 @@ function Story:readItems(items, path, depth)
 			choicesIsPassed = true
 			canContinue = self:readText(item)
 			if not canContinue then break end
-		else
-			itemIsSkipped = true
-		end
-
-		if not itemIsSkipped and item.label ~= nil then
-			self:visit(path.knot, path.stitch, item.label)
 		end
 	end
 
@@ -202,8 +178,8 @@ function Story:readText(item)
 		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>"
 		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
 		
-		paragraph.text = paragraph.text:gsub("($[%w_]+)", function(match)
-			return self:getValueFor(match:sub(2)) or match
+		paragraph.text = paragraph.text:gsub("(%%[%w_.]+%%)", function(match)
+			return self:getValueFor(match:sub(2, #match-1)) or match
 		end)
 
 		if gluedByPrev then
@@ -252,8 +228,7 @@ function Story:readChoice(item, path)
 			path = path
 		}
 
-		local visits = self.visits[path.knot or "_"][path.stitch or "_"][path.label]
-		if item.sticky or visits == 0 or visits == nil then
+		if item.sticky or self:visitsFor(path) == 0 then
 			table.insert(self.choices, #self.choices + 1, choice)
 		end
 	end
@@ -283,20 +258,99 @@ end
 function Story:getValueFor(variable)
 	local value = self.variables[variable] or self.constants[variable]
 	if value == nil then
-		local path, label = self:pathFor(variable)
-		local knotVisits = path ~= nil and self.visits[path.knot] or nil
-		value = label ~= nil and visits or visits._root
+		local path = self:pathFromString(variable, self.currentPath)
+		local visitsCount = self:visitsFor(path)
+		value = visitsCount > 0 and visitsCount or nil
 	end
 	return value
 end
 
-function Story:pathFromString(string)
-	return { }
+function Story:pathFromString(pathString, context)
+	local part1, part2, part3 = pathString:match("([%w_]+)%.([%w_]+)%.([%w_]+)")
+	if part1 == nil then
+		part1, part2 = pathString:match("([%w_]+)%.([%w_]+)")
+		part1 = part1 or pathString
+	end
+
+	if part3 ~= nil or context == nil then 
+		return { knot = part1, stitch = part2, label = part3 }
+	end
+
+	local path = lume.clone(context)
+	local rootNode = self.root[path.knot or "_"]
+	local knotNode = part1 ~= nil and self.root[part1] or nil
+
+	if part2 ~= nil then
+		if knotNode ~= nil then
+			path.knot = part1
+			if knotNode[part2] ~= nil then path.stitch = part2
+			else path.label = part2 end
+		elseif rootNode ~= nil and rootNode[part1] ~= nil then
+			path.stitch = part1
+			path.label = part2
+		else
+			path.label = part2
+		end
+	elseif part1 ~= nil then
+		if knotNode ~= nil then
+			path.knot = part1
+		elseif rootNode ~= nil and rootNode[part1] ~= nil then
+			path.stitch = part1
+		else
+			path.label = part1
+		end
+	end
+	
+	return path
 end
 
-function Story:visitsForPath(path)
-	-- body
+
+-- Visits
+
+function Story:visit(path)
+	if path.knot ~= self.currentPath.knot then
+		local knot = path.knot or "_"
+		local visits = self.visits[knot] or { _root = 0 }
+		visits._root = visits._root + 1
+		self.visits[knot] = visits
+	end
+
+	if path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch then
+		local knot, stitch = path.knot or "_", path.stitch or "_"
+		local visits = self.visits[knot][stitch] or { _root = 0 }
+		visits._root = visits._root + 1
+		self.visits[knot][stitch] = visits
+	end
+
+	if path.label ~= nil then
+		local knot, stitch, label = path.knot or "_", path.stitch or "_", path.label
+		self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } } 
+		self.visits[knot][stitch] = self.visits[knot][stitch] or { _root = 1 }
+		local visits = self.visits[knot][stitch][label] or 0
+		visits = visits + 1
+		self.visits[knot][stitch][path.label] = visits
+		path.label = nil
+	end
+
+	self.currentPath = path
 end
+
+function Story:visitsFor(path)
+	if path == nil then return 0 end
+	local knot, stitch, label = path.knot or "_", path.stitch or "_", path.label
+
+	local knotVisits = self.visits[knot]
+	if knotVisits == nil then return 0
+	elseif stitch == nil then return knotVisits._root or 0 end
+
+	local stitchVisits = knotVisits[stitch]
+	if stitchVisits == nil then return 0
+	elseif label == nil then return stitchVisits._root or 0 end
+
+	local labelVisits = stitchVisits[label]
+	return labelVisits or 0
+end
+
 
 -- States
 

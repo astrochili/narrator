@@ -8,9 +8,9 @@ self.root = {
 
     _ = {
         { tags = { "globalTag1", "globalTag2" } },
-        { text = "Choose your knot, $name."},
-        { choice = "Back in London", divert = { knot = "back_in_london" } },
-        { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
+        { text = "Choose your knot, %name%."},
+        -- { choice = "Back in London", divert = { knot = "back_in_london" } },
+        -- { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
         { choice = "Sticky donuts", divert = { knot = "sticky" } },
         { choice = "Fallback choices", divert = { knot = "find_help" } }
     },
@@ -69,8 +69,9 @@ self.root = {
     },
 
     sticky = {
+        { text = "VISITS: %sticky.eat%" },
         { choice = "Eat another donut", sticky = true, text = "", node = {
-            { text = "You eat another donut.", divert = { knot = "sticky" } } }
+            { text = "You eat another donut.", label = "eat", divert = { knot = "sticky" } } }
         },
         { choice = "Get off the couch", node = {
             { text = "You struggle up off the couch to go and compose epic poetry." },
