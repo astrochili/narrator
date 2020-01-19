@@ -13,12 +13,11 @@ local enums = require(localFolder .. "enums")
 local Story = Object:extend()
 
 function Story:new(model)
-	self.model = { }
+	self.root = { }
+	self.constants = { }
+	self.variables = { }
 	self:include(model)
-	
-	-- self.variables = { } -- dictionary of variables (saved to state)
-	-- self.constants = model.constants -- dictionary of constants (not saved to state)
-	
+
 	self.currentPath = { }
 	self.choices = { }
 	self.paragraphs = { }
@@ -37,11 +36,9 @@ function Story:include(model)
 		end
 	end
 
-	local old = self.model
-	self.model = lume.merge(self.model, model)
-	self.model.root = lume.merge(old.root or { }, model.root or { })
-	self.model.constants = lume.merge(old.constants or { }, model.constants or { })
-	self.model.variables = lume.merge(old.variables or { }, model.variables or { })
+	self.root = lume.merge(self.root, model.root or { })
+	self.constants = lume.merge(self.constants, model.constants or { })
+	self.variables = lume.merge(self.variables, model.variables or { })
 end
 
 function Story:canContinue()
@@ -118,7 +115,7 @@ function Story:visit(path, label)
 end
 
 function Story:itemsFor(path)
-	local rootNode = self.model.root
+	local rootNode = self.root
 	local knotNode = path.knot == nil and rootNode._ or rootNode[path.knot]
 	assert(knotNode or path.knot == nil, "The knot '" .. (path.knot or "_") .. "' not found")
 	local stitchNode = path.stitch == nil and knotNode._ or knotNode[stitch]
@@ -206,6 +203,10 @@ function Story:readText(item)
 		local paragraph = { text = text or "<>", tags = tags or { } }
 		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>"
 		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
+		
+		paragraph.text = paragraph.text:gsub("($[%w_]+)", function(match)
+			return self:valueFor(match:sub(2))
+		end)
 
 		if gluedByPrev then
 			local prevParagraph = self.paragraphs[#self.paragraphs]
@@ -281,20 +282,32 @@ function Story:tagsFor(path)
 end
 
 
+-- Variables
+
+function Story:valueFor(variable)
+	return self.variables[variable] or self.constants[variable]
+end
+
 -- States
 
--- function Story:saveState()
--- 	local state = {
--- 		variables = self.variables,
--- 		path = self.path,
--- 		visits = self.visits
--- 	}
--- 	return state
--- end
+function Story:saveState()
+	local state = {
+		variables = self.variables,
+		visits = self.visits,
+		currentPath = self.currentPath,
+		paragraphs = self.paragraphs,
+		choices = self.choices
+	}
+	return state
+end
 
--- function Story:loadState(state)
--- 	-- TODO: Load state
--- end
+function Story:loadState(state)
+	self.variables = state.variables
+	self.visits = state.visits
+	self.currentPath = state.path
+	self.paragraphs = state.paragraphs
+	self.choices = state.choices
+end
 
 
 -- Reactive

@@ -8,7 +8,7 @@ self.root = {
 
     _ = {
         { tags = { "globalTag1", "globalTag2" } },
-        { text = "Choose your knot"},
+        { text = "Choose your knot, $name."},
         -- { choice = "Back in London", divert = { knot = "back_in_london" } },
         -- { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
         -- { choice = "Sticky donuts", divert = { knot = "sticky" } },
