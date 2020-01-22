@@ -108,9 +108,10 @@ function Story:read(path)
 	self:readItems(items, path)
 end	
 
-function Story:readItems(items, path, depth)
+function Story:readItems(items, path, depth, stopOnLast)
 	assert(items, "Items can't be nil")
 	assert(path, "Path can't be nil")
+	local stopOnLast = stopOnLast or true
 	local canContinue = true
 
 	local chain = path.chain or { }
@@ -121,8 +122,7 @@ function Story:readItems(items, path, depth)
 	local choicesIsReached = false
 	local queue = lume.slice(items, deepIndex or 1, #items)
 
-	while #queue > 0 do
-		local item = table.remove(queue, 1)
+	for index, item in ipairs(items) do
 		local skip = false
 
 		local itemType = enums.BLOCK_TYPE_TEXT
@@ -141,8 +141,13 @@ function Story:readItems(items, path, depth)
 		if index == deepIndex then
 			if item.node ~= nil then
 				canContinue = self:readItems(item.node, path, depth + 1)
-				if not canContinue then break end
+			elseif item.success ~= nil or item.failure ~= nil then
+				local success = chain[depth + 1] == 1
+				local node = success and item.success or item.failure
+				canContinue = self:readItems(node, path, depth + 2)
 			end
+
+			if not canContinue then break end
 
 			deepIndex = nil
 			choicesIsPassed = false
@@ -167,9 +172,12 @@ function Story:readItems(items, path, depth)
 				local solvedItem = { text = item[deepKey] }
 				canContinue = self:readText(solvedItem)
 			elseif node ~= nil then
-				for _, subitem in lume.ripairs(node) do
-					table.insert(queue, 1, subitem)
-				end
+				local nextChain = lume.clone(chain)
+				nextChain[depth + 1] = index
+				nextChain[depth + 2] = success and 1 or 0
+				local nextPath = lume.clone(path)
+				nextPath.chain = nextChain	
+				canContinue = self:readItems(node, nextPath, depth + 2, false)
 			end
 		elseif itemType == enums.BLOCK_TYPE_CHOICE then
 			choicesIsReached = true
@@ -178,7 +186,7 @@ function Story:readItems(items, path, depth)
 			local nextPath = lume.clone(path)
 			nextPath.chain = nextChain
 			nextPath.label = ">" .. table.concat(nextChain, ".")
-			canContinue = self:readChoice(item, nextPath) and index < #items
+			canContinue = self:readChoice(item, nextPath) and not (index == #items and stopOnLast)
 			if not canContinue then break end
 		elseif itemType == enums.BLOCK_TYPE_TEXT then
 			choicesIsPassed = true
