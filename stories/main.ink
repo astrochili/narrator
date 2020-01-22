@@ -1,6 +1,15 @@
--> road
+-> fallback
 - (greet) Hello world! <>
 Again and again.
+
+=== fallback
+*   Answer 1
+    OK! -> fallback
+* Answer 2
+    OK! -> fallback
+* { false } ->
+    Text -> END
+    
 
 === nested ===
 - I looked at Monsieur Fogg 

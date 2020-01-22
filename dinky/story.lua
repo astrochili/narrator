@@ -119,10 +119,19 @@ function Story:readItems(items, path, depth)
 
 	local choicesIsPassed = deepIndex == nil
 	local choicesIsReached = false
+	local queue = lume.slice(items, deepIndex or 1, #items)
 
-	for index = deepIndex or 1, #items do
-		local item = items[index]
-		local itemType = item.choice ~= nil and enums.BLOCK_TYPE_CHOICE or enums.BLOCK_TYPE_TEXT
+	while #queue > 0 do
+		local item = table.remove(queue, 1)
+		local skip = false
+
+		local itemType = enums.BLOCK_TYPE_TEXT
+		if item.choice ~= nil then
+			itemType = enums.BLOCK_TYPE_CHOICE
+		elseif item.condition ~= nil then
+			itemType = enums.BLOCK_TYPE_CONDITION
+		end
+
 		local choicesOver = choicesIsReached and itemType ~= enums.BLOCK_TYPE_CHOICE
 
 		canContinue = not choicesOver
@@ -134,21 +143,34 @@ function Story:readItems(items, path, depth)
 				canContinue = self:readItems(item.node, path, depth + 1)
 				if not canContinue then break end
 			end
+
 			deepIndex = nil
 			choicesIsPassed = false
+			skip = true
 		end
 
 		-- Just read the item
-		local skipItem = itemType == enums.BLOCK_TYPE_CHOICE and (index == deepIndex or not choicesIsPassed)
-
-		if not skipItem and item.label ~= nil then
+		if not skip and item.label ~= nil then
 			local labelPath = lume.clone(path)
 			labelPath.label = item.label
 			self:visit(labelPath)
 		end
 
-		if skipItem then
+		if skip or not choicesIsPassed then
 			-- skip
+		elseif itemType == enums.BLOCK_TYPE_CONDITION then
+			local success = self:checkCondition(item.condition)
+			local key = success and "success" or "failure"
+			local node = item[key] ~= nil and item[key] or { }
+			if type(node) == "string" then
+				choicesIsPassed = true
+				local solvedItem = { text = item[deepKey] }
+				canContinue = self:readText(solvedItem)
+			elseif node ~= nil then
+				for _, subitem in lume.ripairs(node) do
+					table.insert(queue, 1, subitem)
+				end
+			end
 		elseif itemType == enums.BLOCK_TYPE_CHOICE then
 			choicesIsReached = true
 			local nextChain = lume.clone(chain)
@@ -254,6 +276,11 @@ end
 
 
 -- Variables
+
+function Story:checkCondition(condition)
+	 local value = self:getValueFor(condition)
+	 return value ~= nil and value ~= false
+end
 
 function Story:getValueFor(variable)
 	local value = self.variables[variable] or self.constants[variable]
