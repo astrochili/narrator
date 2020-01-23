@@ -108,7 +108,7 @@ function Story:read(path)
 	self:readItems(items, path)
 end	
 
-function Story:readItems(items, path, depth, mode, lastChoiceIsLast)
+function Story:readItems(items, path, depth, mode)
 	assert(items, "Items can't be nil")
 	assert(path, "Path can't be nil")
 
@@ -116,7 +116,6 @@ function Story:readItems(items, path, depth, mode, lastChoiceIsLast)
 	local depth = depth or 0
 	local deepIndex = chain[depth + 1]
 	local mode = mode or (deepIndex ~= nil and enums.readMode.gathers or enums.readMode.text)
-	if lastChoiceIsLast == nil then lastChoiceIsLast = true end
 
 	for index = deepIndex or 1, #items do
 		local item = items[index]
