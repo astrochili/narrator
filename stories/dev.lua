@@ -9,12 +9,12 @@ self.root = {
     _ = {
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
-        -- { choice = "Diverts in London", divert = { knot = "fogg" } },
-        -- { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
-        -- { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
-        -- { choice = "Fallback choices", divert = { knot = "fallback" } },
+        { choice = "Diverts in London", divert = { knot = "fogg" } },
+        { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
+        { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
+        { choice = "Fallback choices", divert = { knot = "fallback" } },
         { choice = "Conditions", divert = { knot = "conditions" } },
-        -- { choice = "External function", divert = { knot = "external" } }
+        { choice = "External function", divert = { knot = "external" } }
     },
 
     conditions = {
