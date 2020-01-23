@@ -1,17 +1,19 @@
 local self = {
-    BLOCK_TYPE_TEXT = 1,
-    BLOCK_TYPE_CHOICE = 2,
-    BLOCK_TYPE_CONDITION = 3,
-    BLOCK_TYPE_EXPRESSION = 4,
-    BLOCK_TYPE_FUNCTION = 5
+    
+    blockType = { 
+        text = 1,
+        choice = 2,
+        condition = 3,
+        expression = 4,
+        external = 5
+    },
+    
+    readMode = { 
+        text = 1,
+        choices = 2,
+        gathers = 3,
+        quit = 4
+    }
 }
-
--- self.blockType = { 
---     Text = 1,
---     Choice = 2,
---     Condition = 3,
---     Expression = 4,
---     Function = 5
--- }
 
 return self

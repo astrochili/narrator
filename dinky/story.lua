@@ -108,100 +108,104 @@ function Story:read(path)
 	self:readItems(items, path)
 end	
 
-function Story:readItems(items, path, depth, stopOnLast)
+function Story:readItems(items, path, depth, mode, lastChoiceIsLast)
 	assert(items, "Items can't be nil")
 	assert(path, "Path can't be nil")
-	local stopOnLast = stopOnLast or true
-	local canContinue = true
 
 	local chain = path.chain or { }
 	local depth = depth or 0
-	local deepIndex = (depth < #chain) and chain[depth + 1] or nil
+	local deepIndex = chain[depth + 1]
+	local mode = mode or (deepIndex ~= nil and enums.readMode.gathers or enums.readMode.text)
+	if lastChoiceIsLast == nil then lastChoiceIsLast = true end
 
-	local choicesIsPassed = deepIndex == nil
-	local choicesIsReached = false
-	local queue = lume.slice(items, deepIndex or 1, #items)
-
-	for index, item in ipairs(items) do
+	for index = deepIndex or 1, #items do
+		local item = items[index]
 		local skip = false
 
-		local itemType = enums.BLOCK_TYPE_TEXT
+		local itemType = enums.blockType.text
 		if item.choice ~= nil then
-			itemType = enums.BLOCK_TYPE_CHOICE
+			itemType = enums.blockType.choice
 		elseif item.condition ~= nil then
-			itemType = enums.BLOCK_TYPE_CONDITION
+			itemType = enums.blockType.condition
 		end
 
-		local choicesOver = choicesIsReached and itemType ~= enums.BLOCK_TYPE_CHOICE
-
-		canContinue = not choicesOver
-		if not canContinue then break end
-
-		-- Go deep to the node
+		-- Go deep
 		if index == deepIndex then
 			if item.node ~= nil then
-				canContinue = self:readItems(item.node, path, depth + 1)
+				-- Go deep to the choice node
+				mode = self:readItems(item.node, path, depth + 1, mode, true) or mode
 			elseif item.success ~= nil or item.failure ~= nil then
-				local success = chain[depth + 1] == 1
+				-- Go deep to the condition node
+				local success = chain[depth + 2] == true
 				local node = success and item.success or item.failure
-				canContinue = self:readItems(node, path, depth + 2)
+				mode = self:readItems(node, path, depth + 2, mode, true) or mode
 			end
 
-			if not canContinue then break end
-
-			deepIndex = nil
-			choicesIsPassed = false
+			mode = mode ~= enums.readMode.quit and enums.readMode.gathers or mode
 			skip = true
 		end
 
-		-- Just read the item
-		if not skip and item.label ~= nil then
+		-- Check the situation
+		if mode == enums.readMode.choices and itemType ~= enums.blockType.choice then
+			mode = enums.readMode.quit
+			skip = true
+		elseif mode == enums.readMode.gathers and itemType == enums.blockType.choice then
+			skip = true
+		end
+		
+		-- Read the item
+		if skip then
+			-- skip
+		elseif itemType == enums.blockType.text then
+			mode = enums.readMode.text
+			mode = self:readText(item) or mode
+		elseif itemType == enums.blockType.choice then
+			mode = enums.readMode.choices
+			local deepChain = lume.slice(chain, 1, depth)
+			deepChain[depth + 1] = index
+			local deepPath = lume.clone(path)
+			deepPath.chain = deepChain
+			local makeChainSafe = function(x) return type(x) == "boolean" and (x and "t" or "f") or x end
+			deepPath.label = ">" .. table.concat(lume.map(deepChain, makeChainSafe), ".")
+			mode = self:readChoice(item, deepPath) or mode
+			if index == #items and type(chain[#chain]) ~= "boolean" then
+				mode = enums.readMode.quit
+			end
+		elseif itemType == enums.blockType.condition then
+			local success = self:checkCondition(item.condition)
+			local key = success and "success" or "failure"
+			local node = item[key] ~= nil and item[key] or { }
+			if type(node) == "string" then
+				mode = enums.readMode.text
+				mode = self:readText({ text = item[deepKey] }) or mode
+			elseif node ~= nil then
+				local deepChain = lume.slice(chain, 1, depth)
+				deepChain[depth + 1] = index
+				deepChain[depth + 2] = success and true or false
+				local deepPath = lume.clone(path)
+				deepPath.chain = deepChain
+				mode = self:readItems(node, deepPath, depth + 2, mode, false) or mode
+			end
+		end
+
+		-- Read the label
+		if item.label ~= nil and not skip then
 			local labelPath = lume.clone(path)
 			labelPath.label = item.label
 			self:visit(labelPath)
 		end
 
-		if skip or not choicesIsPassed then
-			-- skip
-		elseif itemType == enums.BLOCK_TYPE_CONDITION then
-			local success = self:checkCondition(item.condition)
-			local key = success and "success" or "failure"
-			local node = item[key] ~= nil and item[key] or { }
-			if type(node) == "string" then
-				choicesIsPassed = true
-				local solvedItem = { text = item[deepKey] }
-				canContinue = self:readText(solvedItem)
-			elseif node ~= nil then
-				local nextChain = lume.clone(chain)
-				nextChain[depth + 1] = index
-				nextChain[depth + 2] = success and 1 or 0
-				local nextPath = lume.clone(path)
-				nextPath.chain = nextChain	
-				canContinue = self:readItems(node, nextPath, depth + 2, false)
-			end
-		elseif itemType == enums.BLOCK_TYPE_CHOICE then
-			choicesIsReached = true
-			local nextChain = lume.clone(chain)
-			nextChain[depth + 1] = index
-			local nextPath = lume.clone(path)
-			nextPath.chain = nextChain
-			nextPath.label = ">" .. table.concat(nextChain, ".")
-			canContinue = self:readChoice(item, nextPath) and not (index == #items and stopOnLast)
-			if not canContinue then break end
-		elseif itemType == enums.BLOCK_TYPE_TEXT then
-			choicesIsPassed = true
-			canContinue = self:readText(item)
-			if not canContinue then break end
+		if mode == enums.readMode.quit then
+			break
 		end
 	end
 
-	return canContinue
+	return mode
 end
 
 function Story:readText(item)
 	local text = item.text or item.gather
 	local tags = type(item.tags) == "string" and { item.tags } or item.tags
-	local canContinue = true
 
 	if text ~= nil or tags ~= nil then
 		local paragraph = { text = text or "<>", tags = tags or { } }
@@ -234,36 +238,31 @@ function Story:readText(item)
 
 	if item.divert ~= nil then
 		self:read(item.divert)
-		canContinue = false
+		return enums.readMode.quit
 	end
-
-	return canContinue
 end
 
 function Story:readChoice(item, path)
 	local isFallback = item.choice == 0
-	local canContinue = true
 
 	if isFallback then
+		-- Works correctly only when a fallback is the last choice
 		if #self.choices == 0 then
-			-- TODO: A fallback isn't the last choice
 			self:read(item.divert or path)
 		end
-		canContinue = false
-	else
-		local choice = {
-			title = item.choice,
-			text = item.text or item.choice,
-			divert = item.divert,
-			path = path
-		}
-
-		if item.sticky or self:visitsFor(path) == 0 then
-			table.insert(self.choices, #self.choices + 1, choice)
-		end
+		return enums.readMode.quit
 	end
 
-	return canContinue
+	local choice = {
+		title = item.choice,
+		text = item.text or item.choice,
+		divert = item.divert,
+		path = path
+	}
+
+	if item.sticky or self:visitsFor(path) == 0 then
+		table.insert(self.choices, #self.choices + 1, choice)
+	end
 end
 
 

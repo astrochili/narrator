@@ -2,7 +2,7 @@ local self = { }
 
 self.includes = { "main" }
 self.constants = { }
-self.variables = { x = 0, y = 0, isVegan = false, isGod = false }
+self.variables = { isTrue = true, isFalse = false }
 
 self.root = {
 
@@ -19,34 +19,29 @@ self.root = {
 
     conditions = {
         { text = "His real name was "},
-        { condition = "met_blofeld.learned_his_name", success = { { text = "<>Franz<>" } }, failure = { { text = "<>a secret<>" } } },
+        { condition = "isTrue", success = { { text = "<>Franz<>" } }, failure = { { text = "<>a secret<>" } } },
         { text = "."},
-        { choice = "Condition choice", condition = "true", divert = { knot = "_" } },
-        { condition = "true", success = {
-            { choice = "Condition choice", divert = { knot = "_" } },
-        } },
-        { condition = "x > 0", success = {
-            { var = "y", express = "x - 1" },
-            { var = "isVegan", equal = true },
-            { text = "Hello!"},
-            { choice = "Bye!", sticky = true, divert = { knot = "_" } }
+        { condition = "isTrue", success = {
+            { text = "Success!"},
+            { choice = "Check the gather!" }
         }, failure = {
-            { text = "Hello?"},
-            { choice = "Bye!", divert = { knot = "_" } },
+            { text = "Failure!"},
+            { choice = "Check the gather!" },
         } },
-        { text = "...gather text" },
-        { condition = "true", success = {
-            { condition = "true", success = {
+        { text = "...gather text." },
+        { condition = "isTrue", success = {
+            { condition = "isTrue", success = {
                 { text = "Double truth!" },
-                { var = "isGod", equal = false }
+                { choice = "Leave it alone", divert = { knot = "_" } }
             }, failure = {
-                { text = "Imposible!" },
-                { var = "isGod", equal = true }
+                { text = "It's true, but imposible!" },
+                { choice = "Leave it alone", divert = { knot = "_" } }
             } }
         }, failure = {
-            { text = "Imposible!" },
-            { var = "isGod", equal = true }
-        } }
+            { text = "Absolutely imposible!" },
+            { choice = "Leave it alone", divert = { knot = "_" } }
+        } },
+        { choice = "Do it again", divert = { knot = "conditions" } }
     },
 
     external = {
