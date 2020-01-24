@@ -2,22 +2,36 @@ local self = { }
 
 self.includes = { "main" }
 self.constants = { }
-self.variables = { isTrue = true, isFalse = false }
+self.variables = {
+    isTrue = true,
+    isFalse = false,
+    x = 0,
+    y = 0
+}
 
 self.root = {
 
     _ = {
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
-        { choice = "Diverts in London", divert = { knot = "fogg" } },
-        { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
-        { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
-        { choice = "Fallback choices", divert = { knot = "fallback" } },
-        { choice = "Conditions", divert = { knot = "conditions" } },
+        -- { choice = "Diverts in London", divert = { knot = "fogg" } },
+        -- { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
+        -- { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
+        -- { choice = "Fallback choices", divert = { knot = "fallback" } },
+        -- { choice = "Conditions", divert = { knot = "conditions" } },
+        -- { choice = "Expressions", divert = { knot = "expressions" } },
         { choice = "External function", divert = { knot = "external" } }
     },
 
     conditions = {
+        { text = "Test choice conditions..." },
+        { condition = "isFalse", success = {
+            { choice = "Choice True", divert = { knot = "_" } },
+            { text = "beforeGather" }
+        }, failure = {
+            { choice = "Choice False", divert = { knot = "_" } }
+        } },
+        { choice = "Choice Anyway" },
         { text = "His real name was "},
         { condition = "isTrue", success = { { text = "<>Franz<>" } }, failure = { { text = "<>a secret<>" } } },
         { text = "."},
@@ -44,9 +58,20 @@ self.root = {
         { choice = "Do it again", divert = { knot = "conditions" } }
     },
 
+    expressions = {
+        { var = "x", expression = "x + 1"},
+        { text = "x = %x%, y = %y%, progress = 100%%" }
+    },
+
     external = {
-        { external = "showPuzzle", params = { "green" }, success = { { text = "You solved the green puzzle!" } }, failure = { { text = "Damn." } } },
-        { external = "playSound", params = { "shotgun", "once" } }
+        { text = "%beep()%"},
+        { var = "x", value = "10 + sum(5, 5) + 10"},
+        { condition = "x > 20", success = {
+            { text = "True! More than 30!" }
+        }, failure = {
+            { text = "False! Less than 30!" }
+        } },
+        { text = "x = %x%" }
     }
 
 }

@@ -16,6 +16,8 @@ function Story:new(model)
 	self.root = { }
 	self.constants = { }
 	self.variables = { }
+	self.functions = { }
+	self.observers = { }
 	self:include(model)
 
 	self.currentPath = { }
@@ -126,6 +128,8 @@ function Story:readItems(items, path, depth, mode)
 			itemType = enums.blockType.choice
 		elseif item.condition ~= nil then
 			itemType = enums.blockType.condition
+		elseif item.var ~= nil then
+			itemType = enums.blockType.variable
 		end
 
 		-- Go deep
@@ -185,6 +189,8 @@ function Story:readItems(items, path, depth, mode)
 				deepPath.chain = deepChain
 				mode = self:readItems(node, deepPath, depth + 2, mode, false) or mode
 			end
+		elseif itemType == enums.blockType.variable then
+			self:expressValueTo(item.var, item.value)
 		end
 
 		-- Read the label
@@ -211,8 +217,15 @@ function Story:readText(item)
 		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>"
 		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
 		
-		paragraph.text = paragraph.text:gsub("(%%[%w_.]+%%)", function(match)
-			return self:getValueFor(match:sub(2, #match-1)) or match
+		paragraph.text = paragraph.text:gsub("(%b%%)", function(match)
+			if #match == 2 then
+				return "%"
+			else
+				local result = self:doExpression(match:sub(2, #match-1)) 
+				if type(result) == "boolean" then result = result and 1 or 0 end
+				if result == nil then result = "" end
+				return result
+			end
 		end)
 
 		if gluedByPrev then
@@ -230,7 +243,7 @@ function Story:readText(item)
 			prevParagraph.text = prevParagraph.text .. paragraph.text
 			prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
 			self.paragraphs[#self.paragraphs] = prevParagraph
-		else
+		elseif #paragraph.tags > 0 or #paragraph.text > 0 then
 			table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
 		end
 	end
@@ -281,15 +294,67 @@ function Story:tagsFor(knot, stitch)
 end
 
 
--- Variables
+-- Variables and conditions
 
 function Story:checkCondition(condition)
-	 local value = self:getValueFor(condition)
-	 return value ~= nil and value ~= false
+	local result = self:doExpression(condition)
+	return result ~= nil and result ~= false
+end
+
+function Story:expressValueTo(variable, expression)
+	if self.constants[variable] ~= nil then return end
+	
+	local value = self:doExpression(expression)
+	self.variables[variable] = value
+
+	local observer = self.observers[variable]
+	if observer ~= nil then observer(value) end
+end
+
+function Story:doExpression(expression)
+	expression = expression:gsub("!=", "~=")
+	expression = expression:gsub("%s*||%s*", " or ")	
+	expression = expression:gsub("%s*%&%&%s*", " and ")
+	
+	-- Check for functions
+	expression = expression:gsub("[%a][%w_]*%(.*%)", function(match)
+		local functionName = match:match("([%a][%w_]*)%(")
+		local paramsString = match:match("[%a][%w_]*%((.+)%)")
+		local params = paramsString ~= nil and lume.map(lume.split(paramsString, ","), lume.trim) or nil
+
+		for index, param in ipairs(params or { }) do
+			params[index] = self:doExpression(param)
+		end
+
+		local result = self.functions[functionName](table.unpack(params or { }))
+		return lume.serialize(result)
+	end)
+
+	-- Check for variables
+	expression = expression:gsub("[\"\'%a][%w_%.\"\']*", function(match)
+		local exceptions = { "and", "or", "true", "false"}
+		if lume.find(exceptions, match) ~= nil or match:match("[\"\'].*[\"\']") ~= nil then
+			return match
+		else
+			local value = self:getValueFor(match)
+			return lume.serialize(value)
+		end
+	end)
+
+	-- Check for match operation
+	expression = expression:gsub("[\"\'%a][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a][%w_%.\"\']*", function(match)
+		local string, operator, sub = match:match("([\"\'%a][%w_%.\"\']*)[%s]*([%?!]+)[%s]*([\"\'%a][%w_%.\"\']*)")
+		return string .. ":match(" .. sub .. ")" .. (operator == "?!" and " == nil" or " ~= nil")
+	end)
+
+	return lume.dostring("return " .. expression)
 end
 
 function Story:getValueFor(variable)
-	local value = self.variables[variable] or self.constants[variable]
+	local value = self.variables[variable]
+	if value == nil then
+		value = self.constants[variable]
+	end
 	if value == nil then
 		local path = self:pathFromString(variable, self.currentPath)
 		local visitsCount = self:visitsFor(path)
@@ -411,12 +476,12 @@ end
 
 -- Reactive
 
--- function Story:observe(variable, func)
--- 	-- TODO: Observe variable changes and call the function
--- end
+function Story:observe(variable, observer)
+	self.observers[variable] = observer
+end
 
--- function Story:bind(name, func)
--- 	-- TODO: Bind an external function to the Ink function call
--- end
+function Story:bind(name, func)
+	self.functions[name] = func
+end
 
 return Story

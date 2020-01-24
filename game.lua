@@ -7,11 +7,15 @@ local dinky = require("dinky")
 --
 -- Game
 
-function game()
+local function game()
     local story = dinky:loadStory("stories.dev")
-    local answers = { 1, 1, 1, 1, 1 }
 
+    story:observe("x", function(x) print("The X did change! Now it's " .. x) end)
+    story:bind("beep", function() print("ATENTION. Beep! 😃") end)
+    story:bind("sum", function(x, y) return x + y end)
+    
     print("\n--- Game begin ---")
+    local botAnswers = { 1, 1, 1, 1, 1 }
 
     while story:canContinue() do 
         while story:canContinue() do
@@ -29,8 +33,8 @@ function game()
     
         local answer
         if debug.vscode then
-            answer = answers[1]
-            table.remove(answers, 1)
+            answer = botAnswers[1]
+            table.remove(botAnswers, 1)
             math.randomseed(os.time())
             answer = answer or math.random(1, #choices)
         else
@@ -42,11 +46,6 @@ function game()
     end
 
     print("--- Game over ---")
-end
-
-function sleep(seconds)
-    local start = os.time()
-    repeat until os.time() > start + seconds
 end
 
 game()

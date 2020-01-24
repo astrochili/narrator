@@ -5,8 +5,7 @@ self.keys = {
     knot = "knot", stitch = "stitch", chain = "chain",
     choice = "choice", sticky = "sticky", node = "node",
     condition = "condition", success = "sussess", failure = "failure",
-    var = "var", equal = "equal", express = "express",
-    external = "external", params = "params"
+    var = "var", value = "value"
 }
 
 self.variables = {

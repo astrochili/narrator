@@ -4,8 +4,7 @@ local self = {
         text = 1,
         choice = 2,
         condition = 3,
-        expression = 4,
-        external = 5
+        variable = 4
     },
     
     readMode = { 
