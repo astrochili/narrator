@@ -126,12 +126,12 @@ function Story:readItems(items, path, depth, mode)
 		local skip = false
 
 		local itemType = enums.blockType.text
-		if item.choice ~= nil then
-			itemType = enums.blockType.choice
-		elseif item.condition ~= nil then
-			itemType = enums.blockType.condition
-		elseif item.var ~= nil then
-			itemType = enums.blockType.variable
+		if type(item) == "table" then
+			if item.choice ~= nil then itemType = enums.blockType.choice
+			elseif item.condition ~= nil then itemType = enums.blockType.condition
+			elseif item.var ~= nil then itemType = enums.blockType.variable
+			elseif item.alts ~= nil then itemType = enums.blockType.alts
+			end
 		end
 
 		-- Go deep
@@ -157,6 +157,23 @@ function Story:readItems(items, path, depth, mode)
 			skip = true
 		end
 
+		-- Helper
+
+		local makeDeepPath = function(values, labelPrefix)
+			local deepChain = lume.slice(chain, 1, depth)
+			for valuesIndex, value in ipairs(values) do
+				deepChain[depth + valuesIndex] = value
+			end
+			local deepPath = lume.clone(path)
+			deepPath.chain = deepChain
+			if labelPrefix then
+				deepPath.label = labelPrefix .. table.concat(deepChain, ".")
+			end
+			
+			return deepPath
+		end
+
+
 		-- Check the situation
 		if mode == enums.readMode.choices and itemType ~= enums.blockType.choice then
 			mode = enums.readMode.quit
@@ -170,21 +187,21 @@ function Story:readItems(items, path, depth, mode)
 			-- skip
 		elseif itemType == enums.blockType.text then
 			mode = enums.readMode.text
-			mode = self:readText(item) or mode
+			local safeItem = type(item) == "string" and { text = item } or item
+			mode = self:readText(safeItem) or mode
+		elseif itemType == enums.blockType.alts then
+			mode = enums.readMode.text
+			local deepPath = makeDeepPath({ index }, "~")
+			mode = self:readAlts(item, deepPath) or mode
 		elseif itemType == enums.blockType.choice then
 			mode = enums.readMode.choices
-			local deepChain = lume.slice(chain, 1, depth)
-			deepChain[depth + 1] = index
-			local deepPath = lume.clone(path)
-			deepPath.chain = deepChain
-			deepPath.label = ">" .. table.concat(deepChain, ".")
+			local deepPath = makeDeepPath({ index }, ">")
 			mode = self:readChoice(item, deepPath) or mode
 			if index == #items and type(chain[#chain]) == "number" then
 				mode = enums.readMode.quit
 			end
 		elseif itemType == enums.blockType.condition then
 			local result, chainValue
-
 			if type(item.condition) == "string" then	
 				local success = self:checkCondition(item.condition)
 				result = success and item.success or (item.failure or { })
@@ -194,16 +211,11 @@ function Story:readItems(items, path, depth, mode)
 				result = success > 0 and item.success[success] or (item.failure or { })
 				chainValue = success > 0 and ("t" .. success) or "f"
 			end
-			
 			if type(result) == "string" then
 				mode = enums.readMode.text
 				mode = self:readText({ text = result }) or mode
 			elseif type(result) == "table" then
-				local deepChain = lume.slice(chain, 1, depth)
-				deepChain[depth + 1] = index
-				deepChain[depth + 2] = chainValue
-				local deepPath = lume.clone(path)
-				deepPath.chain = deepChain
+				local deepPath = makeDeepPath({ index, chainValue })
 				mode = self:readItems(result, deepPath, depth + 2, mode) or mode
 			end
 		elseif itemType == enums.blockType.variable then
@@ -260,6 +272,47 @@ function Story:readText(item)
 		self:read(item.divert)
 		return enums.readMode.quit
 	end
+end
+
+function Story:readAlts(item, path)
+	assert(item.alts, "Alternatives can't be nil")
+
+	local altType = item.type or enums.altType.stopping
+	if type(altType) == "string" then
+		altType = enums.altType[item.type] or altType
+	end
+
+	self:visit(path)
+	local visits = self:visitsFor(path)
+	local index = 0
+
+	if (altType == enums.altType.shuffle and visits % #item.alts == 1)
+	or (altType == enums.altType.shuffleOnce and visits == 1)
+	or (altType == enums.altType.shuffleStopping and visits == 1) then
+		for index, alt in ipairs(item.alts) do
+			math.randomseed(os.time())
+			local pairIndex = index < #item.alts and math.random(index + 1, #item.alts) or index
+			item.alts[index] = item.alts[pairIndex]
+			item.alts[pairIndex] = alt
+		end
+	end
+
+	if altType >= enums.altType.shuffle then
+		altType = altType - 3
+	end
+
+	if altType == enums.altType.cycle then
+		index = visits % #item.alts
+		index = index > 0 and index or #item.alts
+	elseif altType == enums.altType.stopping then
+		index = visits < #item.alts and visits or #item.alts
+	elseif altType == enums.altType.once then
+		index = visits
+	end
+
+	local textItem = item.alts[index] or ""
+	local safeItem = type(textItem) == "string" and { text = textItem } or textItem
+	return self:readText(safeItem)
 end
 
 function Story:readChoice(item, path)
@@ -412,13 +465,11 @@ function Story:visit(path)
 		local visits = self.visits[knot][stitch][label] or 0
 		visits = visits + 1
 		self.visits[knot][stitch][path.label] = visits
-		path.label = nil
 	end
 
-	self.currentPath = path
+	self.currentPath = lume.clone(path)
+	self.currentPath.label = nil
 	self.temp = pathIsChanged and { } or self.temp
-
-	return pathIsChanged
 end
 
 function Story:visitsFor(path)
@@ -496,6 +547,7 @@ end
 
 function Story:saveState()
 	local state = {
+		temp = self.temp,
 		variables = self.variables,
 		visits = self.visits,
 		currentPath = self.currentPath,
@@ -507,6 +559,7 @@ function Story:saveState()
 end
 
 function Story:loadState(state)
+	self.temp = state.temp
 	self.variables = state.variables
 	self.visits = state.visits
 	self.currentPath = state.path

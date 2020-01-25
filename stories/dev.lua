@@ -1,4 +1,4 @@
-local self = { }
+local self = { version = 1 }
 
 self.includes = { "main" }
 self.constants = { }
@@ -12,7 +12,7 @@ self.variables = {
 self.root = {
 
     _ = {
-        { divert = { knot = "temp", stitch = "a" } },
+        { divert = { knot = "alternatives" } },
         
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
@@ -24,7 +24,7 @@ self.root = {
         { choice = "Expressions", divert = { knot = "expressions" } },
         { choice = "External function", divert = { knot = "external" } },
         { choice = "Multiline conditions", divert = { knot = "switches" } },
-        { choice = "Alternatives", devert = { knot = "alternatives"} }
+        { choice = "Alternatives", devert = { knot = "alternatives" } }
     },
 
     conditions = {
@@ -150,19 +150,31 @@ self.root = {
     },
 
     alternatives = {
-        { text = "He told me a joke." },
-        { alternatives = {
-            "I laughed politely.",
-            "I smiled.", 
-            "I grimaced.",
-            "I promised myself to not react again."
-        }, type = "shuffle" }
+        _ = {
+            { divert = { knot = "alternatives", stitch = "joke"} }
+        },
+        
+        joke = {
+            { text = "He told me a joke. <>" },
+            { alts = {
+                { text = "I laughed politely." },
+                { text = "I smiled." },
+                { text = "I grimaced." },
+                { text = "I promised myself to not react again." }
+            }, type = "shuffle" },
+            { choice = "Casino", title = "", sticky = true, divert = { knot = "alternatives", stitch = "casino"} }
+        },
+
+        casino = {
+            { alts = {
+                { text = "I entered the casino."},
+                { text = "I entered the casino again. x = %x * 10%" },
+                { text = "Once more, I went inside." }
+            }, type = "once" },
+            { choice = "Joke", title = "", sticky = true, divert = { knot = "alternatives", stitch = "joke" } }
+        }        
     }
 
-    -- diverts
-    -- nested alternatives
-    -- nested expressions
-    -- inside choice text
 }
 
 return self

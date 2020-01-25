@@ -1,4 +1,4 @@
-local self = { }
+local self = { version = 1 }
 
 self.keys = {
     tags = "tags", label = "label", text = "text", divert = "divert",
