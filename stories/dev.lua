@@ -64,14 +64,17 @@ self.root = {
     },
 
     external = {
-        { text = "%beep()%"},
+        { text = "%beep()%Random number = %RANDOM(1,10)%"},
         { var = "x", value = "10 + sum(5, 5) + 10"},
         { condition = "x > 20", success = {
             { text = "True! More than 30!" }
         }, failure = {
             { text = "False! Less than 30!" }
         } },
-        { text = "x = %x%" }
+        { text = "x = %x%" },
+        { choice = "Choice number %CHOICE_COUNT() + 1%" },
+        { choice = "Choice number %CHOICE_COUNT() + 1%" },
+        { choice = "Choice number %CHOICE_COUNT() + 1%" }
     }
 
 }

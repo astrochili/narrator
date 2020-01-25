@@ -16,7 +16,7 @@ function Story:new(model)
 	self.root = { }
 	self.constants = { }
 	self.variables = { }
-	self.functions = { }
+	self.functions = self:inkFunctions()
 	self.observers = { }
 	self:include(model)
 
@@ -190,7 +190,7 @@ function Story:readItems(items, path, depth, mode)
 				mode = self:readItems(node, deepPath, depth + 2, mode, false) or mode
 			end
 		elseif itemType == enums.blockType.variable then
-			self:expressValueTo(item.var, item.value)
+			self:assignValueTo(item.var, item.value)
 		end
 
 		-- Read the label
@@ -217,16 +217,7 @@ function Story:readText(item)
 		local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>"
 		local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
 		
-		paragraph.text = paragraph.text:gsub("(%b%%)", function(match)
-			if #match == 2 then
-				return "%"
-			else
-				local result = self:doExpression(match:sub(2, #match-1)) 
-				if type(result) == "boolean" then result = result and 1 or 0 end
-				if result == nil then result = "" end
-				return result
-			end
-		end)
+		paragraph.text = self:replaceExpressions(paragraph.text)
 
 		if gluedByPrev then
 			local prevParagraph = self.paragraphs[#self.paragraphs]
@@ -266,8 +257,8 @@ function Story:readChoice(item, path)
 	end
 
 	local choice = {
-		title = item.choice,
-		text = item.text or item.choice,
+		title = self:replaceExpressions(item.choice),
+		text = item.text ~= nil and self:replaceExpressions(item.text) or title,
 		divert = item.divert,
 		path = path
 	}
@@ -278,37 +269,24 @@ function Story:readChoice(item, path)
 end
 
 
--- Tags
+-- Expressions
 
-function Story:tagsFor(knot, stitch)
-	local items = self:itemsFor(knot, stitch)
-	local tags = { }
-
-	for _, item in ipairs(items) do
-		if lume.count(item) > 1 or item.tags == nil then break end
-		local itemTags = type(item.tags) == "string" and { item.tags } or item.tags
-		tags = lume.concat(tags, itemTags)
-	end
-
-	return tags
+function Story:replaceExpressions(text)
+	return text:gsub("(%b%%)", function(match)
+		if #match == 2 then
+			return "%"
+		else
+			local result = self:doExpression(match:sub(2, #match-1)) 
+			if type(result) == "boolean" then result = result and 1 or 0 end
+			if result == nil then result = "" end
+			return result
+		end
+	end)
 end
-
-
--- Variables and conditions
 
 function Story:checkCondition(condition)
 	local result = self:doExpression(condition)
 	return result ~= nil and result ~= false
-end
-
-function Story:expressValueTo(variable, expression)
-	if self.constants[variable] ~= nil then return end
-	
-	local value = self:doExpression(expression)
-	self.variables[variable] = value
-
-	local observer = self.observers[variable]
-	if observer ~= nil then observer(value) end
 end
 
 function Story:doExpression(expression)
@@ -328,8 +306,12 @@ function Story:doExpression(expression)
 			params[index] = self:doExpression(param)
 		end
 
-		local result = self.functions[functionName](table.unpack(params or { }))
-		return lume.serialize(result)
+		local func = self.functions[functionName]
+		if func ~= nil then
+			local result = func(table.unpack(params or { }))
+			return lume.serialize(result)
+		end
+		return "nil"
 	end)
 
 	-- Check for variables
@@ -352,6 +334,16 @@ function Story:doExpression(expression)
 	return lume.dostring("return " .. expression)
 end
 
+function Story:assignValueTo(variable, expression)
+	if self.constants[variable] ~= nil then return end
+	
+	local value = self:doExpression(expression)
+	self.variables[variable] = value
+
+	local observer = self.observers[variable]
+	if observer ~= nil then observer(value) end
+end
+
 function Story:getValueFor(variable)
 	local value = self.variables[variable]
 	if value == nil then
@@ -363,45 +355,6 @@ function Story:getValueFor(variable)
 		value = visitsCount > 0 and visitsCount or nil
 	end
 	return value
-end
-
-function Story:pathFromString(pathString, context)
-	local part1, part2, part3 = pathString:match("([%w_]+)%.([%w_]+)%.([%w_]+)")
-	if part1 == nil then
-		part1, part2 = pathString:match("([%w_]+)%.([%w_]+)")
-		part1 = part1 or pathString
-	end
-
-	if part3 ~= nil or context == nil then 
-		return { knot = part1, stitch = part2, label = part3 }
-	end
-
-	local path = lume.clone(context)
-	local rootNode = self.root[path.knot or "_"]
-	local knotNode = part1 ~= nil and self.root[part1] or nil
-
-	if part2 ~= nil then
-		if knotNode ~= nil then
-			path.knot = part1
-			if knotNode[part2] ~= nil then path.stitch = part2
-			else path.label = part2 end
-		elseif rootNode ~= nil and rootNode[part1] ~= nil then
-			path.stitch = part1
-			path.label = part2
-		else
-			path.label = part2
-		end
-	elseif part1 ~= nil then
-		if knotNode ~= nil then
-			path.knot = part1
-		elseif rootNode ~= nil and rootNode[part1] ~= nil then
-			path.stitch = part1
-		else
-			path.label = part1
-		end
-	end
-	
-	return path
 end
 
 
@@ -451,6 +404,60 @@ function Story:visitsFor(path)
 	return labelVisits or 0
 end
 
+function Story:pathFromString(pathString, context)
+	local part1, part2, part3 = pathString:match("([%w_]+)%.([%w_]+)%.([%w_]+)")
+	if part1 == nil then
+		part1, part2 = pathString:match("([%w_]+)%.([%w_]+)")
+		part1 = part1 or pathString
+	end
+
+	if part3 ~= nil or context == nil then 
+		return { knot = part1, stitch = part2, label = part3 }
+	end
+
+	local path = lume.clone(context)
+	local rootNode = self.root[path.knot or "_"]
+	local knotNode = part1 ~= nil and self.root[part1] or nil
+
+	if part2 ~= nil then
+		if knotNode ~= nil then
+			path.knot = part1
+			if knotNode[part2] ~= nil then path.stitch = part2
+			else path.label = part2 end
+		elseif rootNode ~= nil and rootNode[part1] ~= nil then
+			path.stitch = part1
+			path.label = part2
+		else
+			path.label = part2
+		end
+	elseif part1 ~= nil then
+		if knotNode ~= nil then
+			path.knot = part1
+		elseif rootNode ~= nil and rootNode[part1] ~= nil then
+			path.stitch = part1
+		else
+			path.label = part1
+		end
+	end
+	
+	return path
+end
+
+-- Tags
+
+function Story:tagsFor(knot, stitch)
+	local items = self:itemsFor(knot, stitch)
+	local tags = { }
+
+	for _, item in ipairs(items) do
+		if lume.count(item) > 1 or item.tags == nil then break end
+		local itemTags = type(item.tags) == "string" and { item.tags } or item.tags
+		tags = lume.concat(tags, itemTags)
+	end
+
+	return tags
+end
+
 
 -- States
 
@@ -484,6 +491,33 @@ end
 
 function Story:bind(name, func)
 	self.functions[name] = func
+end
+
+
+-- Ink functions
+
+function Story:inkFunctions()
+	return {
+		CHOICE_COUNT = function() return #self.choices end,
+		SEED_RANDOM = function(seed) math.randomseed(seed) end,
+		POW = function(x, y) return math.pow(x, y) end,
+		RANDOM = function(x, y) return math.random(x, y) end,
+		INT = function(x) return math.floor(x) end,
+		FLOOR = function(x) return math.floor(x) end,
+		FLOAT = function(x) return x end
+
+		-- TURNS = function() return nil end -- TODO
+		-- TURNS_SINCE = function(path) return nil end -- TODO	
+
+		-- LIST_VALUE = function(list) return nil end -- TODO
+		-- LIST_COUNT = function(list) return nil end -- TODO
+		-- LIST_MIN = function(list) return nil end -- TODO
+		-- LIST_MAX = function(list) return nil end -- TODO
+		-- LIST_RANDOM = function(list) return nil end -- TODO
+		-- LIST_ALL = function(list) return nil end -- TODO
+		-- LIST_RANGE = function(list) return nil end -- TODO
+		-- LIST_INVERT = function(list) return nil end -- TODO
+	}
 end
 
 return Story
