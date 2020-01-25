@@ -117,7 +117,7 @@ function Story:readItems(items, path, depth, mode)
 	local chain = path.chain or { }
 	local depth = depth or 0
 	local deepIndex = chain[depth + 1]
-	local mode = mode or (deepIndex ~= nil and enums.readMode.gathers or enums.readMode.text)
+	local mode = mode or enums.readMode.text
 
 	for index = deepIndex or 1, #items do
 		local item = items[index]
@@ -136,12 +136,19 @@ function Story:readItems(items, path, depth, mode)
 		if index == deepIndex then
 			if item.node ~= nil then
 				-- Go deep to the choice node
-				mode = self:readItems(item.node, path, depth + 1, mode, true) or mode
-			elseif item.success ~= nil or item.failure ~= nil then
+				mode = enums.readMode.gathers
+				mode = self:readItems(item.node, path, depth + 1) or mode
+			elseif item.success ~= nil then
 				-- Go deep to the condition node
-				local success = chain[depth + 2] == true
-				local node = success and item.success or item.failure
-				mode = self:readItems(node, path, depth + 2, mode, true) or mode
+				local chainValue = chain[depth + 2]
+				local success = chainValue:sub(1, 1) == "t"
+
+				local node = item.failure	
+				if success then
+					local successIndex = math.tointeger(chainValue:sub(2, 2)) or 0
+					node = successIndex > 0 and item.success[successIndex] or item.success
+				end
+				mode = self:readItems(node, path, depth + 2, mode) or mode
 			end
 
 			mode = mode ~= enums.readMode.quit and enums.readMode.gathers or mode
@@ -168,21 +175,22 @@ function Story:readItems(items, path, depth, mode)
 			deepChain[depth + 1] = index
 			local deepPath = lume.clone(path)
 			deepPath.chain = deepChain
-			local makeChainSafe = function(x) return type(x) == "boolean" and (x and "t" or "f") or x end
-			deepPath.label = ">" .. table.concat(lume.map(deepChain, makeChainSafe), ".")
+			deepPath.label = ">" .. table.concat(deepChain, ".")
 			mode = self:readChoice(item, deepPath) or mode
-			if index == #items and type(chain[#chain]) ~= "boolean" then
+			if index == #items and type(chain[#chain]) == "number" then
 				mode = enums.readMode.quit
 			end
 		elseif itemType == enums.blockType.condition then
-			local result = nil
+			local result, chainValue
 
 			if type(item.condition) == "string" then	
 				local success = self:checkCondition(item.condition)
 				result = success and item.success or (item.failure or { })
+				chainValue = success and "t" or "f"
 			elseif type(item.condition) == "table" then
-				local successIndex = self:checkSwitch(item.condition)
-				result = successIndex > 0 and item.success[successIndex] or (item.failure or { })
+				local success = self:checkSwitch(item.condition)
+				result = success > 0 and item.success[success] or (item.failure or { })
+				chainValue = success > 0 and ("t" .. success) or "f"
 			end
 			
 			if type(result) == "string" then
@@ -191,10 +199,10 @@ function Story:readItems(items, path, depth, mode)
 			elseif type(result) == "table" then
 				local deepChain = lume.slice(chain, 1, depth)
 				deepChain[depth + 1] = index
-				deepChain[depth + 2] = success and true or false
+				deepChain[depth + 2] = chainValue
 				local deepPath = lume.clone(path)
 				deepPath.chain = deepChain
-				mode = self:readItems(result, deepPath, depth + 2, mode, false) or mode
+				mode = self:readItems(result, deepPath, depth + 2, mode) or mode
 			end
 		elseif itemType == enums.blockType.variable then
 			self:assignValueTo(item.var, item.value)
@@ -285,7 +293,7 @@ function Story:replaceExpressions(text)
 		else
 			local result = self:doExpression(match:sub(2, #match-1)) 
 			if type(result) == "boolean" then result = result and 1 or 0 end
-			if result == nil then result = "" end
+			if result == nil then result = "%nil%" end
 			return result
 		end
 	end)

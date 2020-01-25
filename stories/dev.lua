@@ -12,15 +12,17 @@ self.variables = {
 self.root = {
 
     _ = {
+        { divert = { knot = "switches" } },
+        
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
-        -- { choice = "Diverts in London", divert = { knot = "fogg" } },
-        -- { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
-        -- { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
-        -- { choice = "Fallback choices", divert = { knot = "fallback" } },
-        -- { choice = "Conditions", divert = { knot = "conditions" } },
-        -- { choice = "Expressions", divert = { knot = "expressions" } },
-        -- { choice = "External function", divert = { knot = "external" } },
+        { choice = "Diverts in London", divert = { knot = "fogg" } },
+        { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
+        { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
+        { choice = "Fallback choices", divert = { knot = "fallback" } },
+        { choice = "Conditions", divert = { knot = "conditions" } },
+        { choice = "Expressions", divert = { knot = "expressions" } },
+        { choice = "External function", divert = { knot = "external" } },
         { choice = "Multiline conditions", divert = { knot = "switches" } }
     },
 
@@ -79,27 +81,27 @@ self.root = {
     },
 
     switches = {
-        { var = "x", value = "0" },
-        { text = "---\nSimple condition for %x%:" },
-        { condition = "x > 1", success = "Success", failure = "Failure" },
+        { var = "x", value = "1" },
+        { text = "---\nSimple condition for x = %x%:" },
+        { condition = "x > 1", success = "Success: x > 1", failure = "Failure: x <= 1" },
 
-        { text = "---\nComplex condition for %x%:" },
+        { text = "---\nComplex condition for x = %x%:" },
         { condition = "x > 1", success = {
             { text = "Success:" },
             { text = "x > 1" }
         }, failure = {
             { text = "Failure:" },
-            { text = "x > 1" }
+            { text = "x <= 1" }
         } },
 
-        { text = "---\nSimple multiline conditions for %x%:" },
+        { text = "---\nSimple multiline conditions for x = %x%:" },
         { condition = {
             "x > 0", "x < 0"
         }, success = {
             "Success: x > 0 = TRUE", "Success: x < 0"
         }, failure = "Failure: x == 0" },
 
-        { text = "---\nComplex multiline conditions for %x%:" },
+        { text = "---\nComplex multiline conditions for x = %x%:" },
         { condition = {
             "x == 0",
             "x == 1",
@@ -111,9 +113,30 @@ self.root = {
         }, failure = {
             { text = "Failure 0:" },
             { text = "x < 0 or x > 2" }
-        } }
-    }
+        } },
 
+        { text = "---\nComplex multiline conditions with choices for x = %x%:" },
+        { condition = {
+            "x > 0",
+            "x < 0",
+        }, success = {
+            {
+                { choice = "Choice t1", node = {
+                    { var = "choice", value = "'t1'" } 
+                } },
+            },
+            {
+                { choice = "Choice t2", node = {
+                    { var = "choice", value = "'t2'" }
+                } }
+            }
+        }, failure = {
+            { choice = "Choice f", node = {
+                { var = "choice", value = "'f'" }
+            } },
+        } },
+        { text = "... gather with choice %choice% ..."}
+    }
 }
 
 return self

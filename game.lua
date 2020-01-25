@@ -17,7 +17,7 @@ local function game()
     print("\n--- Game begin ---")
     local botAnswers = { 1, 1, 1, 1, 1 }
 
-    while story:canContinue() do 
+    while story:canContinue() or story:canChoose() do 
         while story:canContinue() do
             local paragraph = story:continue()[1]
             local currentTags = paragraph.tags
