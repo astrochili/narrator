@@ -175,19 +175,26 @@ function Story:readItems(items, path, depth, mode)
 				mode = enums.readMode.quit
 			end
 		elseif itemType == enums.blockType.condition then
-			local success = self:checkCondition(item.condition)
-			local key = success and "success" or "failure"
-			local node = item[key] ~= nil and item[key] or { }
-			if type(node) == "string" then
+			local result = nil
+
+			if type(item.condition) == "string" then	
+				local success = self:checkCondition(item.condition)
+				result = success and item.success or (item.failure or { })
+			elseif type(item.condition) == "table" then
+				local successIndex = self:checkSwitch(item.condition)
+				result = successIndex > 0 and item.success[successIndex] or (item.failure or { })
+			end
+			
+			if type(result) == "string" then
 				mode = enums.readMode.text
-				mode = self:readText({ text = item[deepKey] }) or mode
-			elseif node ~= nil then
+				mode = self:readText({ text = result }) or mode
+			elseif type(result) == "table" then
 				local deepChain = lume.slice(chain, 1, depth)
 				deepChain[depth + 1] = index
 				deepChain[depth + 2] = success and true or false
 				local deepPath = lume.clone(path)
 				deepPath.chain = deepChain
-				mode = self:readItems(node, deepPath, depth + 2, mode, false) or mode
+				mode = self:readItems(result, deepPath, depth + 2, mode, false) or mode
 			end
 		elseif itemType == enums.blockType.variable then
 			self:assignValueTo(item.var, item.value)
@@ -284,12 +291,23 @@ function Story:replaceExpressions(text)
 	end)
 end
 
+function Story:checkSwitch(conditions)
+	for index, condition in ipairs(conditions) do
+		if self:checkCondition(condition) then
+			return index
+		end
+	end
+	return 0
+end
+
 function Story:checkCondition(condition)
 	local result = self:doExpression(condition)
 	return result ~= nil and result ~= false
 end
 
 function Story:doExpression(expression)
+	assert(type(expression) == "string", "Expression must be a string")
+	
 	expression = expression:gsub("!=", "~=")
 	expression = expression:gsub("%s*||%s*", " or ")	
 	expression = expression:gsub("%s*%&%&%s*", " and ")

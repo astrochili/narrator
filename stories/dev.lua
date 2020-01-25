@@ -20,7 +20,8 @@ self.root = {
         -- { choice = "Fallback choices", divert = { knot = "fallback" } },
         -- { choice = "Conditions", divert = { knot = "conditions" } },
         -- { choice = "Expressions", divert = { knot = "expressions" } },
-        { choice = "External function", divert = { knot = "external" } }
+        -- { choice = "External function", divert = { knot = "external" } },
+        { choice = "Multiline conditions", divert = { knot = "switches" } }
     },
 
     conditions = {
@@ -59,7 +60,7 @@ self.root = {
     },
 
     expressions = {
-        { var = "x", expression = "x + 1"},
+        { var = "y", value = "y + 1"},
         { text = "x = %x%, y = %y%, progress = 100%%" }
     },
 
@@ -75,6 +76,42 @@ self.root = {
         { choice = "Choice number %CHOICE_COUNT() + 1%" },
         { choice = "Choice number %CHOICE_COUNT() + 1%" },
         { choice = "Choice number %CHOICE_COUNT() + 1%" }
+    },
+
+    switches = {
+        { var = "x", value = "0" },
+        { text = "---\nSimple condition for %x%:" },
+        { condition = "x > 1", success = "Success", failure = "Failure" },
+
+        { text = "---\nComplex condition for %x%:" },
+        { condition = "x > 1", success = {
+            { text = "Success:" },
+            { text = "x > 1" }
+        }, failure = {
+            { text = "Failure:" },
+            { text = "x > 1" }
+        } },
+
+        { text = "---\nSimple multiline conditions for %x%:" },
+        { condition = {
+            "x > 0", "x < 0"
+        }, success = {
+            "Success: x > 0 = TRUE", "Success: x < 0"
+        }, failure = "Failure: x == 0" },
+
+        { text = "---\nComplex multiline conditions for %x%:" },
+        { condition = {
+            "x == 0",
+            "x == 1",
+            "x == 2",
+        }, success = {
+            { { text = "Success 1:" }, { text = "x == 0" } },
+            { { text = "Success 2:" }, { text = "x == 1" } },
+            { { text = "Success 3:" }, { text = "x == 2" } }
+        }, failure = {
+            { text = "Failure 0:" },
+            { text = "x < 0 or x > 2" }
+        } }
     }
 
 }

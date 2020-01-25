@@ -10,7 +10,7 @@ local dinky = require("dinky")
 local function game()
     local story = dinky:loadStory("stories.dev")
 
-    story:observe("x", function(x) print("The X did change! Now it's " .. x) end)
+    story:observe("y", function(y) print("The y did change! Now it's " .. y) end)
     story:bind("beep", function() print("ATENTION. Beep! 😃") end)
     story:bind("sum", function(x, y) return x + y end)
     
