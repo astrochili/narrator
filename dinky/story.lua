@@ -315,6 +315,8 @@ function Story:doExpression(expression)
 	expression = expression:gsub("!=", "~=")
 	expression = expression:gsub("%s*||%s*", " or ")	
 	expression = expression:gsub("%s*%&%&%s*", " and ")
+	expression = expression:gsub("([%a][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
+	expression = expression:gsub("([%a][%w_]*)%s*([%+%-])=%s*([%w_]*)", "%1 = %1 %2 %3")
 	
 	-- Check for functions
 	expression = expression:gsub("[%a][%w_]*%(.*%)", function(match)
