@@ -16,15 +16,17 @@ function Story:new(model)
 	self.root = { }
 	self.constants = { }
 	self.variables = { }
-	self.functions = self:inkFunctions()
-	self.observers = { }
 	self:include(model)
 
+	self.functions = self:inkFunctions()
+	self.observers = { }
+	self.globalTags = self:tagsFor(nil)
+
+	self.temp = { }
 	self.currentPath = { }
 	self.choices = { }
 	self.paragraphs = { }
 	self.output = { }
-	self.globalTags = self:tagsFor(nil)
 	self.visits = { _ = { _root = 1, _ = { _root = 1 } } }
 	self:read(self.currentPath)
 end
@@ -104,7 +106,7 @@ end
 function Story:read(path)
 	assert(path, "The path can't be nil")
 	if path.knot == "END" or path.knot == "DONE" then return end
-
+	
 	local items = self:itemsFor(path.knot, path.stitch)	
 	self:visit(path)
 	self:readItems(items, path)
@@ -205,7 +207,7 @@ function Story:readItems(items, path, depth, mode)
 				mode = self:readItems(result, deepPath, depth + 2, mode) or mode
 			end
 		elseif itemType == enums.blockType.variable then
-			self:assignValueTo(item.var, item.value)
+			self:assignValueTo(item.var, item.value, item.temp)
 		end
 
 		-- Read the label
@@ -360,21 +362,21 @@ function Story:doExpression(expression)
 	return lume.dostring("return " .. expression)
 end
 
-function Story:assignValueTo(variable, expression)
+function Story:assignValueTo(variable, expression, temp)
 	if self.constants[variable] ~= nil then return end
 	
 	local value = self:doExpression(expression)
-	self.variables[variable] = value
+	if temp then self.temp[variable] = value
+	else self.variables[variable] = value end
 
 	local observer = self.observers[variable]
 	if observer ~= nil then observer(value) end
 end
 
 function Story:getValueFor(variable)
-	local value = self.variables[variable]
-	if value == nil then
-		value = self.constants[variable]
-	end
+	local value = self.temp[variable]
+	if value == nil then value = self.variables[variable] end
+	if value == nil then value = self.constants[variable] end
 	if value == nil then
 		local path = self:pathFromString(variable, self.currentPath)
 		local visitsCount = self:visitsFor(path)
@@ -387,14 +389,16 @@ end
 -- Visits
 
 function Story:visit(path)
-	if path.knot ~= self.currentPath.knot then
-		local knot = path.knot or "_"
-		local visits = self.visits[knot] or { _root = 0 }
-		visits._root = visits._root + 1
-		self.visits[knot] = visits
-	end
+	local pathIsChanged = path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch
 
-	if path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch then
+	if pathIsChanged then
+		if path.knot ~= self.currentPath.knot then
+			local knot = path.knot or "_"
+			local visits = self.visits[knot] or { _root = 0 }
+			visits._root = visits._root + 1
+			self.visits[knot] = visits
+		end
+	
 		local knot, stitch = path.knot or "_", path.stitch or "_"
 		local visits = self.visits[knot][stitch] or { _root = 0 }
 		visits._root = visits._root + 1
@@ -412,6 +416,9 @@ function Story:visit(path)
 	end
 
 	self.currentPath = path
+	self.temp = pathIsChanged and { } or self.temp
+
+	return pathIsChanged
 end
 
 function Story:visitsFor(path)

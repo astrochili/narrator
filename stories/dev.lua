@@ -12,7 +12,7 @@ self.variables = {
 self.root = {
 
     _ = {
-        { divert = { knot = "switches" } },
+        { divert = { knot = "temp", stitch = "a" } },
         
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
@@ -23,7 +23,8 @@ self.root = {
         { choice = "Conditions", divert = { knot = "conditions" } },
         { choice = "Expressions", divert = { knot = "expressions" } },
         { choice = "External function", divert = { knot = "external" } },
-        { choice = "Multiline conditions", divert = { knot = "switches" } }
+        { choice = "Multiline conditions", divert = { knot = "switches" } },
+        { choice = "Alternatives", devert = { knot = "alternatives"} }
     },
 
     conditions = {
@@ -136,7 +137,32 @@ self.root = {
             } },
         } },
         { text = "... gather with choice %choice% ..."}
+    },
+
+    temp = {
+        a = {
+            { var = "temp_var", value = "true", temp = true },
+            { text = "a temp_var = %temp_var%", divert = { knot = "temp", stitch = "b" } }
+        },
+        b = {
+            { text = "b temp_var = %temp_var%" }
+        }
+    },
+
+    alternatives = {
+        { text = "He told me a joke." },
+        { alternatives = {
+            "I laughed politely.",
+            "I smiled.", 
+            "I grimaced.",
+            "I promised myself to not react again."
+        }, type = "shuffle" }
     }
+
+    -- diverts
+    -- nested alternatives
+    -- nested expressions
+    -- inside choice text
 }
 
 return self
