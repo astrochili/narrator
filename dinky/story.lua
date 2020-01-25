@@ -20,15 +20,15 @@ function Story:new(model)
 
 	self.functions = self:inkFunctions()
 	self.observers = { }
-	self.globalTags = self:tagsFor(nil)
+	self.globalTags = self:tagsFor(nil, nil)
 
 	self.temp = { }
-	self.currentPath = { }
 	self.choices = { }
 	self.paragraphs = { }
 	self.output = { }
-	self.visits = { _ = { _root = 1, _ = { _root = 1 } } }
-	self:read(self.currentPath)
+	self.visits = { }
+	self.currentPath = nil
+	self.isOver = false
 end
 
 function Story:include(model)
@@ -44,6 +44,12 @@ function Story:include(model)
 	self.root = lume.merge(self.root, model.root or { })
 	self.constants = lume.merge(self.constants, model.constants or { })
 	self.variables = lume.merge(self.variables, model.variables or { })
+end
+
+function Story:begin()
+	if #self.paragraphs == 0 and #self.choices == 0 and not self.isOver then
+		self:read({ })
+	end
 end
 
 function Story:canContinue()
@@ -105,7 +111,12 @@ end
 
 function Story:read(path)
 	assert(path, "The path can't be nil")
-	if path.knot == "END" or path.knot == "DONE" then return end
+	if path.knot == "END" or path.knot == "DONE" then
+		self.isOver = true
+	end
+	if self.isOver then
+		return
+	end
 	
 	local items = self:itemsFor(path.knot, path.stitch)	
 	self:visit(path)
@@ -120,6 +131,23 @@ function Story:readItems(items, path, depth, mode)
 	local depth = depth or 0
 	local deepIndex = chain[depth + 1]
 	local mode = mode or enums.readMode.text
+
+	-- Deep path factory
+
+	local makeDeepPath = function(values, labelPrefix)
+		local deepChain = lume.slice(chain, 1, depth)
+		for valuesIndex, value in ipairs(values) do
+			deepChain[depth + valuesIndex] = value
+		end
+		local deepPath = lume.clone(path)
+		deepPath.chain = deepChain
+		if labelPrefix then
+			deepPath.label = labelPrefix .. table.concat(deepChain, ".")
+		end
+		return deepPath
+	end
+
+	-- Iterate items
 
 	for index = deepIndex or 1, #items do
 		local item = items[index]
@@ -156,23 +184,6 @@ function Story:readItems(items, path, depth, mode)
 			mode = mode ~= enums.readMode.quit and enums.readMode.gathers or mode
 			skip = true
 		end
-
-		-- Helper
-
-		local makeDeepPath = function(values, labelPrefix)
-			local deepChain = lume.slice(chain, 1, depth)
-			for valuesIndex, value in ipairs(values) do
-				deepChain[depth + valuesIndex] = value
-			end
-			local deepPath = lume.clone(path)
-			deepPath.chain = deepChain
-			if labelPrefix then
-				deepPath.label = labelPrefix .. table.concat(deepChain, ".")
-			end
-			
-			return deepPath
-		end
-
 
 		-- Check the situation
 		if mode == enums.readMode.choices and itemType ~= enums.blockType.choice then
@@ -348,7 +359,7 @@ function Story:replaceExpressions(text)
 		else
 			local result = self:doExpression(match:sub(2, #match-1)) 
 			if type(result) == "boolean" then result = result and 1 or 0 end
-			if result == nil then result = "%nil%" end
+			if result == nil then result = "" end
 			return result
 		end
 	end)
@@ -442,10 +453,10 @@ end
 -- Visits
 
 function Story:visit(path)
-	local pathIsChanged = path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch
+	local pathIsChanged = self.currentPath == nil or path.knot ~= self.currentPath.knot or path.stitch ~= self.currentPath.stitch
 
 	if pathIsChanged then
-		if path.knot ~= self.currentPath.knot then
+		if self.currentPath == nil or path.knot ~= self.currentPath.knot then
 			local knot = path.knot or "_"
 			local visits = self.visits[knot] or { _root = 0 }
 			visits._root = visits._root + 1

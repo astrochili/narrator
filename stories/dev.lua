@@ -16,9 +16,9 @@ self.root = {
         
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
-        { choice = "Diverts in London", divert = { knot = "fogg" } },
-        { choice = "Gathers with Monsieur Fogg", divert = { knot = "gathers" } },
-        { choice = "Sticky donuts", divert = { knot = "sticky", stitch = "donuts" } },
+        { choice = "Diverts in London", divert = { knot = "back_in_london" } },
+        { choice = "Gathers with Monsieur Fogg", divert = { knot = "fogg" } },
+        { choice = "Sticky donuts", divert = { knot = "sticky" } },
         { choice = "Fallback choices", divert = { knot = "fallback" } },
         { choice = "Conditions", divert = { knot = "conditions" } },
         { choice = "Expressions", divert = { knot = "expressions" } },

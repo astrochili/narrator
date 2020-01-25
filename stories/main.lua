@@ -79,6 +79,9 @@ self.root = {
     -- Sticky donuts
 
     sticky = {
+        _ = {
+            { divert = { knot = "sticky", stitch = "donuts" } }
+        },
         donuts = {
             { text = "Your donuts: %sticky.donuts.eat%" },
             { choice = "Eat another donut", sticky = true, text = "", node = {
@@ -96,8 +99,8 @@ self.root = {
 
     fallback = {
         { text = "You search desperately for a friendly face in the crowd." },
-        { choice = "The woman in the hat?", text = "The woman in the hat pushes you roughly aside.", divert = { knot = "find_help" } },
-        { choice = "The man with the briefcase?", text = "The man with the briefcase looks disgusted as you stumble past him.", divert = { knot = "find_help" } },
+        { choice = "The woman in the hat?", text = "The woman in the hat pushes you roughly aside.", divert = { knot = "fallback" } },
+        { choice = "The man with the briefcase?", text = "The man with the briefcase looks disgusted as you stumble past him.", divert = { knot = "fallback" } },
         { choice = 0, node = {
             { text = "But it is too late: you collapse onto the station platform. This is the end." },
             { divert = { knot = "END" } } 

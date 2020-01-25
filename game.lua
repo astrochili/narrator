@@ -14,7 +14,9 @@ local function game()
     story:bind("beep", function() print("ATENTION. Beep! 😃") end)
     story:bind("sum", function(x, y) return x + y end)
     
+    story:begin()
     print("\n--- Game begin ---")
+
     local botAnswers = { 1, 1, 1, 1, 1 }
 
     while story:canContinue() or story:canChoose() do 
