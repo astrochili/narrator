@@ -11,8 +11,7 @@ self.keys = {
 self.variables = {
     name = "Kate",
     age = 23,
-    isVegan = true,
-    inventory = { "knife", "compass", "water" }
+    isVegan = true
 }
 
 self.root = {

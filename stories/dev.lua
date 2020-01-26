@@ -1,18 +1,57 @@
 local self = { version = 1 }
 
 self.includes = { "main" }
-self.constants = { }
+
+self.constants = {
+    year = 2019
+}
+
 self.variables = {
+    x = 0,
+    y = 0,
     isTrue = true,
     isFalse = false,
-    x = 0,
-    y = 0
+    food = { list = "inventory", value = "water" },
+    lecturersVolume = { list = "volumeLevel", value = "quiet" },
+    emptyList = { _ = { } },
+    mixedList = {
+        _ = { "knife", "off", "compass", "quiet", "water", "medium", "loud", "deafening" },
+        knife = true, compass = false, water = false,
+        off = true, quiet = false, medium = false, loud = false, deafening = false
+    }, 
+}
+
+self.lists = {
+    inventory = {
+        _ = { "knife", "compass", "water" },
+        knife = true, compass = false, water = false
+    },
+    volumeLevel = { 
+        _ = { "off", "quiet", "medium", "loud", "deafening" },
+        off = false, quiet = false, medium = false, loud = false, deafening = false
+    },
+    characters = {
+        _ = { "Alfred", "Batman", "Robin" },
+        Alfred = false, Batman = false, Robin = false
+    },
+    props = {
+        _ = { "champagne_glass", "newspaper" },
+        champagne_glass = false, newspaper = false
+    },
+    letters  = {
+        _ = { "a", "b", "c" },
+        a = false, b = false, c = false
+    },
+    numbers  = {
+        _ = { "one", "two", "three" },
+        one = false, two = false, three = false
+    }
 }
 
 self.root = {
 
     _ = {
-        { divert = { knot = "alternatives" } },
+        { divert = { knot = "lists" } },
         
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, %name%."},
@@ -24,7 +63,8 @@ self.root = {
         { choice = "Expressions", divert = { knot = "expressions" } },
         { choice = "External function", divert = { knot = "external" } },
         { choice = "Multiline conditions", divert = { knot = "switches" } },
-        { choice = "Alternatives", devert = { knot = "alternatives" } }
+        { choice = "Alternatives", devert = { knot = "alternatives" } },
+        { choice = "Lists", devert = { knot = "lists" } }
     },
 
     conditions = {
@@ -173,8 +213,54 @@ self.root = {
             }, seq = "once" },
             { choice = "Joke", title = "", sticky = true, divert = { knot = "alternatives", stitch = "joke" } }
         }        
-    }
+    },
 
+    lists = {
+        { text = "---\nTime to check the inventory." },
+        { var = "inventory", value = "inventory.compass" },
+        { var = "inventory", value = "water" },
+        { condition = "inventory == water", success = "I have water.", failure = "I don't have water." },
+        { divert = { knot = "END" } },
+
+        { var = "weapon", value = "knife", temp = true },
+        { condition = "weapon == knife", success = "My weapon is knife.", failure = "I don't have any weapon." },
+
+        { condition = "inventory ? (compass, water)", success = "I have water and a compass.", failure = "Hm, I have only a compass or water?" },
+        { condition = "inventory == (compass)", success = "I have a compass only.", failure = "I have something more than one compass .. or have nothing." },
+
+        { var = "emptyList", value = "emptyList + knife" },
+        { text = "Empty list now have: %emptyList%." },
+        { var = "tempList", value = "()", temp = true },
+        { text = "Temp list is empty: %tempList%." },
+        { var = "tempList", value = "(knife, water, compass)" },
+        { text = "Temp list now is not empty: %tempList%." },
+        
+        { text = "---\nTime to lecture." },
+        { condition = "lecturersVolume < deafening", success = {
+            { var = "lecturersVolume", value = "lecturersVolume + 1" }
+        } },
+        { text = "Lectoter volume is %lecturersVolume%" },
+        
+        { text = "---\nTime to party."},
+        { var = "BallroomContents", temp = true, value = "(Alfred, Batman, newspaper)" },
+        { var = "HallwayContents", temp = true, value = "(Robin, champagne_glass)" },
+        { var = "BallroomContents", value = "BallroomContents - 1" },
+        { text = "%BallroomContents% / %LIST_INVERT(BallroomContents)%" }, -- Alfred, champagne_glass / Batman, newspaper, Robin
+        { text = "%HallwayContents% / %LIST_INVERT(HallwayContents)%" }, -- champagne_glass, Robin / Alfred, Batman, newspaper
+
+        { text = "---\nTime to dirty mix." },
+        { var = "dirtyMix", value = "(a, three, c)" },
+        { text = "%LIST_ALL(dirtyMix)%" }, -- a, one, b, two, c, three
+        { text = "%LIST_COUNT(dirtyMix)%" }, -- 3
+        { text = "%LIST_MIN(dirtyMix)%" }, -- a
+        { text = "%LIST_MAX(dirtyMix)%" }, -- three or c, albeit unpredictably
+        { text = "%dirtyMix ? (a,b)%" }, -- false 
+        { text = "%dirtyMix ^ LIST_ALL(c)%" }, -- a, c
+        { text = "%dirtyMix >= (one, a)%" }, -- true
+        { text = "%dirtyMix < (three)%" }, -- false
+        { text = "%LIST_INVERT(dirtyMix)%" } -- one, b, two
+    }
 }
+
 
 return self

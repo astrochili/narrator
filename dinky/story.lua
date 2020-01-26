@@ -16,6 +16,7 @@ function Story:new(model)
 	self.root = { }
 	self.constants = { }
 	self.variables = { }
+	self.lists = { }
 	self:include(model)
 
 	self.functions = self:inkFunctions()
@@ -44,6 +45,7 @@ function Story:include(model)
 
 	self.root = lume.merge(self.root, model.root or { })
 	self.constants = lume.merge(self.constants, model.constants or { })
+	self.lists = lume.merge(self.lists, model.lists or { })
 	self.variables = lume.merge(self.variables, model.variables or { })
 end
 
@@ -205,7 +207,7 @@ function Story:readItems(items, path, depth, mode)
 			mode = enums.readMode.text
 			local deepPath = makeDeepPath({ index }, "~")
 			mode = self:readAlts(item, deepPath) or mode
-		elseif itemType == enums.blockType.choice then
+		elseif itemType == enums.blockType.choice and self:checkCondition(item.condition) then
 			mode = enums.readMode.choices
 			local deepPath = makeDeepPath({ index }, ">")
 			mode = self:readChoice(item, deepPath) or mode
@@ -375,6 +377,7 @@ function Story:checkSwitch(conditions)
 end
 
 function Story:checkCondition(condition)
+	if condition == nil then return true end
 	local result = self:doExpression(condition)
 	return result ~= nil and result ~= false
 end
@@ -387,6 +390,8 @@ function Story:doExpression(expression)
 	expression = expression:gsub("%s*%&%&%s*", " and ")
 	expression = expression:gsub("([%a][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
 	expression = expression:gsub("([%a][%w_]*)%s*([%+%-])=%s*([%w_]*)", "%1 = %1 %2 %3")
+	expression = expression:gsub("%s*has%s*", " ? ")
+	expression = expression:gsub("%s*hasnt%s*", " !? ")
 	
 	-- Check for functions
 	expression = expression:gsub("[%a][%w_]*%(.*%)", function(match)
@@ -419,8 +424,8 @@ function Story:doExpression(expression)
 
 	-- Check for match operation
 	expression = expression:gsub("[\"\'%a][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a][%w_%.\"\']*", function(match)
-		local string, operator, sub = match:match("([\"\'%a][%w_%.\"\']*)[%s]*([%?!]+)[%s]*([\"\'%a][%w_%.\"\']*)")
-		return string .. ":match(" .. sub .. ")" .. (operator == "?!" and " == nil" or " ~= nil")
+		local string, operator, sub = match:match("([\"\'%a][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a][%w_%.\"\']*)")
+		return string .. ":match(" .. sub .. ")" .. (operator == "!?" and " == nil" or " ~= nil")
 	end)
 
 	return lume.dostring("return " .. expression)
@@ -430,7 +435,7 @@ function Story:assignValueTo(variable, expression, temp)
 	if self.constants[variable] ~= nil then return end
 	
 	local value = self:doExpression(expression)
-	if temp then self.temp[variable] = value
+	if temp or self.temp[variable] ~= nil then self.temp[variable] = value
 	else self.variables[variable] = value end
 
 	local observer = self.observers[variable]
@@ -561,6 +566,7 @@ function Story:saveState()
 		temp = self.temp,
 		seeds = self.seeds,
 		variables = self.variables,
+		lists = self.lists,
 		visits = self.visits,
 		currentPath = self.currentPath,
 		paragraphs = self.paragraphs,
@@ -574,6 +580,7 @@ function Story:loadState(state)
 	self.temp = state.temp
 	self.seeds = state.seeds
 	self.variables = state.variables
+	self.lists = state.lists
 	self.visits = state.visits
 	self.currentPath = state.path
 	self.paragraphs = state.paragraphs
@@ -613,7 +620,7 @@ function Story:inkFunctions()
 		-- LIST_MIN = function(list) return nil end -- TODO
 		-- LIST_MAX = function(list) return nil end -- TODO
 		-- LIST_RANDOM = function(list) return nil end -- TODO
-		-- LIST_ALL = function(list) return nil end -- TODO
+		-- LIST_ALL = function(list) return nil end -- TODO (element of the list or list containing elements of a list)
 		-- LIST_RANGE = function(list) return nil end -- TODO
 		-- LIST_INVERT = function(list) return nil end -- TODO
 	}
