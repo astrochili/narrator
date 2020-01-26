@@ -11,41 +11,34 @@ self.variables = {
     y = 0,
     isTrue = true,
     isFalse = false,
-    food = { list = "inventory", value = "water" },
-    lecturersVolume = { list = "volumeLevel", value = "quiet" },
-    emptyList = { _ = { } },
+
+    food = { water = true },
+    lecturersVolume = { quiet = true },
+
+    emptyList = { },
+    copyOfInventory = {
+        inventory = { knife = false, compass = false, water = false },
+    },
     mixedList = {
-        _ = { "knife", "off", "compass", "quiet", "water", "medium", "loud", "deafening" },
-        knife = true, compass = false, water = false,
-        off = true, quiet = false, medium = false, loud = false, deafening = false
-    }, 
+        inventory = { knife = true, compass = false, water = false },
+        volumeLevel = { off = true, quiet = false, medium = false, loud = false, deafening = false }
+    },
+
+    inventory = { knife = true, compass = false, water = false },
+    volumeLevel = { off = false, quiet = false, medium = false, loud = false, deafening = false },
+    characters = { Alfred = false, Batman = false, Robin = false },
+    props = { champagne_glass = false, newspaper = false },
+    letters = { a = false, b = false, c = false },
+    numbers = { one = false, two = false, three = false }
 }
 
 self.lists = {
-    inventory = {
-        _ = { "knife", "compass", "water" },
-        knife = true, compass = false, water = false
-    },
-    volumeLevel = { 
-        _ = { "off", "quiet", "medium", "loud", "deafening" },
-        off = false, quiet = false, medium = false, loud = false, deafening = false
-    },
-    characters = {
-        _ = { "Alfred", "Batman", "Robin" },
-        Alfred = false, Batman = false, Robin = false
-    },
-    props = {
-        _ = { "champagne_glass", "newspaper" },
-        champagne_glass = false, newspaper = false
-    },
-    letters  = {
-        _ = { "a", "b", "c" },
-        a = false, b = false, c = false
-    },
-    numbers  = {
-        _ = { "one", "two", "three" },
-        one = false, two = false, three = false
-    }
+    inventory = { "knife", "compass", "water" },
+    volumeLevel = { "off", "quiet", "medium", "loud", "deafening" },
+    characters = { "Alfred", "Batman", "Robin" },
+    props = { "champagne_glass", "newspaper" },
+    letters = { "a", "b", "c" },
+    numbers = { "one", "two", "three" }
 }
 
 self.root = {
