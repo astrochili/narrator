@@ -8,13 +8,10 @@ local self = {
         variable = 5
     },
     
-    altType = {
+    seqType = {
         cycle = 1,
         stopping = 2,
-        once = 3,
-        shuffle = 4, -- cycle +3
-        shuffleStopping = 5, -- stopping +3
-        shuffleOnce = 6, -- once +3
+        once = 3
     },
 
     readMode = { 

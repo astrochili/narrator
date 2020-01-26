@@ -290,16 +290,16 @@ function Story:readAlts(item, path)
 	assert(item.alts, "Alternatives can't be nil")
 	local alts = lume.clone(item.alts)
 
-	local altType = item.type or enums.altType.stopping
-	if type(altType) == "string" then
-		altType = enums.altType[item.type] or altType
+	local seqType = item.seq or enums.seqType.stopping
+	if type(seqType) == "string" then
+		seqType = enums.seqType[item.seq] or seqType
 	end
 
 	self:visit(path)
 	local visits = self:visitsFor(path)
 	local index = 0
 
-	if altType >= enums.altType.shuffle then
+	if item.shuffle then
 		local seedKey = (path.knot or "_") .. "." .. (path.stitch or "_") .. ":" .. path.label
 		local seed = visits % #alts == 1 and os.time() or self.seeds[seedKey]
 		self.seeds[seedKey] = seed
@@ -310,16 +310,14 @@ function Story:readAlts(item, path)
 			alts[index] = alts[pairIndex]
 			alts[pairIndex] = alt
 		end
-
-		altType = altType - 3
 	end
 
-	if altType == enums.altType.cycle then
+	if seqType == enums.seqType.cycle then
 		index = visits % #alts
 		index = index > 0 and index or #alts
-	elseif altType == enums.altType.stopping then
+	elseif seqType == enums.seqType.stopping then
 		index = visits < #alts and visits or #alts
-	elseif altType == enums.altType.once then
+	elseif seqType == enums.seqType.once then
 		index = visits
 	end
 
