@@ -23,6 +23,7 @@ function Story:new(model)
 	self.globalTags = self:tagsFor(nil, nil)
 
 	self.temp = { }
+	self.seeds = { }
 	self.choices = { }
 	self.paragraphs = { }
 	self.output = { }
@@ -287,6 +288,7 @@ end
 
 function Story:readAlts(item, path)
 	assert(item.alts, "Alternatives can't be nil")
+	local alts = lume.clone(item.alts)
 
 	local altType = item.type or enums.altType.stopping
 	if type(altType) == "string" then
@@ -297,31 +299,31 @@ function Story:readAlts(item, path)
 	local visits = self:visitsFor(path)
 	local index = 0
 
-	if (altType == enums.altType.shuffle and visits % #item.alts == 1)
-	or (altType == enums.altType.shuffleOnce and visits == 1)
-	or (altType == enums.altType.shuffleStopping and visits == 1) then
-		for index, alt in ipairs(item.alts) do
-			math.randomseed(os.time())
-			local pairIndex = index < #item.alts and math.random(index + 1, #item.alts) or index
-			item.alts[index] = item.alts[pairIndex]
-			item.alts[pairIndex] = alt
-		end
-	end
-
 	if altType >= enums.altType.shuffle then
+		local seedKey = (path.knot or "_") .. "." .. (path.stitch or "_") .. ":" .. path.label
+		local seed = visits % #alts == 1 and os.time() or self.seeds[seedKey]
+		self.seeds[seedKey] = seed
+
+		for index, alt in ipairs(alts) do
+			math.randomseed(seed + index)
+			local pairIndex = index < #alts and math.random(index + 1, #alts) or index
+			alts[index] = alts[pairIndex]
+			alts[pairIndex] = alt
+		end
+
 		altType = altType - 3
 	end
 
 	if altType == enums.altType.cycle then
-		index = visits % #item.alts
-		index = index > 0 and index or #item.alts
+		index = visits % #alts
+		index = index > 0 and index or #alts
 	elseif altType == enums.altType.stopping then
-		index = visits < #item.alts and visits or #item.alts
+		index = visits < #alts and visits or #alts
 	elseif altType == enums.altType.once then
 		index = visits
 	end
 
-	local textItem = item.alts[index] or ""
+	local textItem = alts[index] or ""
 	local safeItem = type(textItem) == "string" and { text = textItem } or textItem
 	return self:readText(safeItem)
 end
@@ -559,6 +561,7 @@ end
 function Story:saveState()
 	local state = {
 		temp = self.temp,
+		seeds = self.seeds,
 		variables = self.variables,
 		visits = self.visits,
 		currentPath = self.currentPath,
@@ -571,6 +574,7 @@ end
 
 function Story:loadState(state)
 	self.temp = state.temp
+	self.seeds = state.seeds
 	self.variables = state.variables
 	self.visits = state.visits
 	self.currentPath = state.path
