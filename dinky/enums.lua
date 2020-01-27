@@ -1,5 +1,7 @@
 local self = {
 
+    engineVersion = 1,
+
     blockType = { 
         text = 1,
         alts = 2,

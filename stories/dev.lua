@@ -1,4 +1,4 @@
-local self = { version = 1 }
+local self = { version = { engine = 1, tree = 1 } }
 
 self.includes = { "main" }
 

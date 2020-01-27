@@ -19,6 +19,9 @@ function Story:new(model)
 	self.lists = { }
 	self:include(model)
 
+	self.version = model.version.tree or 0
+	self.migrate = function(state, oldVersion, newVersion) return state end
+
 	self.functions = self:inkFunctions()
 	self.observers = { }
 	self.globalTags = self:tagsFor(nil, nil)
@@ -34,6 +37,10 @@ function Story:new(model)
 end
 
 function Story:include(model)
+	if model.version.engine and model.version.engine ~= enums.engineVersion then
+		assert("Vesrion of model isn't equal to version of Dinky.")
+	end
+
 	if model.includes ~= nil and model.luaPath ~= nil then
 		for _, include in ipairs(model.includes) do
 			local includePath = model.luaPath:match('(.-)[^%.]+$') .. include
@@ -576,6 +583,10 @@ function Story:saveState()
 end
 
 function Story:loadState(state)
+	if self.version ~= state.version then
+		state = self.migrate(state, state.version, self.version)
+	end
+
 	self.temp = state.temp
 	self.seeds = state.seeds
 	self.variables = state.variables
