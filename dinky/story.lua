@@ -442,8 +442,10 @@ function Story:assignValueTo(variable, expression, temp)
 	if self.constants[variable] ~= nil then return end
 	
 	local value = self:doExpression(expression)
-	if temp or self.temp[variable] ~= nil then self.temp[variable] = value
-	else self.variables[variable] = value end
+	local storage = (temp or self.temp[variable] ~= nil) and self.temp or self.variables
+	
+	if storage[variable] == value then return end
+	storage[variable] = value
 
 	local observer = self.observers[variable]
 	if observer ~= nil then observer(value) end
