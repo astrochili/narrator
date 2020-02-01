@@ -414,13 +414,25 @@ function Story:doExpression(expression)
 		if func ~= nil then
 			local result = func(table.unpack(params or { }))
 			return lume.serialize(result)
+		elseif self.lists[functionName] ~= nil and type(params[1]) == "number" then
+			local item = self.lists[functionName][params[1]]
+			if item ~= nil then
+				local list = { [functionName] = { [item] = true } }
+				return lume.serialize(list)
+			end	
 		end
+		
 		return "nil"
 	end)
 
+	-- Check for lists
+	expression = expression:gsub("%(([%s%w%.,_]*)%)", function(match)
+		return lume.serialize(self:makeListFor(match))
+	end)	
+
 	-- Check for variables
 	expression = expression:gsub("[\"\'%a][%w_%.\"\']*", function(match)
-		local exceptions = { "and", "or", "true", "false"}
+		local exceptions = { "and", "or", "true", "false", "nil"}
 		if lume.find(exceptions, match) ~= nil or match:match("[\"\'].*[\"\']") ~= nil then
 			return match
 		else
@@ -438,6 +450,9 @@ function Story:doExpression(expression)
 	return lume.dostring("return " .. expression)
 end
 
+
+-- Variables
+
 function Story:assignValueTo(variable, expression, temp)
 	if self.constants[variable] ~= nil then return end
 	
@@ -452,15 +467,55 @@ function Story:assignValueTo(variable, expression, temp)
 end
 
 function Story:getValueFor(variable)
-	local value = self.temp[variable]
-	if value == nil then value = self.variables[variable] end
-	if value == nil then value = self.constants[variable] end
-	if value == nil then
-		local path = self:pathFromString(variable, self.currentPath)
-		local visitsCount = self:visitsFor(path)
-		value = visitsCount > 0 and visitsCount or nil
+	local result = self.temp[variable]
+	if result == nil then result = self.variables[variable] end
+	if result == nil then result = self.constants[variable] end
+	if result == nil then result = self:makeListFor(variable) end
+	if result == nil then result = self:getVisitsFor(variable) end
+	return result
+end
+
+function Story:getVisitsFor(pathString)
+	local path = self:pathFromString(pathString, self.currentPath)
+	local visitsCount = self:visitsFor(path)
+	return visitsCount > 0 and visitsCount or nil
+end
+
+
+-- Lists
+
+function Story:makeListFor(expression)
+	local result = { }
+	local items = lume.array(expression:gmatch("[%w_%.]+"))
+	
+	for _, item in ipairs(items) do
+		local listName, itemName = self:getListNameFor(item)
+		result[listName] = result[listName] or { }
+		result[listName][itemName] = true
+		-- TODO: set metatable with + - == ^ % <= <
 	end
-	return value
+
+	return result
+end
+
+function Story:getListNameFor(name)
+	local listName, itemName = name:match("([%w_]+)%.([%w_]+)")
+	itemName = itemName or name
+
+	if listName == nil then
+		for key, list in pairs(self.lists) do
+			for index, string in ipairs(list) do
+				if string == itemName then
+					listName = key
+					break
+				end
+			end
+		end
+	end
+
+	local notFound = listName == nil or self.lists[listName] == nil
+	if notFound then return nil end
+	return listName, itemName
 end
 
 
@@ -575,6 +630,7 @@ function Story:saveState()
 		temp = self.temp,
 		seeds = self.seeds,
 		variables = self.variables,
+		lists = self.lists,
 		visits = self.visits,
 		currentPath = self.currentPath,
 		paragraphs = self.paragraphs,
@@ -592,6 +648,7 @@ function Story:loadState(state)
 	self.temp = state.temp
 	self.seeds = state.seeds
 	self.variables = state.variables
+	self.lists = state.lists
 	self.visits = state.visits
 	self.currentPath = state.path
 	self.paragraphs = state.paragraphs
@@ -621,19 +678,19 @@ function Story:inkFunctions()
 		RANDOM = function(x, y) return math.random(x, y) end,
 		INT = function(x) return math.floor(x) end,
 		FLOOR = function(x) return math.floor(x) end,
-		FLOAT = function(x) return x end
+		FLOAT = function(x) return x end,
 
 		-- TURNS = function() return nil end -- TODO
 		-- TURNS_SINCE = function(path) return nil end -- TODO	
 
-		-- LIST_VALUE = function(list) return nil end -- TODO
-		-- LIST_COUNT = function(list) return nil end -- TODO
-		-- LIST_MIN = function(list) return nil end -- TODO
-		-- LIST_MAX = function(list) return nil end -- TODO
-		-- LIST_RANDOM = function(list) return nil end -- TODO
-		-- LIST_ALL = function(list) return nil end -- TODO (element of the list or list containing elements of a list)
-		-- LIST_RANGE = function(list) return nil end -- TODO
-		-- LIST_INVERT = function(list) return nil end -- TODO
+		LIST_VALUE = function(list) return nil end, -- TODO
+		LIST_COUNT = function(list) return nil end, -- TODO
+		LIST_MIN = function(list) return nil end, -- TODO
+		LIST_MAX = function(list) return nil end, -- TODO
+		LIST_RANDOM = function(list) return nil end, -- TODO
+		LIST_ALL = function(list) return nil end, -- TODO (element of the list or list containing elements of a list)
+		LIST_RANGE = function(list) return nil end, -- TODO
+		LIST_INVERT = function(list) return nil end -- TODO
 	}
 end
 

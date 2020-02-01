@@ -11,25 +11,20 @@ self.variables = {
     y = 0,
     isTrue = true,
     isFalse = false,
-
-    food = { water = true },
-    lecturersVolume = { quiet = true },
-
     emptyList = { },
-    copyOfInventory = {
-        inventory = { knife = false, compass = false, water = false },
+    food = {
+        inventory = { water = true }
+    },
+    lecturersVolume = {
+        volumeLevel = { quiet = true }
     },
     mixedList = {
-        inventory = { knife = true, compass = false, water = false },
-        volumeLevel = { off = true, quiet = false, medium = false, loud = false, deafening = false }
+        inventory = { knife = true, compass = true },
+        volumeLevel = { quiet = true }
     },
-
-    inventory = { knife = true, compass = false, water = false },
-    volumeLevel = { off = false, quiet = false, medium = false, loud = false, deafening = false },
-    characters = { Alfred = false, Batman = false, Robin = false },
-    props = { champagne_glass = false, newspaper = false },
-    letters = { a = false, b = false, c = false },
-    numbers = { one = false, two = false, three = false }
+    inventory = {
+        inventory = { water = true },
+    }
 }
 
 self.lists = {
@@ -210,9 +205,9 @@ self.root = {
 
     lists = {
         { text = "---\nTime to check the inventory." },
-        { var = "inventory", value = "inventory.compass" },
+        { var = "inventory", value = "inventory(1)" },
         { var = "inventory", value = "water" },
-        { condition = "inventory == water", success = "I have water.", failure = "I don't have water." },
+        { condition = "inventory == (water)", success = "I have water.", failure = "I don't have water." },
         { divert = { knot = "END" } },
 
         { var = "weapon", value = "knife", temp = true },
@@ -254,6 +249,5 @@ self.root = {
         { text = "%LIST_INVERT(dirtyMix)%" } -- one, b, two
     }
 }
-
 
 return self
