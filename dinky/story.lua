@@ -630,7 +630,6 @@ function Story:saveState()
 		temp = self.temp,
 		seeds = self.seeds,
 		variables = self.variables,
-		lists = self.lists,
 		visits = self.visits,
 		currentPath = self.currentPath,
 		paragraphs = self.paragraphs,
@@ -648,7 +647,6 @@ function Story:loadState(state)
 	self.temp = state.temp
 	self.seeds = state.seeds
 	self.variables = state.variables
-	self.lists = state.lists
 	self.visits = state.visits
 	self.currentPath = state.path
 	self.paragraphs = state.paragraphs
