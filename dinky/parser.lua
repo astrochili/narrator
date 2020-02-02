@@ -3,7 +3,7 @@
 
 local lpeg = require("lpeg")
 
-local localFolder = (...):match('(.-)[^%.]+$') or (...)
+local localFolder = (...):match("(.-)[^%.]+$")
 local enums = require(localFolder .. "enums")
 
 --

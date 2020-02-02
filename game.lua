@@ -1,7 +1,12 @@
 --
--- Dependencies
+-- Preconfig
 
 debug.vscode = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1"
+package.path = _VERSION == "Lua 5.3" and package.path or "./?/init.lua;" .. package.path
+
+--
+-- Dependencies
+
 local dinky = require("dinky")
 
 --

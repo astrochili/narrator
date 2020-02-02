@@ -4,7 +4,7 @@
 local lume = require("lume")
 local Object = require("classic")
 
-local localFolder = (...):match('(.-)[^%.]+$') or (...)
+local localFolder = (...):match("(.-)[^%.]+$")
 local enums = require(localFolder .. "enums")
 
 --

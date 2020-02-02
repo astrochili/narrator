@@ -1,9 +1,9 @@
 --
 -- Dependencies
 
-local localFolder = (...):match('(.-)[^%.]+$') or (...)
-local parser = require(localFolder .. "dinky.parser")
-local Story = require(localFolder .. "dinky.story")
+local localFolder = (...):gsub(".init$","")
+local parser = require(localFolder .. ".parser")
+local Story = require(localFolder .. ".story")
 
 --
 -- Dinky
