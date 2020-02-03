@@ -40,12 +40,13 @@ function mt.__pow(lhs, rhs) -- ^
 end
 
 function mt.__eq(lhs, rhs) -- ==
-    if type(rhs) ~= "table" then return false end
+    if type(rhs) ~= "table" then
+        error("Attempt to equal a list with " .. type(rhs))
+    end
 
     for listName, listItems in pairs(lhs) do
         if rhs[listName] == nil then return false end
     end
-
 
     for listName, listItems in pairs(rhs) do
         if lhs[listName] == nil then return false end
