@@ -391,19 +391,22 @@ end
 
 function Story:doExpression(expression)
 	assert(type(expression) == "string", "Expression must be a string")
+
+	local code = ""
+	local lists = { }
 	
 	expression = expression:gsub("!=", "~=")
 	expression = expression:gsub("%s*||%s*", " or ")	
 	expression = expression:gsub("%s*%&%&%s*", " and ")
-	expression = expression:gsub("([%a][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
-	expression = expression:gsub("([%a][%w_]*)%s*([%+%-])=%s*([%w_]*)", "%1 = %1 %2 %3")
+	expression = expression:gsub("([%a_][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
+	expression = expression:gsub("([%a_][%w_]*)%s*([%+%-])=%s*([%w_]*)", "%1 = %1 %2 %3")
 	expression = expression:gsub("%s*has%s*", " ? ")
 	expression = expression:gsub("%s*hasnt%s*", " !? ")
 	
 	-- Check for functions
-	expression = expression:gsub("[%a][%w_]*%(.*%)", function(match)
-		local functionName = match:match("([%a][%w_]*)%(")
-		local paramsString = match:match("[%a][%w_]*%((.+)%)")
+	expression = expression:gsub("[%a_][%w_]*%(.*%)", function(match)
+		local functionName = match:match("([%a_][%w_]*)%(")
+		local paramsString = match:match("[%a_][%w_]*%((.+)%)")
 		local params = paramsString ~= nil and lume.map(lume.split(paramsString, ","), lume.trim) or nil
 
 		for index, param in ipairs(params or { }) do
@@ -417,8 +420,8 @@ function Story:doExpression(expression)
 		elseif self.lists[functionName] ~= nil and type(params[1]) == "number" then
 			local item = self.lists[functionName][params[1]]
 			if item ~= nil then
-				local list = { [functionName] = { [item] = true } }
-				return lume.serialize(list)
+				lists[#lists + 1] = { [functionName] = { [item] = true } }
+				return "__list" .. #lists
 			end	
 		end
 		
@@ -427,27 +430,49 @@ function Story:doExpression(expression)
 
 	-- Check for lists
 	expression = expression:gsub("%(([%s%w%.,_]*)%)", function(match)
-		return lume.serialize(self:makeListFor(match))
-	end)	
+		local list = self:makeListFor(match)
+		if list ~= nil then
+			lists[#lists + 1] = list
+			return "__list" .. #lists
+		else
+			return "nil"
+		end
+	end)
 
 	-- Check for variables
-	expression = expression:gsub("[\"\'%a][%w_%.\"\']*", function(match)
+	expression = expression:gsub("[[\"\'%a_][%w_%.\"\']*", function(match)
 		local exceptions = { "and", "or", "true", "false", "nil"}
-		if lume.find(exceptions, match) ~= nil or match:match("[\"\'].*[\"\']") ~= nil then
+		if lume.find(exceptions, match) or match:match("[\"\'].*[\"\']") or match:match("__list%d*") then
 			return match
 		else
 			local value = self:getValueFor(match)
-			return lume.serialize(value)
+			if type(value) == "table" then
+				lists[#lists + 1] = value
+				return "__list" .. #lists
+			else
+				return lume.serialize(value)
+			end
 		end
 	end)
 
 	-- Check for match operation
-	expression = expression:gsub("[\"\'%a][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a][%w_%.\"\']*", function(match)
-		local string, operator, sub = match:match("([\"\'%a][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a][%w_%.\"\']*)")
+	expression = expression:gsub("[\"\'%a_][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a_][%w_%.\"\']*", function(match)
+		local string, operator, sub = match:match("([\"\'%a_][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a_][%w_%.\"\']*)")
 		return string .. ":match(" .. sub .. ")" .. (operator == "!?" and " == nil" or " ~= nil")
 	end)
 
-	return lume.dostring("return " .. expression)
+	-- Add operators metatable to list tables
+	if #lists > 0 then
+		code = code .. "local mt = require('dinky.list.mt')\n\n"
+		for index, list in pairs(lists) do
+			local name = "__list" .. index
+			code = code .. "local " .. name .. " = " .. lume.serialize(list) .. "\n"
+			code = code .. "setmetatable(" .. name .. ", mt)\n\n"
+		end
+	end
+	
+	code = code .. "return " .. expression
+	return lume.dostring(code)
 end
 
 
@@ -490,12 +515,13 @@ function Story:makeListFor(expression)
 	
 	for _, item in ipairs(items) do
 		local listName, itemName = self:getListNameFor(item)
-		result[listName] = result[listName] or { }
-		result[listName][itemName] = true
-		-- TODO: set metatable with + - == ^ % <= <
+		if listName ~= nil and itemName ~= nil then 
+			result[listName] = result[listName] or { }
+			result[listName][itemName] = true
+		end
 	end
 
-	return result
+	return next(result) ~= nil and result or nil
 end
 
 function Story:getListNameFor(name)

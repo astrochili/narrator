@@ -207,6 +207,7 @@ self.root = {
         { text = "---\nTime to check the inventory." },
         { var = "inventory", value = "inventory(1)" },
         { var = "inventory", value = "water" },
+        { text = "%inventory%" },
         { condition = "inventory == (water)", success = "I have water.", failure = "I don't have water." },
         { divert = { knot = "END" } },
 
