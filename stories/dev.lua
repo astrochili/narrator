@@ -206,7 +206,7 @@ self.root = {
     lists = {
         { text = "---\nTime to check the inventory." },
         { var = "inventory", value = "inventory(1)" },
-        { var = "inventory", value = "water" },
+        { var = "inventory", value = "(water, knife)" },
         { text = "#inventory#" },
         { condition = "inventory == (water)", success = "I have water.", failure = "I don't have water." },
         { divert = { knot = "END" } },

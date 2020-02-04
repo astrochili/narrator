@@ -366,7 +366,8 @@ function Story:replaceExpressions(text)
 		if #match == 2 then
 			return "#"
 		else
-			local result = self:doExpression(match:sub(2, #match-1)) 
+			local result = self:doExpression(match:sub(2, #match-1))
+			if type(result) == "table" then result = tostring(result) end
 			if type(result) == "boolean" then result = result and 1 or 0 end
 			if result == nil then result = "" end
 			return result
@@ -457,13 +458,18 @@ function Story:doExpression(expression)
 
 	-- Check for match operation
 	expression = expression:gsub("[\"\'%a_][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a_][%w_%.\"\']*", function(match)
-		local string, operator, sub = match:match("([\"\'%a_][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a_][%w_%.\"\']*)")
-		return string .. ":match(" .. sub .. ")" .. (operator == "!?" and " == nil" or " ~= nil")
+		local lhs, operator, rhs = match:match("([\"\'%a_][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a_][%w_%.\"\']*)")
+		if lhs:match("__list%d*") then
+			return lhs .. " % " .. rhs .. (operator == "!?" and " == false" or " == true")
+		else
+			return lhs .. ":match(" .. rhs .. ")" .. (operator == "!?" and " == nil" or " ~= nil")
+		end
 	end)
 
-	-- Add operators metatable to list tables
+	-- Attach the metatable to list tables
 	if #lists > 0 then
-		code = code .. "local mt = require('dinky.list.mt')\n\n"
+		code = code .. "local mt = require('dinky.list.mt')\n"
+		code = code .. "mt.orders = " .. lume.serialize(self.lists) .. "\n\n"
 		for index, list in pairs(lists) do
 			local name = "__list" .. index
 			code = code .. "local " .. name .. " = " .. lume.serialize(list) .. "\n"
