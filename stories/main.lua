@@ -19,7 +19,7 @@ self.root = {
     -- Gathers with Monsieur Fogg
 
     fogg = {
-        { text = "My name is %name% and I looked at Monsieur Fogg" },
+        { text = "My name is #name# and I looked at Monsieur Fogg" },
         { choice = "... and I could contain myself no longer.", label = "label1", node = {
             { text = "'What is the purpose of our journey, Monsieur?'" },
             { text = "'A wager,' he replied." },
@@ -82,7 +82,7 @@ self.root = {
             { divert = { knot = "sticky", stitch = "donuts" } }
         },
         donuts = {
-            { text = "Your donuts: %sticky.donuts.eat%" },
+            { text = "Your donuts: #sticky.donuts.eat#" },
             { choice = "Eat another donut", sticky = true, text = "", node = {
                 { text = "You eat another donut.", label = "eat", divert = { knot = "sticky", stitch = "donuts" } } }
             },

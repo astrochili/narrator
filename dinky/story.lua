@@ -362,9 +362,9 @@ end
 -- Expressions
 
 function Story:replaceExpressions(text)
-	return text:gsub("(%b%%)", function(match)
+	return text:gsub("%b##", function(match)
 		if #match == 2 then
-			return "%"
+			return "#"
 		else
 			local result = self:doExpression(match:sub(2, #match-1)) 
 			if type(result) == "boolean" then result = result and 1 or 0 end
