@@ -6,7 +6,6 @@ local Object = require("classic")
 
 local libPath = (...):match("(.-).[^%.]+$")
 local enums = require(libPath .. ".enums")
-local listMT = require(libPath .. ".list.mt")
 
 --
 -- Story
@@ -18,6 +17,9 @@ function Story:new(model)
     self.constants = model.constants
     self.variables = model.variables
     self.lists = model.lists
+    
+    self.listMT = require(libPath .. ".list.mt")
+    self.listMT.lists = self.lists
 
     self.version = model.constants.tree or 0
     self.migrate = function(state, oldVersion, newVersion) return state end
@@ -348,8 +350,7 @@ function Story:replaceExpressions(text)
         else
             local result = self:doExpression(match:sub(2, #match-1))
             if type(result) == "table" then
-                setmetatable(result, listMT)
-                result = tostring(result)
+                result = self.listMT.__tostring(result)
             end
             if type(result) == "boolean" then result = result and 1 or 0 end
             if result == nil then result = "" end
@@ -701,14 +702,14 @@ function Story:inkFunctions()
         -- TURNS = function() return nil end -- TODO
         -- TURNS_SINCE = function(path) return nil end -- TODO    
 
-        LIST_VALUE = function(list) return listMT.firstRawValueOf(list) end,
-        LIST_COUNT = function(list) return listMT.__len(list) end,
-        LIST_MIN = function(list) return listMT.minValueOf(list) end,
-        LIST_MAX = function(list) return listMT.maxValueOf(list) end,
-        LIST_RANDOM = function(list) return listMT.randomValueOf(list) end,
-        LIST_ALL = function(list) return listMT.posibleValuesOf(list) end,
-        LIST_RANGE = function(list, min, max) return listMT.rangeOf(list, min, max) end,
-        LIST_INVERT = function(list) return listMT.invert(list) end
+        LIST_VALUE = function(list) return self.listMT.firstRawValueOf(list) end,
+        LIST_COUNT = function(list) return self.listMT.__len(list) end,
+        LIST_MIN = function(list) return self.listMT.minValueOf(list) end,
+        LIST_MAX = function(list) return self.listMT.maxValueOf(list) end,
+        LIST_RANDOM = function(list) return self.listMT.randomValueOf(list) end,
+        LIST_ALL = function(list) return self.listMT.posibleValuesOf(list) end,
+        LIST_RANGE = function(list, min, max) return self.listMT.rangeOf(list, min, max) end,
+        LIST_INVERT = function(list) return self.listMT.invert(list) end
     }
 end
 
