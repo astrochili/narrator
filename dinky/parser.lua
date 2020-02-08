@@ -3,22 +3,25 @@
 
 local lpeg = require("lpeg")
 
-local localFolder = (...):match("(.-)[^%.]+$")
-local enums = require(localFolder .. "enums")
+local libPath = (...):match("(.-).[^%.]+$")
+local enums = require(libPath .. ".enums")
 
 --
 -- Parser
 
 local Parser = { }
 
-function Parser:parse(lines)
-    for line in lines do
+function Parser.parse(lines)
+    local model = { version = {
+        engine = enums.engineVersion,
+        tree = 1
+    } }
+
+    for _, line in ipairs(lines) do
         print(line)
     end
 
-    -- TODO
-
-    return nil
+    return model
 end
 
 return Parser

@@ -1,38 +1,97 @@
 --
 -- Dependencies
 
-local localFolder = (...):gsub(".init$","")
-local parser = require(localFolder .. ".parser")
-local Story = require(localFolder .. ".story")
+local lume = require("lume")
+
+local libPath = (...):gsub(".init$", "")
+local enums = require(libPath .. ".enums")
+local parser = require(libPath .. ".parser")
+local Story = require(libPath .. ".story")
+
+--
+-- Private
+
+local function clearPath(path)
+    local path = path:gsub(".lua$", "")
+    local path = path:gsub(".ink$", "")
+
+    if path:match("%.") and not path:match("/") then
+        path = path:gsub("%.", "/")
+    end
+
+    return path
+end
+
+local function merge(parent, childPath, maker)
+    local child = maker(childPath)
+
+	if child.version.engine and child.version.engine ~= enums.engineVersion then
+        assert("Vesrion of model '" .. childPath .. "' (" .. child.version.engine ..")"
+        .. " isn't equal to version of Dinky (" .. enums.engineVersion .. ").")
+	end
+
+    for _, include in ipairs(child.includes or { }) do
+        local includePath = childPath:match('(.-)[^%./]+$') .. clearPath(include)
+        child = merge(child, includePath, maker)
+    end
+
+	parent.root = lume.merge(parent.root or { }, child.root or { })
+	parent.constants = lume.merge(parent.constants or { }, child.constants or { })
+	parent.lists = lume.merge(parent.lists or { }, child.lists or { })
+    parent.variables = lume.merge(parent.variables or { }, child.variables or { })
+    
+    return parent
+end
+
+local function parseModel(path, save)
+    local inkPath = path .. ".ink"
+    local luaPath = path .. ".lua"
+
+    local file = io.open(inkPath, "r")
+    if file == nil then
+        print("File doesn't exist: " .. inkPath)
+        return nil
+    end
+    file:close()
+
+    local lines = { }
+    for line in io.lines(inkPath) do 
+        lines[#lines + 1] = line
+    end
+    
+    local model = parser.parse(lines)
+
+    if save then
+        local file = io.open(luaPath, "w")
+        file:write(lume.serialize(model))
+        file:close()
+    end
+
+    return model
+end
+
+local function loadStory(path, maker)
+    local cleanPath = clearPath(path)
+
+    local model = merge({ }, cleanPath, maker)
+    local story = Story(model)
+
+    return story
+end
 
 --
 -- Dinky
 
 local Dinky = { }
 
-function Dinky:parseStory(inkPath)
-    local hasExtension = inkPath:sub(-4) == ".ink"
-    local file = io.open(inkPath .. (hasExtension and "" or ".ink"), "r")
-    
-    if file == nil then
-        print("File doesn't exist: " .. inkPath)
-        return nil
-    end
-
-    for line in io.lines(file) do 
-        lines[#lines + 1] = line
-    end
-    file:close()
-    
-    model = parser.parse(lines)
-    model.inkPath = inkPath
-    return model
+function Dinky.parseStory(inkPath, save)
+    local maker = function(path) return parseModel(path, save) end
+    return loadStory(inkPath, maker)
 end
 
-function Dinky:loadStory(luaPath)
-    local model = require(luaPath)
-    model.luaPath = luaPath
-    return Story(model)
+function Dinky.loadStory(luaPath)
+    local maker = function(path) return require(path) end
+    return loadStory(luaPath, maker)
 end
 
 return Dinky

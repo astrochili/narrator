@@ -4,8 +4,8 @@
 local lume = require("lume")
 local Object = require("classic")
 
-local localFolder = (...):match("(.-)[^%.]+$")
-local enums = require(localFolder .. "enums")
+local libPath = (...):match("(.-).[^%.]+$")
+local enums = require(libPath .. ".enums")
 
 --
 -- Story
@@ -13,13 +13,12 @@ local enums = require(localFolder .. "enums")
 local Story = Object:extend()
 
 function Story:new(model)
-	self.root = { }
-	self.constants = { }
-	self.variables = { }
-	self.lists = { }
-	self:include(model)
+	self.root = model.root
+	self.constants = model.constants
+	self.variables = model.variables
+	self.lists = model.lists
 
-	self.version = model.version.tree or 0
+	self.version = model.constants.tree or 0
 	self.migrate = function(state, oldVersion, newVersion) return state end
 
 	self.functions = self:inkFunctions()
@@ -34,26 +33,6 @@ function Story:new(model)
 	self.visits = { }
 	self.currentPath = nil
 	self.isOver = false
-end
-
-function Story:include(model)
-	if model.version.engine and model.version.engine ~= enums.engineVersion then
-		assert("Vesrion of model isn't equal to version of Dinky.")
-	end
-
-	if model.includes ~= nil and model.luaPath ~= nil then
-		for _, include in ipairs(model.includes) do
-			local includePath = model.luaPath:match('(.-)[^%.]+$') .. include
-			local includeModel = require(includePath)
-			includeModel.luaPath = includePath
-			self:include(includeModel)
-		end
-	end
-
-	self.root = lume.merge(self.root, model.root or { })
-	self.constants = lume.merge(self.constants, model.constants or { })
-	self.lists = lume.merge(self.lists, model.lists or { })
-	self.variables = lume.merge(self.variables, model.variables or { })
 end
 
 function Story:begin()
@@ -468,7 +447,7 @@ function Story:doExpression(expression)
 
 	-- Attach the metatable to list tables
 	if #lists > 0 then
-		code = code .. "local mt = require('dinky.list.mt')\n"
+		code = code .. "local mt = require('" .. libPath .. ".list.mt')\n"
 		code = code .. "mt.orders = " .. lume.serialize(self.lists) .. "\n\n"
 		for index, list in pairs(lists) do
 			local name = "__list" .. index

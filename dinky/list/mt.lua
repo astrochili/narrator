@@ -3,7 +3,7 @@
 
 local lume = require("lume")
 
-
+--
 -- Metatable
 
 local mt = { orders = { } }
@@ -36,7 +36,7 @@ function mt.__tostring(self)
     return table.concat(items, ", ")
 end
 
-
+--
 -- Operators
 
 function mt.__add(lhs, rhs) -- +
@@ -143,7 +143,7 @@ function mt.__le(lhs, rhs) -- <=
     return minLeft <= minRight and maxLeft <= maxRight
 end
 
-
+--
 -- Custom operators
 
 function mt.__addList(lhs, rhs)
@@ -191,7 +191,7 @@ function mt.__shiftByNumber(list, number)
     return mt.removeEmptiesInList(result)
 end
 
-
+--
 -- Helpers
 
 function mt.removeEmptiesInList(list)
