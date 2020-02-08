@@ -16,7 +16,7 @@ function mt.__tostring(self)
             pool[index] = pool[index] or { }
             local itemName = mt.lists[listName][index]
             if listItems[itemName] == true then
-                table.insert(pool[index], itemName)
+                table.insert(pool[index], 1, itemName)
             end
         end
     end
@@ -122,8 +122,8 @@ function mt.__lt(lhs, rhs) -- <
 
     -- LEFT < RIGHT means "the smallest value in LEFT is bigger than the largest values in RIGHT"
     
-    local minLeft = mt.getMinValueOf(lhs)
-    local maxRight = mt.getMaxValueOf(rhs)
+    local minLeft = mt.minValueOf(lhs, true)
+    local maxRight = mt.maxValueOf(rhs, true)
 
     return minLeft > maxRight
 end
@@ -136,10 +136,10 @@ function mt.__le(lhs, rhs) -- <=
     -- LEFT <= RIGHT means "the smallest value in RIGHT is at least the smallest value in LEFT,
     --                      and the largest value in RIGHT is at least the largest value in LEFT".
 
-    local minRight = mt.getMinValueOf(rhs)
-    local minLeft = mt.getMinValueOf(lhs)
-    local maxRight = mt.getMaxValueOf(rhs)
-    local maxLeft = mt.getMaxValueOf(lhs)
+    local minRight = mt.minValueOf(rhs, true)
+    local minLeft = mt.minValueOf(lhs, true)
+    local maxRight = mt.maxValueOf(rhs, true)
+    local maxLeft = mt.maxValueOf(lhs, true)
 
     return minRight >= minLeft and maxRight >= maxLeft
 end
@@ -207,44 +207,122 @@ function mt.removeEmptiesInList(list)
     return result
 end
 
-function mt.getIndexInList(listName, itemName)
-    if mt.lists[listName] == nil then return 0 end
-    local index = lume.find(mt.lists[listName], itemName)
-    return index or 0
-end
-
-function mt.getMinValueOf(list)
-    local minValue = 0
+function mt.minValueOf(list, raw)
+    local minIndex = 0
+    local minValue = { }
 
     for listName, listItems in pairs(list) do
         for itemName, itemValue in pairs(listItems) do
             if itemValue == true then
-                local index = mt.getIndexInList(listName, itemName)
-                if index < minValue or minValue == 0 then
-                    minValue = index
+                local index = lume.find(mt.lists[listName], itemName)
+                if index and index < minIndex or minIndex == 0 then
+                    minIndex = index
+                    minValue = { [listName] = { [itemName] = true } }
                 end
             end
         end
     end
 
-    return minValue
+    return raw and minIndex or minValue
 end
 
-function mt.getMaxValueOf(list)
-    local maxValue = 0
+function mt.maxValueOf(list, raw)
+    local maxIndex = 0
+    local maxValue = { }
 
     for listName, listItems in pairs(list) do
         for itemName, itemValue in pairs(listItems) do
             if itemValue == true then
-                local index = mt.getIndexInList(listName, itemName)
-                if index > maxValue or maxValue == 0 then
-                    maxValue = index
+                local index = lume.find(mt.lists[listName], itemName)
+                if index and index > maxIndex or maxIndex == 0 then
+                    maxIndex = index
+                    maxValue = { [listName] = { [itemName] = true } }
                 end
             end
         end
     end
 
-    return maxValue
+    return raw and maxIndex or maxValue
+end
+
+function mt.randomValueOf(list)
+    local items = { }
+
+    for listName, listItems in pairs(list) do
+        for itemName, itemValue in pairs(listItems) do
+            if itemValue == true then
+                local result = { [listName] = { [itemName] = true } }
+                table.insert(result)
+            end
+        end
+    end
+
+    math.randomseed(os.time)
+    local randomIndex = math.random(1, #items)
+    return items[randomIndex]
+end
+
+function mt.firstRawValueOf(list)
+    local result = 0
+    
+    for listName, listItems in pairs(list) do
+        for itemName, itemValue in pairs(listItems) do
+            if itemValue == true then
+                local index = lume.find(mt.lists[listName], itemName)
+                if index then
+                    result = index
+                    break
+                end
+            end
+        end
+    end
+
+    return result
+end
+
+function mt.posibleValuesOf(list)
+    local result = { }
+
+    for listName, listItems in pairs(list) do
+        local subList = { }
+        for _, itemName in ipairs(mt.lists[listName]) do
+            subList[itemName] = true
+        end
+        result[listName] = subList
+    end
+
+    return result
+end
+
+function mt.rangeOf(list, min, max)
+    local result = mt.posibleValuesOf(list)
+
+    for listName, listItems in pairs(list) do
+        for itemName, itemValue in pairs(listItems) do
+            if itemValue == true then
+                local index = lume.find(mt.lists[listName], itemName)
+                if index and index < min or index > max then
+                    result[listName][itemName] = nil
+                end
+            end
+        end
+    end
+
+    return result
+end
+
+function mt.invert(list)
+    local result = mt.posibleValuesOf(list)
+
+    for listName, listItems in pairs(list) do
+        for itemName, itemValue in pairs(listItems) do
+            if itemValue == true then
+                result[listName][itemName] = nil
+            end
+        end
+    end
+
+    return result
 end
 
 return mt
