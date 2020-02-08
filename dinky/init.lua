@@ -25,10 +25,10 @@ end
 local function merge(parent, childPath, maker)
     local child = maker(childPath)
 
-	if child.version.engine and child.version.engine ~= enums.engineVersion then
+    if child.version.engine and child.version.engine ~= enums.engineVersion then
         assert("Vesrion of model '" .. childPath .. "' (" .. child.version.engine ..")"
         .. " isn't equal to version of Dinky (" .. enums.engineVersion .. ").")
-	end
+    end
 
     for _, include in ipairs(child.includes or { }) do
         local includePath = childPath:match('(.-)[^%./]+$') .. clearPath(include)

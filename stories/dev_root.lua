@@ -49,8 +49,6 @@ self.lists = {
 self.root = {
 
     _ = {
-        { divert = { knot = "lists" } },
-        
         { tags = { "globalTag1", "globalTag2" } },
         { text = "Choose your knot, #name#."},
         { choice = "Diverts in London", divert = { knot = "back_in_london" } },
@@ -61,8 +59,8 @@ self.root = {
         { choice = "Expressions", divert = { knot = "expressions" } },
         { choice = "External function", divert = { knot = "external" } },
         { choice = "Multiline conditions", divert = { knot = "switches" } },
-        { choice = "Alternatives", devert = { knot = "alternatives" } },
-        { choice = "Lists", devert = { knot = "lists" } }
+        { choice = "Alternatives", divert = { knot = "alternatives" } },
+        { choice = "Lists", divert = { knot = "lists" } }
     },
 
     conditions = {

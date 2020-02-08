@@ -13,7 +13,7 @@ local dinky = require("dinky")
 -- Game
 
 local story = dinky.loadStory("stories.dev_root")
-local botAnswers = { 1, 1, 1, 1, 1 }
+local botAnswers = { 10, 1, 1, 1 }
 
 story:observe("y", function(y) print("The y did change! Now it's " .. y) end)
 story:bind("beep", function() print("ATENTION. Beep! 😃") end)
