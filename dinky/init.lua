@@ -35,9 +35,9 @@ local function merge(parent, childPath, maker)
         child = merge(child, includePath, maker)
     end
 
-	parent.root = lume.merge(parent.root or { }, child.root or { })
-	parent.constants = lume.merge(parent.constants or { }, child.constants or { })
-	parent.lists = lume.merge(parent.lists or { }, child.lists or { })
+    parent.root = lume.merge(parent.root or { }, child.root or { })
+    parent.constants = lume.merge(parent.constants or { }, child.constants or { })
+    parent.lists = lume.merge(parent.lists or { }, child.lists or { })
     parent.variables = lume.merge(parent.variables or { }, child.variables or { })
     
     return parent

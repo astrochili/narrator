@@ -3,7 +3,7 @@
 Again and again.
 
 === fallback
-*   Answer 1
+* Answer 1
     OK! -> fallback
 * Answer 2
     OK! -> fallback
@@ -12,34 +12,34 @@ Again and again.
     
 === nested ===
 - I looked at Monsieur Fogg 
-*	... and I could contain myself no longer.
-	'What is the purpose of our journey, Monsieur?'
-	'A wager,' he replied.
-	* * 	'A wager!'[] I returned.
-			He nodded. 
-			* * * 	'But surely that is foolishness!'
-			* * *  'A most serious matter then!'
-			- - - 	He nodded again.
-			* * *	'But can we win?'
-					    'That is what we will endeavour to find out,' he answered.
-			* * *	'A modest wager, I trust?'
-					    'Twenty thousand pounds,' he replied, quite flatly.
-			* * * 	I asked nothing further of him then[.], and after a final, polite cough, he offered nothing more to me. <>
-	* * 	'Ah[.'],' I replied, uncertain what I thought.
-	- - 	After that, <>
-*	... but I said nothing[] and <> 
+* ... and I could contain myself no longer.
+    'What is the purpose of our journey, Monsieur?'
+    'A wager,' he replied.
+    * * 'A wager!'[] I returned.
+            He nodded. 
+            * * * 'But surely that is foolishness!'
+            * * * 'A most serious matter then!'
+            - - - He nodded again.
+            * * * 'But can we win?'
+                        'That is what we will endeavour to find out,' he answered.
+            * * * 'A modest wager, I trust?'
+                        'Twenty thousand pounds,' he replied, quite flatly.
+            * * * I asked nothing further of him then[.], and after a final, polite cough, he offered nothing more to me. <>
+    * * 'Ah[.'],' I replied, uncertain what I thought.
+    - - After that, <>
+* ... but I said nothing[] and <> 
 - we passed the day in silence.
 - -> END
 
 === back_in_london ===
 
 We arrived into London at 9.45pm exactly.
-*	"There is not a moment to lose!"[] I declared.
-	-> hurry_outside 
-*	"Monsieur, let us savour this moment!"[] I declared.
-	My master clouted me firmly around the head and dragged me out of the door. 
-	-> dragged_outside
-*	[We hurried home] -> hurry_outside
+* "There is not a moment to lose!"[] I declared.
+    -> hurry_outside 
+* "Monsieur, let us savour this moment!"[] I declared.
+    My master clouted me firmly around the head and dragged me out of the door. 
+    -> dragged_outside
+* [We hurried home] -> hurry_outside
 
 === hurry_outside ===
 We hurried home to Savile Row -> as_fast_as_we_could
@@ -54,30 +54,30 @@ He insisted that we hurried home to Savile Row
 
 === road === 
 I ran through the forest, the dogs snapping at my heels.
-	* 	I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
-	*   I did not pause for breath[] but kept on running. <>
-	*	I cheered with joy. <>
-    - 	The road could not be much further! Mackie would have the engine running, and then I'd be safe.
-	*	I reached the road and looked about[]. And would you believe it?
-	* 	I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
-    -	The road was empty. Mackie was nowhere to be seen.
+    * I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
+    * I did not pause for breath[] but kept on running. <>
+    * I cheered with joy. <>
+    - The road could not be much further! Mackie would have the engine running, and then I'd be safe.
+    * I reached the road and looked about[]. And would you believe it?
+    * I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
+    - The road was empty. Mackie was nowhere to be seen.
 -> END
 
 === guard ===
 - (opts)
-	*	'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
-		'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
-	*	'Tell me about the security system.'
-		'It's ancient,' the guard assures you. 'Old as coal.'
-	*	'Are there dogs?'
-		'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
-	// We require the player to ask at least one question
-	*	{loop} [Enough talking] 
-		-> done
+    * 'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
+        'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
+    * 'Tell me about the security system.'
+        'It's ancient,' the guard assures you. 'Old as coal.'
+    * 'Are there dogs?'
+        'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
+    // We require the player to ask at least one question
+    * {loop} [Enough talking] 
+        -> done
 - (loop) 
-	// loop a few times before the guard gets bored
-	{ -> opts | -> opts | }
-	He scratches his head.
-	'Well, can't stand around talking all day,' he declares. 
+    // loop a few times before the guard gets bored
+    { -> opts | -> opts | }
+    He scratches his head.
+    'Well, can't stand around talking all day,' he declares. 
 - (done)
-	You thank the guard, and move away. -> END
+    You thank the guard, and move away. -> END
