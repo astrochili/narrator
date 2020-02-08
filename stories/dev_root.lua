@@ -1,6 +1,16 @@
-local self = { version = { engine = 1, tree = 1 } }
+local self = {
+    version = { engine = 1, tree = 1 },
+    keys = {
+        -- TODO: What about custom short keys for the file size reason?
+        tags = "tg", label = "lb", text = "tx", divert = "dv",
+        knot = "kn", stitch = "st", chain = "cn",
+        choice = "ch", sticky = "sy", node = "nd",
+        condition = "if", success = "th", failure = "el",
+        var = "vr", value = "vl"
+    }    
+}
 
-self.includes = { "main" }
+self.includes = { "dev_sub" }
 
 self.constants = {
     year = 2019
@@ -209,42 +219,49 @@ self.root = {
         { var = "inventory", value = "(water, knife)" },
         { text = "#inventory#" },
         { condition = "inventory == (water)", success = "I have water.", failure = "I don't have water." },
-        { divert = { knot = "END" } },
+        { choice = "Continue", title = "", sticky = true },
 
         { var = "weapon", value = "knife", temp = true },
         { condition = "weapon == knife", success = "My weapon is knife.", failure = "I don't have any weapon." },
+        { choice = "Continue", title = "", sticky = true },
 
         { condition = "inventory ? (compass, water)", success = "I have water and a compass.", failure = "Hm, I have only a compass or water?" },
         { condition = "inventory == (compass)", success = "I have a compass only.", failure = "I have something more than one compass .. or have nothing." },
+        { choice = "Continue", title = "", sticky = true },
 
         { var = "emptyList", value = "emptyList + knife" },
         { text = "Empty list now have: #emptyList#." },
         { var = "tempList", value = "()", temp = true },
         { text = "Temp list is empty: #tempList#." },
-        { var = "tempList", value = "(knife, water, compass)" },
+        { var = "tempList", value = "tempList + (knife, water, compass)" },
         { text = "Temp list now is not empty: #tempList#." },
-        
+        { choice = "Continue", title = "", sticky = true },
+
         { text = "---\nTime to lecture." },
         { condition = "lecturersVolume < deafening", success = {
             { var = "lecturersVolume", value = "lecturersVolume + 1" }
         } },
         { text = "Lectoter volume is #lecturersVolume#" },
-        
+        { choice = "Continue", title = "", sticky = true },
+
         { text = "---\nTime to party."},
+        { var = "x", value = "10 + sum(5, 5) + 10"},
         { var = "BallroomContents", temp = true, value = "(Alfred, Batman, newspaper)" },
         { var = "HallwayContents", temp = true, value = "(Robin, champagne_glass)" },
         { var = "BallroomContents", value = "BallroomContents - 1" },
         { text = "#BallroomContents# / #LIST_INVERT(BallroomContents)#" }, -- Alfred, champagne_glass / Batman, newspaper, Robin
         { text = "#HallwayContents# / #LIST_INVERT(HallwayContents)#" }, -- champagne_glass, Robin / Alfred, Batman, newspaper
+        { choice = "Continue", title = "", sticky = true },
 
         { text = "---\nTime to dirty mix." },
         { var = "dirtyMix", value = "(a, three, c)" },
+        { text = "dirtyMix = [#dirtyMix#]"},
         { text = "#LIST_ALL(dirtyMix)#" }, -- a, one, b, two, c, three
         { text = "#LIST_COUNT(dirtyMix)#" }, -- 3
         { text = "#LIST_MIN(dirtyMix)#" }, -- a
         { text = "#LIST_MAX(dirtyMix)#" }, -- three or c, albeit unpredictably
         { text = "#dirtyMix ? (a,b)#" }, -- false 
-        { text = "#dirtyMix ^ LIST_ALL(c)#" }, -- a, c
+        { text = "#dirtyMix ^ LIST_ALL(a)#" }, -- a, c
         { text = "#dirtyMix >= (one, a)#" }, -- true
         { text = "#dirtyMix < (three)#" }, -- false
         { text = "#LIST_INVERT(dirtyMix)#" } -- one, b, two

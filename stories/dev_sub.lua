@@ -1,11 +1,5 @@
-local self = { version = { engine = 1, tree = 1 } }
-
-self.keys = {
-    tags = "tags", label = "label", text = "text", divert = "divert",
-    knot = "knot", stitch = "stitch", chain = "chain",
-    choice = "choice", sticky = "sticky", node = "node",
-    condition = "condition", success = "sussess", failure = "failure",
-    var = "var", value = "value"
+local self = {
+    version = { engine = 1, tree = 1 }
 }
 
 self.variables = {

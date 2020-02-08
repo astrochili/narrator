@@ -6,30 +6,26 @@ local lume = require("lume")
 --
 -- Metatable
 
-local mt = { orders = { } }
+local mt = { lists = { } }
 
 function mt.__tostring(self)
-    local items = { }
-    local maxIndex = 0
+    local pool = { }
 
     for listName, listItems in pairs(self) do
-        maxIndex = maxIndex + #mt.orders[listName]
-        for index = 1, #mt.orders[listName] do
-            local itemName = mt.orders[listName][index]
-            if listItems[itemName] ~= nil then
-                table.insert(items, index, itemName)
+        for index = 1, #mt.lists[listName] do
+            pool[index] = pool[index] or { }
+            local itemName = mt.lists[listName][index]
+            if listItems[itemName] == true then
+                table.insert(pool[index], itemName)
             end
         end
     end
 
-    local freeIndex
-    for index = 1, maxIndex do
-        if items[index] == nil and freeIndex == nil then
-            freeIndex = index
-        elseif items[index] ~= nil and freeIndex ~= nil then
-            items[freeIndex] = items[index]
-            items[index] = nil
-            freeIndex = freeIndex + 1
+    local items = { }
+
+    for _, titles in ipairs(pool) do
+        for _, title in ipairs(titles) do
+            table.insert(items, title)
         end
     end
 
@@ -53,7 +49,7 @@ function mt.__sub(lhs, rhs) -- -
     if type(rhs) == "table" then
         return mt.__subList(lhs, rhs)
     elseif type(rhs) == "number" then
-        return mt.shiftListByNumber(lhs, -rhs)
+        return mt.__shiftByNumber(lhs, -rhs)
     else
         error("Attempt to sub the list with " .. type(rhs))
     end
@@ -124,10 +120,12 @@ function mt.__lt(lhs, rhs) -- <
         error("Attempt to compare the list with " .. type(rhs))
     end
 
+    -- LEFT < RIGHT means "the smallest value in LEFT is bigger than the largest values in RIGHT"
+    
     local minLeft = mt.getMinValueOf(lhs)
-    local maxRight = mt.getMaxVAlueOf(rhs)
+    local maxRight = mt.getMaxValueOf(rhs)
 
-    return minLeft < maxRight
+    return minLeft > maxRight
 end
 
 function mt.__le(lhs, rhs) -- <=
@@ -135,12 +133,15 @@ function mt.__le(lhs, rhs) -- <=
         error("Attempt to compare the list with " .. type(rhs))
     end
 
-    local minLeft = mt.getMinValueOf(lhs)
-    local minRight = mt.getMinValueOf(rhs)
-    local maxLeft = mt.getMaxValueOf(lhs)
-    local maxRight = mt.getMaxValueOf(rhs)
+    -- LEFT <= RIGHT means "the smallest value in RIGHT is at least the smallest value in LEFT,
+    --                      and the largest value in RIGHT is at least the largest value in LEFT".
 
-    return minLeft <= minRight and maxLeft <= maxRight
+    local minRight = mt.getMinValueOf(rhs)
+    local minLeft = mt.getMinValueOf(lhs)
+    local maxRight = mt.getMaxValueOf(rhs)
+    local maxLeft = mt.getMaxValueOf(lhs)
+
+    return minRight >= minLeft and maxRight >= maxLeft
 end
 
 --
@@ -178,9 +179,9 @@ function mt.__shiftByNumber(list, number)
 
     for listName, listItems in pairs(list) do
         result[listName] = { }
-        for index, itemName in mt.orders[listName] do
+        for index, itemName in ipairs(mt.lists[listName]) do
             if listItems[itemName] == true then
-                local nextItem = mt.orders[listName][index + number]
+                local nextItem = mt.lists[listName][index + number]
                 if nextItem ~= nil then
                     result[listName][nextItem] = true
                 end
@@ -207,8 +208,8 @@ function mt.removeEmptiesInList(list)
 end
 
 function mt.getIndexInList(listName, itemName)
-    if mt.orders[listName] == nil then return 0 end
-    local index = lume.find(mt.orders[listName], itemName)
+    if mt.lists[listName] == nil then return 0 end
+    local index = lume.find(mt.lists[listName], itemName)
     return index or 0
 end
 

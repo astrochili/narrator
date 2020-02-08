@@ -62,8 +62,13 @@ local function parseModel(path, save)
     local model = parser.parse(lines)
 
     if save then
+        local data = lume.serialize(model)
+        data = data:gsub("[\"[%w_]+\"]", function(match) return
+            match:sub(3, #match - 2)
+        end)
+
         local file = io.open(luaPath, "w")
-        file:write(lume.serialize(model))
+        file:write("return " .. data)
         file:close()
     end
 

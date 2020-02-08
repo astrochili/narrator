@@ -346,7 +346,9 @@ function Story:replaceExpressions(text)
 			return "#"
 		else
 			local result = self:doExpression(match:sub(2, #match-1))
-			if type(result) == "table" then result = tostring(result) end
+			if type(result) == "table" then
+				result = tostring(result)
+			end
 			if type(result) == "boolean" then result = result and 1 or 0 end
 			if result == nil then result = "" end
 			return result
@@ -395,7 +397,7 @@ function Story:doExpression(expression)
 
 		local func = self.functions[functionName]
 		if func ~= nil then
-			local result = func(table.unpack(params or { }))
+			local result = func((table.unpack or unpack)(params or { }))
 			return lume.serialize(result)
 		elseif self.lists[functionName] ~= nil and type(params[1]) == "number" then
 			local item = self.lists[functionName][params[1]]
@@ -448,7 +450,7 @@ function Story:doExpression(expression)
 	-- Attach the metatable to list tables
 	if #lists > 0 then
 		code = code .. "local mt = require('" .. libPath .. ".list.mt')\n"
-		code = code .. "mt.orders = " .. lume.serialize(self.lists) .. "\n\n"
+		code = code .. "mt.lists = " .. lume.serialize(self.lists) .. "\n\n"
 		for index, list in pairs(lists) do
 			local name = "__list" .. index
 			code = code .. "local " .. name .. " = " .. lume.serialize(list) .. "\n"
@@ -506,7 +508,7 @@ function Story:makeListFor(expression)
 		end
 	end
 
-	return next(result) ~= nil and result or nil
+	return result
 end
 
 function Story:getListNameFor(name)
@@ -692,14 +694,14 @@ function Story:inkFunctions()
 		-- TURNS = function() return nil end -- TODO
 		-- TURNS_SINCE = function(path) return nil end -- TODO	
 
-		LIST_VALUE = function(list) return nil end, -- TODO
-		LIST_COUNT = function(list) return nil end, -- TODO
-		LIST_MIN = function(list) return nil end, -- TODO
-		LIST_MAX = function(list) return nil end, -- TODO
-		LIST_RANDOM = function(list) return nil end, -- TODO
-		LIST_ALL = function(list) return nil end, -- TODO (element of the list or list containing elements of a list)
-		LIST_RANGE = function(list) return nil end, -- TODO
-		LIST_INVERT = function(list) return nil end -- TODO
+		LIST_VALUE = function(list) return 0 end, -- TODO with mt
+		LIST_COUNT = function(list) return 0 end, -- TODO with mt
+		LIST_MIN = function(list) return list end, -- TODO with mt
+		LIST_MAX = function(list) return list end, -- TODO with mt
+		LIST_RANDOM = function(list) return list end, -- TODO with mt
+		LIST_ALL = function(list) return list end, -- TODO with mt
+		LIST_RANGE = function(list, min, max) return list end,  -- TODO with mt
+		LIST_INVERT = function(list) return list end  -- TODO with mt
 	}
 end
 

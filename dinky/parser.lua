@@ -12,13 +12,12 @@ local enums = require(libPath .. ".enums")
 local Parser = { }
 
 function Parser.parse(lines)
-    local model = { version = {
-        engine = enums.engineVersion,
-        tree = 1
-    } }
+    local model = { }
+    model.version = { engine = enums.engineVersion, tree = 1 }
+    model.root = { _ = { _ = { } } }
 
     for _, line in ipairs(lines) do
-        print(line)
+        -- TODO lpeg parsing
     end
 
     return model

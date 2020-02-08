@@ -10,7 +10,6 @@ Again and again.
 * { false } ->
     Text -> END
     
-
 === nested ===
 - I looked at Monsieur Fogg 
 *	... and I could contain myself no longer.
@@ -31,7 +30,6 @@ Again and again.
 *	... but I said nothing[] and <> 
 - we passed the day in silence.
 - -> END
-
 
 === back_in_london ===
 
@@ -54,8 +52,6 @@ He insisted that we hurried home to Savile Row
 <> as fast as we could.
 -> END
 
-
-
 === road === 
 I ran through the forest, the dogs snapping at my heels.
 	* 	I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
@@ -66,7 +62,6 @@ I ran through the forest, the dogs snapping at my heels.
 	* 	I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
     -	The road was empty. Mackie was nowhere to be seen.
 -> END
-
 
 === guard ===
 - (opts)
@@ -86,6 +81,3 @@ I ran through the forest, the dogs snapping at my heels.
 	'Well, can't stand around talking all day,' he declares. 
 - (done)
 	You thank the guard, and move away. -> END
-
-
-
