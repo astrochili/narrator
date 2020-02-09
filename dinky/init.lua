@@ -52,14 +52,10 @@ local function parseModel(path, save)
         print("File doesn't exist: " .. inkPath)
         return nil
     end
+    local content = file:read("*all")
     file:close()
 
-    local lines = { }
-    for line in io.lines(inkPath) do 
-        lines[#lines + 1] = line
-    end
-    
-    local model = parser.parse(lines)
+    local model = parser.parse(content)
 
     if save then
         local data = lume.serialize(model)
