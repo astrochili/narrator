@@ -1,13 +1,5 @@
 local self = {
-    version = { engine = 1, tree = 1 },
-    keys = {
-        -- TODO: What about custom short keys for the file size reason?
-        tags = "tg", label = "lb", text = "tx", divert = "dv",
-        knot = "kn", stitch = "st", chain = "cn",
-        choice = "ch", sticky = "sy", node = "nd",
-        condition = "if", success = "th", failure = "el",
-        var = "vr", value = "vl"
-    }    
+    version = { engine = 1, tree = 1 }  
 }
 
 self.includes = { "dev_sub" }
