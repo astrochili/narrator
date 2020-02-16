@@ -4,7 +4,8 @@ LIST list = aaa, (bbb), ccc
 VAR rrr = 2
 VAR qqq = 55
 
--> fallback
+TEXT -> fallback
+-> fallback   
 - (greet) Hello world! <>
 Again and again.
 

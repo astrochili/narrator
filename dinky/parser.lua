@@ -52,27 +52,36 @@ function Parser.parse(inkContent)
         model.variables[variable] = lume.deserialize(value)
     end
 
-    local addText = function(text)
-        local block = { text = text }
+    local addText = function(label, text, divert)
+        local block = { text = text, label = label, divert = divert }
         table.insert(model.root, block)
     end
 
-    local sp = S(" \t")^0
+    function maybe(p) return p^-1 end
+    function anybutnot(p) return (1 - p)^0 end
+
+    local space = S(" \t")^0
     local ws = S(" \t\r\n")^0
     local nl = S("\r\n")^1
-    local id = (lpeg.alpha + '_') * (lpeg.alnum + '_')^0
     local any = P(1 - nl)^1
-
-    local include = ("INCLUDE" * sp * C(any)) / addInclude
-    local list = ("LIST" * sp * C(id) * sp * "=" * sp * C(any)) / addList
-    local constant = ("CONST" * sp * C(id) * sp * "=" * sp * C(any)) / addConstant
-    local variable = ("VAR" * sp * C(id) * sp * "=" * sp * C(any)) / addVariable
-    local initial = include + list + constant + variable
-
-    local text = C(any) / addText
     
-    local line = initial + text
-    local ink = (sp * line * ws)^0
+    -- local id = (lpeg.alpha + '_') * (lpeg.alnum + '_')^0
+    -- local include = ("INCLUDE" * sp * C(any)) / addInclude
+    -- local list = ("LIST" * sp * C(id) * sp * "=" * sp * C(any)) / addList
+    -- local constant = ("CONST" * sp * C(id) * sp * "=" * sp * C(any)) / addConstant
+    -- local variable = ("VAR" * sp * C(id) * sp * "=" * sp * C(any)) / addVariable
+    -- local initial = include + list + constant + variable
+
+    local label = "(" * C(any) * ")"
+    local divert = "->" * sp * C(any)
+    
+    local justDivert = sp * divert
+    local textAndDivert = sp * any * sp * divert
+    local text = sp * Ct(maybe(label) * sp * (justDivert + textAndDivert)) / addText
+
+    local line = text
+    local ink = line^0 - 1
+
     ink:match(inkContent)
 
     return model
@@ -80,7 +89,11 @@ end
 
 return Parser
 
--- local id = (lpeg.alpha + '_') * (lpeg.alnum + '_')^0 -- b_SDF_3ed334
+-- local eof = -1
+-- local sp = S" \t" ^0 + eof
+-- local wh = S" \t\r\n" ^0 + eof
+-- local nl = S"\r\n" ^1 + eof
+-- local id = (lpeg.alpha + '_') * (lpeg.alnum + '_')^0
 -- local addr = C(id) * ('.' * C(id))^-1
 -- local todo = Ct(sp * 'TODO:'/"todo" * sp * C((1-nl)^0)) * wh
 -- local commOL = Ct(sp * '//'/"comment" * sp * C((1-nl)^0)) * wh
@@ -104,16 +117,18 @@ return Parser
 -- local tagAbove = Ct(Cc'tag' * Cc'above' * tag * wh)
 -- local tagEnd = Ct(Cc'tag' * Cc'end' * tag * sp)
 
--- Parser.inkPattern = P({
-    -- stmt = glue + divert + knot + stitch + V'option' + optDiv + comm + V'include',
-    -- text = C((1-nl-V'stmt'-hash)^1),
-    -- textEmptyCapt = C((1-nl-V'stmt'-hash)^0),
-    -- optAnsWithDiv    = V'textEmptyCapt' * sp * optDiv * V'text'^0 * wh,
-    -- optAnsWithoutDiv = V'textEmptyCapt' * sp * Cc ''  * Cc ''     * wh, -- huh?
-    -- optAns = V'optAnsWithDiv' + V'optAnsWithoutDiv',
-    -- option = Ct(Cc'option' * optStars * sp * V'optAns'),
-    -- gather = Ct(Cc'gather' * gatherMarks * sp * V'text'),
-    -- include = Ct(P('INCLUDE')/'include' * wh * V'text' * wh),
-    -- para = tagAbove^0 * Ct(Cc'para' * V'text') * tagEnd^0 * wh  +  tagGlobal,
-    -- line = V'stmt' + V'gather'+ V'para'
+-- local ink = P({
+--  "lines",
+--  stmt = glue + divert + knot + stitch + V'option' + optDiv + comm + V'include',
+--  text = C((1-nl-V'stmt'-hash)^1),
+--  textEmptyCapt = C((1-nl-V'stmt'-hash)^0),
+--  optAnsWithDiv    = V'textEmptyCapt' * sp * optDiv * V'text'^0 * wh,
+--  optAnsWithoutDiv = V'textEmptyCapt' * sp * Cc ''  * Cc ''     * wh, -- huh?
+--  optAns = V'optAnsWithDiv' + V'optAnsWithoutDiv',
+--  option = Ct(Cc'option' * optStars * sp * V'optAns'),
+--  gather = Ct(Cc'gather' * gatherMarks * sp * V'text'),
+--  include = Ct(P('INCLUDE')/'include' * wh * V'text' * wh),
+--  para = tagAbove^0 * Ct(Cc'para' * V'text') * tagEnd^0 * wh  +  tagGlobal,
+--  line = V'stmt' + V'gather'+ V'para' ,
+--  lines = Ct(V'line'^0)
 -- })
