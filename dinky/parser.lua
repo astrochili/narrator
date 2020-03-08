@@ -20,7 +20,7 @@ lpeg.locale(lpeg)
 
 local Parser = { }
 
-function Parser.parse(inkContent)
+function Parser.parse(content)
     local model = {
         version = { engine = enums.engineVersion, tree = 1 },
         root = { },
@@ -29,12 +29,12 @@ function Parser.parse(inkContent)
         variables = { },
         lists = { }
     }
-    
-    local addInclude = function(include)
+        
+    local function addInclude(include)
         table.insert(model.includes, include)
     end
     
-    local addList = function(list, value)
+    local function addList(list, value)
         local items = lume.array(value:gmatch("[%w_%.]+"))
         model.lists[list] = items
 
@@ -44,46 +44,47 @@ function Parser.parse(inkContent)
         lume.each(switched, function(item) model.variables[list][list][item] = true end)
     end
 
-    local addConstant = function(constant, value)
+    local function addConstant(constant, value)
         model.constants[constant] = lume.deserialize(value)
     end
 
-    local addVariable = function(variable, value)
+    local function addVariable(variable, value)
         model.variables[variable] = lume.deserialize(value)
     end
 
-    local addText = function(label, text, divert)
+    local function addParagraph(label, text, divert)
         local block = { text = text, label = label, divert = divert }
         table.insert(model.root, block)
     end
 
-    function maybe(p) return p^-1 end
-    function anybutnot(p) return (1 - p)^0 end
+    local eof = -1
+    local sp = S(" \t") ^ 0 + eof
+    local ws = S(" \t\r\n") ^ 0 + eof
+    local nl = S("\r\n") ^ 1 + eof
 
-    local space = S(" \t")^0
-    local ws = S(" \t\r\n")^0
-    local nl = S("\r\n")^1
-    local any = P(1 - nl)^1
-    
-    -- local id = (lpeg.alpha + '_') * (lpeg.alnum + '_')^0
-    -- local include = ("INCLUDE" * sp * C(any)) / addInclude
-    -- local list = ("LIST" * sp * C(id) * sp * "=" * sp * C(any)) / addList
-    -- local constant = ("CONST" * sp * C(id) * sp * "=" * sp * C(any)) / addConstant
-    -- local variable = ("VAR" * sp * C(id) * sp * "=" * sp * C(any)) / addVariable
-    -- local initial = include + list + constant + variable
+    local id = C((lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0)
+    local label = "(" * id * ")"
+    local address = C(id * ('.' * id) ^ 0)
+    local divert = "->" * sp * address
 
-    local label = "(" * C(any) * ")"
-    local divert = "->" * sp * C(any)
-    
-    local justDivert = sp * divert
-    local textAndDivert = sp * any * sp * divert
-    local text = sp * Ct(maybe(label) * sp * (justDivert + textAndDivert)) / addText
+    local ink = P({
+        "lines",
+        statement = V("include") + V("list") + V("const") + V("var"),
+        text = C((1 - nl - V("statement")) ^ 1),
 
-    local line = text
-    local ink = line^0 - 1
+        include = "INCLUDE" * sp * V("text") / addInclude,
+        assign = (id * sp * "=" * sp * V("text")),
+        list = "LIST" * sp * V("assign") / addList,
+        const = "CONST" * sp * V("assign") / addConstant,
+        var = "VAR" * sp * V("assign") / addVariable,
 
-    ink:match(inkContent)
+        paragraph = Cc(nil) * V("text") / addParagraph,
+        
+        line = sp * (V("statement") + V("paragraph")) * ws,
+        lines = Ct(V("line") ^ 0)
+    })
 
+    local lines = ink:match(content)
     return model
 end
 
