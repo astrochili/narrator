@@ -62,23 +62,26 @@ function Parser.parse(content)
     local ws = S(" \t\r\n") ^ 0 + eof
     local nl = S("\r\n") ^ 1 + eof
 
-    local id = C((lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0)
-    local label = "(" * id * ")"
-    local address = C(id * ('.' * id) ^ 0)
-    local divert = "->" * sp * address
+    local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
+    local label = "(" * C(id) * ")"
+    local address = id * ('.' * id) ^ -2
+    local divert = "->" * sp * C(address)
 
     local ink = P({
         "lines",
         statement = V("include") + V("list") + V("const") + V("var"),
-        text = C((1 - nl - V("statement")) ^ 1),
+        text = C((1 - nl - V("statement") - divert) ^ 1),
 
         include = "INCLUDE" * sp * V("text") / addInclude,
-        assign = (id * sp * "=" * sp * V("text")),
+        assign = (C(id) * sp * "=" * sp * V("text")),
         list = "LIST" * sp * V("assign") / addList,
         const = "CONST" * sp * V("assign") / addConstant,
         var = "VAR" * sp * V("assign") / addVariable,
 
-        paragraph = Cc(nil) * V("text") / addParagraph,
+        textAndDivert = V("text") * sp * divert ^ -1,
+        justDivert = Cc(nil) * divert,
+        labelOrNil = label + Cc(nil),
+        paragraph = (V("labelOrNil") * sp * (V("textAndDivert") + V("justDivert"))) / addParagraph,
         
         line = sp * (V("statement") + V("paragraph")) * ws,
         lines = Ct(V("line") ^ 0)

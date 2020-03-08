@@ -7,7 +7,7 @@ VAR qqq = 55
 START TEXT -> fallback
 -> fallback   
 - (greet) Hello world! <>
-Again and again.
+(label) Again and again.
 
 === fallback
 * Answer 1
