@@ -52,7 +52,7 @@ function Parser.parse(content)
         model.variables[variable] = lume.deserialize(value)
     end
 
-    local function addParagraph(label, text, divert)
+    local function addParagraph(level, label, text, divert)
         local block = { text = text, label = label, divert = divert }
         table.insert(model.root, block)
     end
@@ -62,10 +62,16 @@ function Parser.parse(content)
     local ws = S(" \t\r\n") ^ 0 + eof
     local nl = S("\r\n") ^ 1 + eof
 
+    local gatherSign = "-"
+    local divertSign = "->"
+
+    local gatherMark = sp * C(gatherSign) - divertSign
+    local gatherMarks = Ct(gatherMark ^ 0) / table.getn
+
     local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
     local label = "(" * C(id) * ")"
     local address = id * ('.' * id) ^ -2
-    local divert = "->" * sp * C(address)
+    local divert = divertSign * sp * C(address)
 
     local ink = P({
         "lines",
@@ -81,7 +87,7 @@ function Parser.parse(content)
         textAndDivert = V("text") * sp * divert ^ -1,
         justDivert = Cc(nil) * divert,
         labelOrNil = label + Cc(nil),
-        paragraph = (V("labelOrNil") * sp * (V("textAndDivert") + V("justDivert"))) / addParagraph,
+        paragraph = (gatherMarks * sp * V("labelOrNil") * sp * (V("textAndDivert") + V("justDivert"))) / addParagraph,
         
         line = sp * (V("statement") + V("paragraph")) * ws,
         lines = Ct(V("line") ^ 0)
