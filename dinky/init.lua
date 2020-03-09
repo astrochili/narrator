@@ -48,10 +48,8 @@ local function parseModel(path, save)
     local luaPath = path .. ".lua"
 
     local file = io.open(inkPath, "r")
-    if file == nil then
-        print("File doesn't exist: " .. inkPath)
-        return nil
-    end
+    assert(file, "File doesn't exist: " .. inkPath)
+
     local content = file:read("*all")
     file:close()
 

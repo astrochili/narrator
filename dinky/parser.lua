@@ -23,13 +23,21 @@ local Parser = { }
 function Parser.parse(content)
     local model = {
         version = { engine = enums.engineVersion, tree = 1 },
-        root = { },
+        root = { _ = { _ = { } } },
         includes = { },
         constants = { },
         variables = { },
         lists = { }
     }
-        
+
+    local currentKnot = "_"
+    local currentStitch = "_"    
+
+    local function addBlock(block)
+        currentNode = model.root[currentKnot][currentStitch]
+        table.insert(currentNode, block)
+    end
+
     local function addInclude(include)
         table.insert(model.includes, include)
     end
@@ -52,15 +60,21 @@ function Parser.parse(content)
         model.variables[variable] = lume.deserialize(value)
     end
 
-    local function addParagraph(level, label, text, divert)
-        local block = { level = level, text = text, label = label, divert = divert }
+    local function addParagraph(level, label, text, divert, tags)
+        local block = {
+            text = text,
+            label = label,
+            divert = divert,
+            tags = tags
+        }
+
         block.level = level
-        table.insert(model.root, block)
+
+        addBlock(block)
     end
 
     local function addChoice(level, sticky, text, divert)
         local block = {
-            level = level, -- temporary for debugging
             sticky = sticky or nil,
             divert = divert        
         }
@@ -73,7 +87,22 @@ function Parser.parse(content)
             block.text = (part1 or text) .. (part2 or "")
         end
 
-        table.insert(model.root, block)
+        block.level = level -- temporary for debugging
+
+        addBlock(block)
+    end
+
+    local function addKnot(knot)
+        currentKnot = knot
+        model.root[currentKnot] = { }
+
+        currentStitch = "_"
+        model.root[knot][currentStitch] = { }
+    end
+
+    local function addStitch(stitch)
+        currentStitch = stitch
+        model.root[currentKnot][currentStitch] = { }
     end
 
     local eof = -1
@@ -96,23 +125,26 @@ function Parser.parse(content)
     local address = id * ("." * id) ^ -2
     local divert = divertSign * sp * C(address)
     local divertToNothing = divertSign * none
+    local tag = "#" * sp * V"text"
+    local tags = Ct(tag * (sp * tag) ^ 0)
 
     local todo = sp * "TODO:" * (1 - nl) ^ 0
     local commentLine = sp * "//" * sp * (1 - nl) ^ 0
     local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
     local comment = commentLine + commentMulti
-
     
     local ink = P({
         "lines",
-        statement = V"include" + V"list" + V"const" + V"var" + V"choice" + comment + todo,
-        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment) ^ 1) ^ 1) - V("statement"),
+        statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + comment + todo,
+        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag) ^ 1) ^ 1) - V("statement"),
 
         include = "INCLUDE" * sp * V("text") / addInclude,
         assign = (C(id) * sp * "=" * sp * V("text")),
         list = "LIST" * sp * V"assign" / addList,
         const = "CONST" * sp * V"assign" / addConstant,
         var = "VAR" * sp * V"assign" / addVariable,
+        knot = "===" * sp * C(id) * sp * P("=") ^ 0 / addKnot,
+        stitch = "=" * sp * C(id) * sp * P("=") ^ 0 / addStitch,
 
         choiceFallback = choiceLevel * sp * none * (divert + divertToNothing),
         choiceDefault = choiceLevel * sp * V"text" * sp * divert ^ -1,
@@ -121,11 +153,13 @@ function Parser.parse(content)
         labelOptional = label + none,
         textOptional = V"text" + none,
         divertOptional = divert + none,
+        tagsOptional = tags + none,
 
-        paragraphLabel = label * sp * V"textOptional" * sp * V"divertOptional",
-        paragraphText = V"labelOptional" * sp * V"text" * sp * V"divertOptional",
-        paragraphDivert = V"labelOptional" * sp * V"textOptional" * sp * divert,
-        paragraph = gatherLevel * sp * (V"paragraphLabel" + V"paragraphDivert" + V"paragraphText") / addParagraph,
+        paragraphLabel = label * sp * V"textOptional" * sp * V"divertOptional" * sp * V"tagsOptional",
+        paragraphText = V"labelOptional" * sp * V"text" * sp * V"divertOptional" * sp * V"tagsOptional",
+        paragraphDivert = V"labelOptional" * sp * V"textOptional" * sp * divert * sp * V"tagsOptional",
+        paragraphTags = V"labelOptional" * sp * V"textOptional" * sp * V"divertOptional" * sp * tags,
+        paragraph = gatherLevel * sp * (V"paragraphLabel" + V"paragraphText" + V"paragraphDivert" + V"paragraphTags") / addParagraph,
 
         line = sp * (V"statement" + V"paragraph") * ws,
         lines = Ct(V"line" ^ 0) + eof
@@ -138,55 +172,7 @@ end
 return Parser
 
 -- TODO
--- tags
--- knots and stitchs
---
 -- secuences (+multiline)
 -- conditions (+multiline)
 -- ~ vars and expressions (+multiline)
 -- temp vars
--- 
-
--- local eof = -1
--- local sp = S" \t" ^0 + eof
--- local wh = S" \t\r\n" ^0 + eof
--- local nl = S"\r\n" ^1 + eof
--- local id = (lpeg.alpha + '_') * (lpeg.alnum + '_')^0
--- local addr = C(id) * ('.' * C(id))^-1
--- local todo = Ct(sp * 'TODO:'/"todo" * sp * C((1-nl)^0)) * wh
--- local commOL = Ct(sp * '//'/"comment" * sp * C((1-nl)^0)) * wh
--- local commML = Ct(sp * '/*'/"comment" * wh * C((P(1)-'*/')^0)) * '*/' * wh
--- local comm = commOL + commML + todo
--- local glue = Ct(P'<>'/'glue') *wh -- FIXME do not consume spaces after glue
--- local divertSym = '->' *wh
--- local divertEnd = Ct(divertSym/'end' * 'END' * wh)
--- local divertJump = Ct(divertSym/'divert' * addr * wh)
--- local divert = divertEnd + divertJump
--- local knot = Ct(P('=')^2/'knot' * wh * C(id) * wh * P('=')^0) * wh
--- local stitch = Ct(P('=')^1/'stitch' * wh * C(id) * wh * P('=')^0) * wh
--- local optDiv = '[' * C((P(1) - ']')^0) * ']'
--- local optStar = sp * C'*'
--- local optStars = wh * Ct(optStar * optStar^0)/table.getn
--- local gatherMark = sp * C'-'
--- local gatherMarks = wh * Ct(gatherMark * gatherMark^0)/table.getn
--- local hash = P('#')
--- local tag = hash * wh * V'text'
--- local tagGlobal = Ct(Cc'tag' * Cc'global' * tag * wh)
--- local tagAbove = Ct(Cc'tag' * Cc'above' * tag * wh)
--- local tagEnd = Ct(Cc'tag' * Cc'end' * tag * sp)
-
--- local ink = P({
---  "lines",
---  stmt = glue + divert + knot + stitch + V'option' + optDiv + comm + V'include',
---  text = C((1-nl-V'stmt'-hash)^1),
---  textEmptyCapt = C((1-nl-V'stmt'-hash)^0),
---  optAnsWithDiv    = V'textEmptyCapt' * sp * optDiv * V'text'^0 * wh,
---  optAnsWithoutDiv = V'textEmptyCapt' * sp * Cc ''  * Cc ''     * wh, -- huh?
---  optAns = V'optAnsWithDiv' + V'optAnsWithoutDiv',
---  option = Ct(Cc'option' * optStars * sp * V'optAns'),
---  gather = Ct(Cc'gather' * gatherMarks * sp * V'text'),
---  include = Ct(P('INCLUDE')/'include' * wh * V'text' * wh),
---  para = tagAbove^0 * Ct(Cc'para' * V'text') * tagEnd^0 * wh  +  tagGlobal,
---  line = V'stmt' + V'gather'+ V'para' ,
---  lines = Ct(V'line'^0)
--- })
