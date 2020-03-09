@@ -172,7 +172,14 @@ end
 return Parser
 
 -- TODO
--- secuences (+multiline)
--- conditions (+multiline)
--- ~ vars and expressions (+multiline)
--- temp vars
+-- alts, seq, shuffle
+-- var, value, temp
+-- condition, success, failure (text / node / switches = if+elseif+else)
+-- levels -> choice nodes
+-- diverts -> full paths
+-- if stitch "_" is empty add divert to first stitch (by ink)
+--
+-- clean output from empty knots and stitches
+-- convert expressions to lua code?
+-- Почему бы для choice и alts не зафигачивать label сразу при парсинге а не считать их в рантайме?
+-- divertions to labels - автозамена лэйблов на цепочку чойсов
