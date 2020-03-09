@@ -57,32 +57,49 @@ function Parser.parse(content)
         table.insert(model.root, block)
     end
 
-    local eof = -1
-    local sp = S(" \t") ^ 0 + eof
-    local ws = S(" \t\r\n") ^ 0 + eof
-    local nl = S("\r\n") ^ 1 + eof
+    local function addChoice(level, sticky, text, divert)
+        local block = { choice = text, divert = divert }
+        table.insert(model.root, block)
+    end    
 
-    local gatherSign = "-"
+    local eof = -1
+    local sp = S(" \t") ^ 0
+    local ws = S(" \t\r\n") ^ 0
+    local nl = S("\r\n") ^ 1
+
     local divertSign = "->"
 
+    local gatherSign = "-"
     local gatherMark = sp * C(gatherSign) - divertSign
     local gatherMarks = Ct(gatherMark ^ 0) / table.getn
 
+    local stickySign = "+"
+    local stickyMark = sp * C(stickySign)
+    local stickyMarks = Ct(stickyMark ^ 1) / table.getn
+
+    local choiceSign = "*"
+    local choiceMark = sp * C(choiceSign)
+    local choiceMarks = Ct(choiceMark ^ 1) / table.getn
+
     local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
     local label = "(" * C(id) * ")"
-    local address = id * ('.' * id) ^ -2
-    local divert = divertSign * sp * C(address)
+    local address = id * ("." * id) ^ -2
+
+    local divert = sp * divertSign * sp * C(address)
 
     local ink = P({
         "lines",
-        statement = V("include") + V("list") + V("const") + V("var"),
-        text = C((1 - nl - V("statement") - divert) ^ 1),
+        statement = V("include") + V("list") + V("const") + V("var") + V("choice"),
+
+        trimed = sp * C((sp * (1 - S(" \t") - nl - divert) ^ 1) ^ 1),
+        text = V("trimed") - V("statement"),
 
         include = "INCLUDE" * sp * V("text") / addInclude,
         assign = (C(id) * sp * "=" * sp * V("text")),
         list = "LIST" * sp * V("assign") / addList,
         const = "CONST" * sp * V("assign") / addConstant,
         var = "VAR" * sp * V("assign") / addVariable,
+        choice = ((stickyMarks * Cc(true)) + (choiceMarks * Cc(false))) * sp * V("text") * sp * divert ^ -1 / addChoice,
 
         textAndDivert = V("text") * sp * divert ^ -1,
         justDivert = Cc(nil) * divert,
@@ -90,7 +107,7 @@ function Parser.parse(content)
         paragraph = (gatherMarks * sp * V("labelOrNil") * sp * (V("textAndDivert") + V("justDivert"))) / addParagraph,
         
         line = sp * (V("statement") + V("paragraph")) * ws,
-        lines = Ct(V("line") ^ 0)
+        lines = Ct(V("line") ^ 0) + eof
     })
 
     local lines = ink:match(content)

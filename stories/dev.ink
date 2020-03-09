@@ -1,12 +1,12 @@
-INCLUDE sdf.ink
-CONST yyy = "2323"
-LIST list = aaa, (bbb), ccc
-VAR rrr = 2
+INCLUDE sdf.ink   
+CONST yyy = "2323"   
+LIST list = aaa, (bbb), ccc   
+VAR rrr = 2   
 VAR qqq = 55
 
 START TEXT -> fallback
 -> fallback   
-- (greet) Hello world! <>
+- (greet) Hello world! <>  
 (label) Again and again.
 
 === fallback
@@ -71,7 +71,7 @@ I ran through the forest, the dogs snapping at my heels.
 -> END
 
 === guard ===
-- (opts)
+- (opts) df
     * 'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
         'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
     * 'Tell me about the security system.'
@@ -81,10 +81,10 @@ I ran through the forest, the dogs snapping at my heels.
     // We require the player to ask at least one question
     * {loop} [Enough talking] 
         -> done
-- (loop) 
+- (loop) df
     // loop a few times before the guard gets bored
     { -> opts | -> opts | }
     He scratches his head.
     'Well, can't stand around talking all day,' he declares. 
-- (done)
+- (done) df
     You thank the guard, and move away. -> END
