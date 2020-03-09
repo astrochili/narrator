@@ -1,16 +1,45 @@
 INCLUDE sdf.ink   
 CONST yyy = "2323"   
 LIST list = aaa, (bbb), ccc   
-VAR rrr = 2   
-VAR qqq = 55
+VAR rrr = 2
 
-START TEXT -> fallback
+Fallback Choices
+* -> fallback
++ ->
+fallback text -> fallback
+
+// Something unprintable...
+
+TODO: sdf
+sdfsdf TODO: sdfdsfds
+
+"I couldn't possibly comment," I replied. // Line comment after text 
+
+/*Multi comment
+	Multi comment
+*/
+
+/*Multi comment 2
+	Multi comment 2 */
+
+/*
+	Multi comment 3
+    */
+
+"I couldn't possibly comment," I replied /* Multi comment after text
+dfd
+ sdfdsfds*/ Text after multi comment
+
+- -> fallback 
+- (label) TEXT -> fallback
+- TEXT -> fallback    
 -> fallback   
+
 - (greet) Hello world! <>  
 (label) Again and again.
 
 === fallback
-* Answer 1
+* Ans[w]er 1
     OK! -> fallback
 * Answer 2
     OK! -> fallback
@@ -81,10 +110,10 @@ I ran through the forest, the dogs snapping at my heels.
     // We require the player to ask at least one question
     * {loop} [Enough talking] 
         -> done
-- (loop) df
+- (loop)
     // loop a few times before the guard gets bored
     { -> opts | -> opts | }
     He scratches his head.
     'Well, can't stand around talking all day,' he declares. 
-- (done) df
+- (done)
     You thank the guard, and move away. -> END

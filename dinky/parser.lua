@@ -53,14 +53,19 @@ function Parser.parse(content)
     end
 
     local function addParagraph(level, label, text, divert)
-        local block = { text = text, label = label, divert = divert }
+        local block = { level = level, text = text, label = label, divert = divert }
+        block.level = level
         table.insert(model.root, block)
     end
 
     local function addChoice(level, sticky, text, divert)
-        local block = { choice = text, divert = divert }
+        local part1, divider, part2 = text:match("(.*)%[(.*)%](.*)")
+        local choice = (part1 or text) .. (divider or "")
+        local answer = (part1 or text) .. (part2 or "")
+        local block = { choice = choice, text = answer, sticky = sticky, divert = divert }
+        block.level = level
         table.insert(model.root, block)
-    end    
+    end
 
     local eof = -1
     local sp = S(" \t") ^ 0
@@ -69,43 +74,45 @@ function Parser.parse(content)
 
     local divertSign = "->"
 
-    local gatherSign = "-"
-    local gatherMark = sp * C(gatherSign) - divertSign
+    local gatherMark = sp * C("-" - P(divertSign))
     local gatherMarks = Ct(gatherMark ^ 0) / table.getn
-
-    local stickySign = "+"
-    local stickyMark = sp * C(stickySign)
-    local stickyMarks = Ct(stickyMark ^ 1) / table.getn
-
-    local choiceSign = "*"
-    local choiceMark = sp * C(choiceSign)
-    local choiceMarks = Ct(choiceMark ^ 1) / table.getn
+    local stickyMark = sp * C("+")
+    local stickyMarks = Ct(stickyMark ^ 1) / table.getn  * Cc(true)
+    local choiceMark = sp * C("*")
+    local choiceMarks = Ct(choiceMark ^ 1) / table.getn  * Cc(false)
 
     local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
-    local label = "(" * C(id) * ")"
+    local label = "(" * sp * C(id) * sp * ")"
     local address = id * ("." * id) ^ -2
-
     local divert = sp * divertSign * sp * C(address)
+
+    local todo = sp * "TODO:" * (1 - nl) ^ 0
+    local commentLine = sp * "//" * sp * (1 - nl) ^ 0
+    local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
+    local comment = commentLine + commentMulti
 
     local ink = P({
         "lines",
-        statement = V("include") + V("list") + V("const") + V("var") + V("choice"),
-
-        trimed = sp * C((sp * (1 - S(" \t") - nl - divert) ^ 1) ^ 1),
-        text = V("trimed") - V("statement"),
+        statement = V("include") + V("list") + V("const") + V("var") + V("choice") + comment + todo,
+        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment) ^ 1) ^ 1) - V("statement"),
 
         include = "INCLUDE" * sp * V("text") / addInclude,
         assign = (C(id) * sp * "=" * sp * V("text")),
         list = "LIST" * sp * V("assign") / addList,
         const = "CONST" * sp * V("assign") / addConstant,
         var = "VAR" * sp * V("assign") / addVariable,
-        choice = ((stickyMarks * Cc(true)) + (choiceMarks * Cc(false))) * sp * V("text") * sp * divert ^ -1 / addChoice,
+        choice = (stickyMarks + choiceMarks) * sp * (V("text") + "") * sp * divert ^ -1 / addChoice,
 
-        textAndDivert = V("text") * sp * divert ^ -1,
-        justDivert = Cc(nil) * divert,
-        labelOrNil = label + Cc(nil),
-        paragraph = (gatherMarks * sp * V("labelOrNil") * sp * (V("textAndDivert") + V("justDivert"))) / addParagraph,
-        
+        labelOptional = label + Cc(nil),
+        textOptional = V("text") + Cc(nil),
+        divertOptional = divert + Cc(nil),
+
+        paragraphLabel = label * sp * V"textOptional" * sp * V"divertOptional",
+        paragraphText = V"labelOptional" * sp * V("text") * sp * V"divertOptional",
+        paragraphDivert = V"labelOptional" * sp * V"textOptional" * sp * divert,
+
+        paragraph = gatherMarks * sp * (V("paragraphLabel") + V("paragraphDivert") + V("paragraphText")) / addParagraph,
+
         line = sp * (V("statement") + V("paragraph")) * ws,
         lines = Ct(V("line") ^ 0) + eof
     })
@@ -115,6 +122,17 @@ function Parser.parse(content)
 end
 
 return Parser
+
+-- TODO
+-- fallback
+-- tags
+-- knots and stitchs
+--
+-- secuences (+multiline)
+-- conditions (+multiline)
+-- ~ vars and expressions (+multiline)
+-- temp vars
+-- 
 
 -- local eof = -1
 -- local sp = S" \t" ^0 + eof
