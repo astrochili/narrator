@@ -59,11 +59,20 @@ function Parser.parse(content)
     end
 
     local function addChoice(level, sticky, text, divert)
-        local part1, divider, part2 = text:match("(.*)%[(.*)%](.*)")
-        local choice = (part1 or text) .. (divider or "")
-        local answer = (part1 or text) .. (part2 or "")
-        local block = { choice = choice, text = answer, sticky = sticky, divert = divert }
-        block.level = level
+        local block = {
+            level = level, -- temporary for debugging
+            sticky = sticky or nil,
+            divert = divert        
+        }
+
+        if text == nil then
+            block.choice = 0
+        else
+            local part1, divider, part2 = text:match("(.*)%[(.*)%](.*)")
+            block.choice = (part1 or text) .. (divider or "")
+            block.text = (part1 or text) .. (part2 or "")
+        end
+
         table.insert(model.root, block)
     end
 
@@ -71,50 +80,55 @@ function Parser.parse(content)
     local sp = S(" \t") ^ 0
     local ws = S(" \t\r\n") ^ 0
     local nl = S("\r\n") ^ 1
+    local none = Cc(nil)
 
     local divertSign = "->"
 
     local gatherMark = sp * C("-" - P(divertSign))
-    local gatherMarks = Ct(gatherMark ^ 0) / table.getn
-    local stickyMark = sp * C("+")
-    local stickyMarks = Ct(stickyMark ^ 1) / table.getn  * Cc(true)
-    local choiceMark = sp * C("*")
-    local choiceMarks = Ct(choiceMark ^ 1) / table.getn  * Cc(false)
+    local gatherLevel = Ct(gatherMark ^ 0) / table.getn
+    
+    local stickyMarks = Ct((sp * C("+")) ^ 1) / table.getn  * Cc(true)
+    local choiceMarks = Ct((sp * C("*")) ^ 1) / table.getn  * Cc(false)
+    local choiceLevel = stickyMarks + choiceMarks
 
     local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
     local label = "(" * sp * C(id) * sp * ")"
     local address = id * ("." * id) ^ -2
-    local divert = sp * divertSign * sp * C(address)
+    local divert = divertSign * sp * C(address)
+    local divertToNothing = divertSign * none
 
     local todo = sp * "TODO:" * (1 - nl) ^ 0
     local commentLine = sp * "//" * sp * (1 - nl) ^ 0
     local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
     local comment = commentLine + commentMulti
 
+    
     local ink = P({
         "lines",
-        statement = V("include") + V("list") + V("const") + V("var") + V("choice") + comment + todo,
+        statement = V"include" + V"list" + V"const" + V"var" + V"choice" + comment + todo,
         text = sp * C((sp * (1 - S(" \t") - nl - divert - comment) ^ 1) ^ 1) - V("statement"),
 
         include = "INCLUDE" * sp * V("text") / addInclude,
         assign = (C(id) * sp * "=" * sp * V("text")),
-        list = "LIST" * sp * V("assign") / addList,
-        const = "CONST" * sp * V("assign") / addConstant,
-        var = "VAR" * sp * V("assign") / addVariable,
-        choice = (stickyMarks + choiceMarks) * sp * (V("text") + "") * sp * divert ^ -1 / addChoice,
+        list = "LIST" * sp * V"assign" / addList,
+        const = "CONST" * sp * V"assign" / addConstant,
+        var = "VAR" * sp * V"assign" / addVariable,
 
-        labelOptional = label + Cc(nil),
-        textOptional = V("text") + Cc(nil),
-        divertOptional = divert + Cc(nil),
+        choiceFallback = choiceLevel * sp * none * (divert + divertToNothing),
+        choiceDefault = choiceLevel * sp * V"text" * sp * divert ^ -1,
+        choice = (V"choiceFallback" + V"choiceDefault") / addChoice,
+
+        labelOptional = label + none,
+        textOptional = V"text" + none,
+        divertOptional = divert + none,
 
         paragraphLabel = label * sp * V"textOptional" * sp * V"divertOptional",
-        paragraphText = V"labelOptional" * sp * V("text") * sp * V"divertOptional",
+        paragraphText = V"labelOptional" * sp * V"text" * sp * V"divertOptional",
         paragraphDivert = V"labelOptional" * sp * V"textOptional" * sp * divert,
+        paragraph = gatherLevel * sp * (V"paragraphLabel" + V"paragraphDivert" + V"paragraphText") / addParagraph,
 
-        paragraph = gatherMarks * sp * (V("paragraphLabel") + V("paragraphDivert") + V("paragraphText")) / addParagraph,
-
-        line = sp * (V("statement") + V("paragraph")) * ws,
-        lines = Ct(V("line") ^ 0) + eof
+        line = sp * (V"statement" + V"paragraph") * ws,
+        lines = Ct(V"line" ^ 0) + eof
     })
 
     local lines = ink:match(content)
@@ -124,7 +138,6 @@ end
 return Parser
 
 -- TODO
--- fallback
 -- tags
 -- knots and stitchs
 --
