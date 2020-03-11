@@ -141,12 +141,9 @@ function Parser.parse(content)
     
     local function unwrapAssign(expression)
         local unwrapped = expression
-        unwrapped = unwrapped:gsub("([%a_][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
-        unwrapped = unwrapped:gsub("([%a_][%w_]*)%s*([%+%-])=%s*(.*)", "%1 = %1 %2 %3")
-
-        local pattern = C(id) * sp * "=" * sp * C((1 - nl) ^ 1)
-        local var, value = pattern:match(unwrapped)
-        return var, value
+        unwrapped = unwrapped:gsub("([%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
+        unwrapped = unwrapped:gsub("([%w_]*)%s*([%+%-])=%s*(.*)", "%1 = %1 %2 %3")
+        return unwrapped:match("([%w_]*)%s*=%s*(.*)")
     end
 
     local ink = P({
