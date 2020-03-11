@@ -3,6 +3,13 @@ CONST yyy = "2323"
 LIST list = aaa, (bbb), ccc   
 VAR rrr = 2
 
+~ foo++
+~ foo--
+~ foo += 1
+~ foo -= 2
+~ foo = 3
+~ temp foo = 4
+
 # globalTag1
 # globalTag2 #globalTag3
 text1 #tag1

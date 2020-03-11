@@ -383,8 +383,6 @@ function Story:doExpression(expression)
     expression = expression:gsub("!=", "~=")
     expression = expression:gsub("%s*||%s*", " or ")    
     expression = expression:gsub("%s*%&%&%s*", " and ")
-    expression = expression:gsub("([%a_][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
-    expression = expression:gsub("([%a_][%w_]*)%s*([%+%-])=%s*([%w_]*)", "%1 = %1 %2 %3")
     expression = expression:gsub("%s*has%s*", " ? ")
     expression = expression:gsub("%s*hasnt%s*", " !? ")
     

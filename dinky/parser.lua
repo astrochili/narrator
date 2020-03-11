@@ -33,7 +33,7 @@ function Parser.parse(content)
     local currentKnot = "_"
     local currentStitch = "_"    
 
-    local function addBlock(block)
+    local function addBlock(level, block)
         currentNode = model.root[currentKnot][currentStitch]
         table.insert(currentNode, block)
     end
@@ -68,9 +68,7 @@ function Parser.parse(content)
             tags = tags
         }
 
-        block.level = level
-
-        addBlock(block)
+        addBlock(level, block)
     end
 
     local function addChoice(level, sticky, text, divert)
@@ -87,9 +85,17 @@ function Parser.parse(content)
             block.text = (part1 or text) .. (part2 or "")
         end
 
-        block.level = level -- temporary for debugging
+        addBlock(level, block)
+    end
 
-        addBlock(block)
+    local function addAssign(level, temp, var, value)
+        local block = {
+            temp = temp or nil,
+            var = var,
+            value = value
+        }
+
+        addBlock(level, block)
     end
 
     local function addKnot(knot)
@@ -133,18 +139,32 @@ function Parser.parse(content)
     local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
     local comment = commentLine + commentMulti
     
+    local function unwrapAssign(expression)
+        local unwrapped = expression
+        unwrapped = unwrapped:gsub("([%a_][%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
+        unwrapped = unwrapped:gsub("([%a_][%w_]*)%s*([%+%-])=%s*(.*)", "%1 = %1 %2 %3")
+
+        local pattern = C(id) * sp * "=" * sp * C((1 - nl) ^ 1)
+        local var, value = pattern:match(unwrapped)
+        return var, value
+    end
+
     local ink = P({
         "lines",
-        statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + comment + todo,
+        statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + V"assignValue" + comment + todo,
         text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag) ^ 1) ^ 1) - V("statement"),
 
         include = "INCLUDE" * sp * V("text") / addInclude,
-        assign = (C(id) * sp * "=" * sp * V("text")),
+        assign = C(id) * sp * "=" * sp * V("text"),
         list = "LIST" * sp * V"assign" / addList,
         const = "CONST" * sp * V"assign" / addConstant,
         var = "VAR" * sp * V"assign" / addVariable,
         knot = "===" * sp * C(id) * sp * P("=") ^ 0 / addKnot,
         stitch = "=" * sp * C(id) * sp * P("=") ^ 0 / addStitch,
+
+        assignTemp = "temp" * Cc(true) + Cc(false),
+        assignUnwrapped = V"text" / unwrapAssign,
+        assignValue = gatherLevel * sp * "~" * sp * V"assignTemp" * sp * V"assignUnwrapped" / addAssign,
 
         choiceFallback = choiceLevel * sp * none * (divert + divertToNothing),
         choiceDefault = choiceLevel * sp * V"text" * sp * divert ^ -1,
@@ -171,14 +191,16 @@ end
 
 return Parser
 
+
 -- TODO
 -- alts, seq, shuffle
--- var, value, temp
 -- condition, success, failure (text / node / switches = if+elseif+else)
+--
 -- levels -> choice nodes
 -- diverts -> full paths
 -- if stitch "_" is empty add divert to first stitch (by ink)
 --
+-- CLEAN
 -- clean output from empty knots and stitches
 -- convert expressions to lua code?
 -- Почему бы для choice и alts не зафигачивать label сразу при парсинге а не считать их в рантайме?
