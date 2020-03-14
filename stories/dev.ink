@@ -1,4 +1,4 @@
-// INCLUDE sdf.ink   
+INCLUDE sdf.ink   
 CONST yyy = "2323"   
 LIST list = aaa, (bbb), ccc   
 VAR rrr = 2
@@ -59,10 +59,12 @@ dfd
     OK! -> fallback
 * Answer 2
     OK! -> fallback
+= testStitch1
 * { false } ->
     Text -> END
     
 === nested ===
+= testStitch2
 - I looked at Monsieur Fogg 
 * ... and I could contain myself no longer.
     'What is the purpose of our journey, Monsieur?'

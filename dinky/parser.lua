@@ -31,11 +31,17 @@ function Parser.parse(content)
     }
 
     local currentKnot = "_"
-    local currentStitch = "_"    
+    local currentStitch = "_"
+    local nodesChain = { model.root[currentKnot][currentStitch] }
 
     local function addBlock(level, block)
-        currentNode = model.root[currentKnot][currentStitch]
-        table.insert(currentNode, block)
+        local level = level > 0 and level or #nodesChain
+        while #nodesChain > level do
+            table.remove(nodesChain)
+        end
+        
+        local node = nodesChain[#nodesChain]
+        table.insert(node, block)
     end
 
     local function addInclude(include)
@@ -74,7 +80,8 @@ function Parser.parse(content)
     local function addChoice(level, sticky, text, divert)
         local block = {
             sticky = sticky or nil,
-            divert = divert        
+            divert = divert,
+            node = { }
         }
 
         if text == nil then
@@ -86,6 +93,7 @@ function Parser.parse(content)
         end
 
         addBlock(level, block)
+        table.insert(nodesChain, block.node)
     end
 
     local function addAssign(level, temp, var, value)
@@ -100,15 +108,19 @@ function Parser.parse(content)
 
     local function addKnot(knot)
         currentKnot = knot
-        model.root[currentKnot] = { }
-
         currentStitch = "_"
-        model.root[knot][currentStitch] = { }
+
+        local node = { }
+        model.root[currentKnot] = { [currentStitch] = node }
+        nodesChain = { node }
     end
 
     local function addStitch(stitch)
         currentStitch = stitch
-        model.root[currentKnot][currentStitch] = { }
+
+        local node = { }
+        model.root[currentKnot][currentStitch] = node
+        nodesChain = { node }
     end
 
     local eof = -1
@@ -122,8 +134,8 @@ function Parser.parse(content)
     local gatherMark = sp * C("-" - P(divertSign))
     local gatherLevel = Ct(gatherMark ^ 0) / table.getn
     
-    local stickyMarks = Ct((sp * C("+")) ^ 1) / table.getn  * Cc(true)
-    local choiceMarks = Ct((sp * C("*")) ^ 1) / table.getn  * Cc(false)
+    local stickyMarks = Ct((sp * C("+")) ^ 1) / table.getn * Cc(true)
+    local choiceMarks = Ct((sp * C("*")) ^ 1) / table.getn * Cc(false)
     local choiceLevel = stickyMarks + choiceMarks
 
     local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
@@ -188,12 +200,63 @@ end
 
 return Parser
 
+-- TODO: condition, success, failure (text / node / switches = if+elseif+else)
+
+-- My friend's call me {friendly_name_of_player}. I'm {age} years old.
+-- { "Yes, please." == "Yes, please." } // output 1
+
+-- The train jolted and rattled. { mood > 0:I was feeling positive enough, however, and did not mind the odd bump|It was more than I could bear}.
+-- *	{ not knows_about_wager } 'But, Monsieur, why are we travelling?'[] I asked.
+-- * 	{ knows_about_wager} I contemplated our strange adventure[]. Would it be possible?
+-- *	{shove} [Grapple and fight] -> fight_the_guard
+
+-- { 
+-- 	- x == 0:
+-- 		~ y = 0
+-- 	- x > 0:
+-- 		~ y = x - 1
+-- 	- else:
+-- 		~ y = x + 1
+-- }
+
+-- { x:
+-- - 0: 	zero 
+-- - 1: 	one 
+-- - 2: 	two 
+-- - else: lots
+-- }
+
+-- {
+--     - visited_snakes && not dream_about_snakes:
+--         ~ fear++
+--         -> dream_about_snakes
+
+--     - visited_poland && not dream_about_polish_beer:
+--         ~ fear--
+--         -> dream_about_polish_beer 
+
+--     - else:
+--         // breakfast-based dreams have no effect
+--         -> dream_about_marmalade
+-- }
+
+-- TODO: alts, seq, shuffle
+
+-- text {~a|b|c||d} text
+
+-- VAR a_colour = ""
+-- ~ a_colour = "{~red|blue|green|yellow}" 
+-- {a_colour} 
+
+-- At the table, I drew a card. <>
+-- { shuffle:
+-- 	- 	Ace of Hearts.
+-- 	- 	King of Spades.
+-- 	- 	2 of Diamonds.
+-- 		'You lose this time!' crowed the croupier.
+-- }
 
 -- TODO
--- alts, seq, shuffle
--- condition, success, failure (text / node / switches = if+elseif+else)
---
--- levels -> choice nodes
 -- diverts -> full paths
 -- if stitch "_" is empty add divert to first stitch (by ink)
 --
