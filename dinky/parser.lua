@@ -159,7 +159,9 @@ function Parser.parse(content)
     local commentLine = sp * "//" * sp * (1 - nl) ^ 0
     local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
     local comment = commentLine + commentMulti
-    
+
+    local expression = sp * "{" * sp * C((sp * (1 - S(" \t") - "}") ^ 1) ^ 1) * sp * "}"
+
     local function unwrapAssign(expression)
         local unwrapped = expression
         unwrapped = unwrapped:gsub("([%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
@@ -170,7 +172,7 @@ function Parser.parse(content)
     local ink = P({
         "lines",
         statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + V"assignValue" + comment + todo,
-        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag - "}") ^ 1) ^ 1) - V"statement",
+        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag) ^ 1) ^ 1) - V"statement",
 
         include = "INCLUDE" * sp * V"text" / addInclude,
         assign = C(id) * sp * "=" * sp * V("text"),
@@ -184,7 +186,7 @@ function Parser.parse(content)
         assignUnwrapped = V"text" / unwrapAssign,
         assignValue = gatherLevel * sp * "~" * sp * V"assignTemp" * sp * V"assignUnwrapped" / addAssign,
 
-        choiceCondition = "{" * sp * V"text" * sp * "}" + none,
+        choiceCondition = expression + none,
         choiceFallback = choiceLevel * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
         choiceDefault = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
         choice = (V"choiceFallback" + V"choiceDefault") / addChoice,
