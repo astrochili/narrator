@@ -77,7 +77,7 @@ function Parser.parse(content)
         addBlock(level, block)
     end
 
-    local function addChoice(level, sticky, text, divert)
+    local function addChoice(level, sticky, condition, text, divert)
         local block = {
             sticky = sticky or nil,
             divert = divert,
@@ -92,8 +92,17 @@ function Parser.parse(content)
             block.text = (part1 or text) .. (part2 or "")
         end
 
-        addBlock(level, block)
-        table.insert(nodesChain, block.node)
+        if condition then
+            local conditionBlock = {
+                condition = condition,
+                success = { block }
+            }
+            addBlock(level, conditionBlock)
+        else
+            addBlock(level, block)
+        end
+
+        table.insert(nodesChain, block.node)    
     end
 
     local function addAssign(level, temp, var, value)
@@ -161,9 +170,9 @@ function Parser.parse(content)
     local ink = P({
         "lines",
         statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + V"assignValue" + comment + todo,
-        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag) ^ 1) ^ 1) - V("statement"),
+        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag - "}") ^ 1) ^ 1) - V"statement",
 
-        include = "INCLUDE" * sp * V("text") / addInclude,
+        include = "INCLUDE" * sp * V"text" / addInclude,
         assign = C(id) * sp * "=" * sp * V("text"),
         list = "LIST" * sp * V"assign" / addList,
         const = "CONST" * sp * V"assign" / addConstant,
@@ -175,8 +184,9 @@ function Parser.parse(content)
         assignUnwrapped = V"text" / unwrapAssign,
         assignValue = gatherLevel * sp * "~" * sp * V"assignTemp" * sp * V"assignUnwrapped" / addAssign,
 
-        choiceFallback = choiceLevel * sp * none * (divert + divertToNothing),
-        choiceDefault = choiceLevel * sp * V"text" * sp * divert ^ -1,
+        choiceCondition = "{" * sp * V"text" * sp * "}" + none,
+        choiceFallback = choiceLevel * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
+        choiceDefault = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
         choice = (V"choiceFallback" + V"choiceDefault") / addChoice,
 
         labelOptional = label + none,
@@ -200,68 +210,14 @@ end
 
 return Parser
 
--- TODO: condition, success, failure (text / node / switches = if+elseif+else)
-
--- My friend's call me {friendly_name_of_player}. I'm {age} years old.
--- { "Yes, please." == "Yes, please." } // output 1
-
--- The train jolted and rattled. { mood > 0:I was feeling positive enough, however, and did not mind the odd bump|It was more than I could bear}.
--- *	{ not knows_about_wager } 'But, Monsieur, why are we travelling?'[] I asked.
--- * 	{ knows_about_wager} I contemplated our strange adventure[]. Would it be possible?
--- *	{shove} [Grapple and fight] -> fight_the_guard
-
--- { 
--- 	- x == 0:
--- 		~ y = 0
--- 	- x > 0:
--- 		~ y = x - 1
--- 	- else:
--- 		~ y = x + 1
--- }
-
--- { x:
--- - 0: 	zero 
--- - 1: 	one 
--- - 2: 	two 
--- - else: lots
--- }
-
--- {
---     - visited_snakes && not dream_about_snakes:
---         ~ fear++
---         -> dream_about_snakes
-
---     - visited_poland && not dream_about_polish_beer:
---         ~ fear--
---         -> dream_about_polish_beer 
-
---     - else:
---         // breakfast-based dreams have no effect
---         -> dream_about_marmalade
--- }
-
+-- TODO: condition, success, failure
 -- TODO: alts, seq, shuffle
 
--- text {~a|b|c||d} text
-
--- VAR a_colour = ""
--- ~ a_colour = "{~red|blue|green|yellow}" 
--- {a_colour} 
-
--- At the table, I drew a card. <>
--- { shuffle:
--- 	- 	Ace of Hearts.
--- 	- 	King of Spades.
--- 	- 	2 of Diamonds.
--- 		'You lose this time!' crowed the croupier.
--- }
-
 -- TODO
--- diverts -> full paths
+-- diverts -> full paths? store diverts like a string?
 -- if stitch "_" is empty add divert to first stitch (by ink)
 --
 -- CLEAN
--- clean output from empty knots and stitches
--- convert expressions to lua code?
+-- clean output from empty knots, stitches, nodes.
 -- Почему бы для choice и alts не зафигачивать label сразу при парсинге а не считать их в рантайме?
--- divertions to labels - автозамена лэйблов на цепочку чойсов
+-- divertions котоыре ведут к labels - автозамена на цепочку чойсов
