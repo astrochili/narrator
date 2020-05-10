@@ -67,6 +67,7 @@ function Parser.parse(content)
     end
 
     local function addParagraph(level, label, text, divert, tags)
+        -- NEXT: Parse 'text' table for nested structures of text / expressions / conditions
         local block = {
             text = text,
             label = label,
@@ -160,7 +161,13 @@ function Parser.parse(content)
     local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
     local comment = commentLine + commentMulti
 
-    local expression = sp * "{" * sp * C((sp * (1 - S(" \t") - "}") ^ 1) ^ 1) * sp * "}"
+    local function sentence(...)
+        local word = P(1 - S(" \t"))
+        for _, pattern in ipairs(arg) do
+            word = word - pattern
+        end    
+        return sp * C((sp * word ^ 1) ^ 1) * sp
+    end
 
     local function unwrapAssign(expression)
         local unwrapped = expression
@@ -172,8 +179,16 @@ function Parser.parse(content)
     local ink = P({
         "lines",
         statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + V"assignValue" + comment + todo,
-        text = sp * C((sp * (1 - S(" \t") - nl - divert - comment - tag) ^ 1) ^ 1) - V"statement",
 
+        condition = sp * "{" * sp * Ct(V"conditionIfElse" + V"conditionIf") * sp * "}",
+        conditionIf = Cg(sentence(":","}"), "condition") * sp * ":" * sp * Cg(V"textComplex", "success"),
+        conditionIfElse = (V"conditionIf") * sp * "|" * sp * Cg(V"textComplex", "failure"),
+        
+        expression = sp * "{" * sentence("}") * "}",
+        text = sentence(nl, divert, comment, tag, S("{|}")) - V"statement",
+
+        textComplex = Ct((Ct(Cg(V"condition", "condition") + Cg(V"expression", "expression") + Cg(V"text", "text"))) ^ 1),
+        
         include = "INCLUDE" * sp * V"text" / addInclude,
         assign = C(id) * sp * "=" * sp * V("text"),
         list = "LIST" * sp * V"assign" / addList,
@@ -186,18 +201,18 @@ function Parser.parse(content)
         assignUnwrapped = V"text" / unwrapAssign,
         assignValue = gatherLevel * sp * "~" * sp * V"assignTemp" * sp * V"assignUnwrapped" / addAssign,
 
-        choiceCondition = expression + none,
+        choiceCondition = V"expression" + none,
         choiceFallback = choiceLevel * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
         choiceDefault = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
         choice = (V"choiceFallback" + V"choiceDefault") / addChoice,
-
+        
         labelOptional = label + none,
-        textOptional = V"text" + none,
+        textOptional = V"textComplex" + none,
         divertOptional = divert + none,
         tagsOptional = tags + none,
 
         paragraphLabel = label * sp * V"textOptional" * sp * V"divertOptional" * sp * V"tagsOptional",
-        paragraphText = V"labelOptional" * sp * V"text" * sp * V"divertOptional" * sp * V"tagsOptional",
+        paragraphText = V"labelOptional" * sp * V"textComplex" * sp * V"divertOptional" * sp * V"tagsOptional",
         paragraphDivert = V"labelOptional" * sp * V"textOptional" * sp * divert * sp * V"tagsOptional",
         paragraphTags = V"labelOptional" * sp * V"textOptional" * sp * V"divertOptional" * sp * tags,
         paragraph = gatherLevel * sp * (V"paragraphLabel" + V"paragraphText" + V"paragraphDivert" + V"paragraphTags") / addParagraph,

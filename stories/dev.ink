@@ -15,78 +15,6 @@
 // text1 #tag1
 // text2 # tag 2 #tag 3
 
-* { condition > 0 } 'But, Monsieur, why are we travelling?'[] I asked.
-    Conditioned choice text
-
--   My friend's call me {friendly_name_of_player}. I'm {age} years old.
-    Simple condition { mood > 0 : I was feeling positive enough | It was more than I could bear }.
-
-{ x > 0:
-	~ y = x - 1
-}
-
-{ x > 0:
-	~ y = x - 1
-- else:
-	~ y = x + 1
-}
-
-{
-	- x > 0: 
-		~ y = x - 1
-	- else:	
-		~ y = x + 1
-}
-
-{ 
-	- x == 0:
-		~ y = 0
-	- x > 0:
-		~ y = x - 1
-	- else: { x > 0:
-        ~ y = x - 1
-    }
-    ~ y = x + 1
-}
-
-{
-	- x > 0: 
-		~ y = x - 1
-		test { x > 0 : te { x > 0 : test } st }
-	- else:	
-		~ y = x + 1
-}
-
-{
-    - visited_snakes && not dream_about_snakes: any block here!
-        ~ fear++
-        -> dream_about_snakes
-
-    - visited_poland && not dream_about_polish_beer: and here..
-        ~ fear--
-        -> dream_about_polish_beer 
-
-    - else: -> dream_about_marmalade
-}
-
-{ x:
-- 0: 	zero 
-- 1: 	one 
-- 2: 	two 
-- else: lots
-}
-
-text {~a|b|c||d} text
-
-At the table, I drew a card. <>
-{ shuffle once: // (shuffle) cycle / stopping / once
-	- 	Ace of Hearts.
-     Second line
-	- 	King of Spades.
-	- 	2 of Diamonds.
-		'You lose this time!' crowed the croupier.
-}
-
 // * text1
 // * text2 -> fallback2
 // * -> fallback3
@@ -206,3 +134,87 @@ At the table, I drew a card. <>
 //     'Well, can't stand around talking all day,' he declares. 
 // - (done)
 //     You thank the guard, and move away. -> END
+
+
+/// +++
+/// +++ Conditions (is done):
+
+// * { condition > 0 } 'But, Monsieur, why are we travelling?'[] I asked.
+//     Conditioned choice text
+
+// -   My friend's call me {friendly_name_of_player}. I'm {age} years old.
+//     Simple condition { mood > 0 : I was feeling positive enough }.
+//     Complex condition { mood > 0 : text { mood > 50 : I was feeling | positive enough } | { mood > 50 : It was more than | I could bear } text }.
+
+/// +++
+/// +++ TODO:
+
+// { x > 0:
+// 	~ y = x - 1
+// }
+
+// { x > 0:
+// 	~ y = x - 1
+// - else:
+// 	~ y = x + 1
+// }
+
+// {
+// 	- x > 0: 
+// 		~ y = x - 1
+// 	- else:	
+// 		~ y = x + 1
+// }
+
+// { 
+// 	- x == 0:
+// 		~ y = 0
+// 	- x > 0:
+// 		~ y = x - 1
+// 	- else: { x > 0:
+//         ~ y = x - 1
+//     }
+//     ~ y = x + 1
+// }
+
+// {
+// 	- x > 0: 
+// 		~ y = x - 1
+// 		test { x > 0 : te { x > 0 : test } st }
+// 	- else:	
+// 		~ y = x + 1
+// }
+
+// {
+//     - visited_snakes && not dream_about_snakes: any block here!
+//         ~ fear++
+//         -> dream_about_snakes
+
+//     - visited_poland && not dream_about_polish_beer: and here..
+//         ~ fear--
+//         -> dream_about_polish_beer 
+
+//     - else: -> dream_about_marmalade
+// }
+
+// { x:
+// - 0: 	zero 
+// - 1: 	one 
+// - 2: 	two 
+// - else: lots
+// }
+
+
+/// +++
+/// +++ Sequences:
+
+// text {~a|b|c||d} text
+
+// At the table, I drew a card. <>
+// { shuffle once: // (shuffle) cycle / stopping / once
+// 	- 	Ace of Hearts.
+//      Second line
+// 	- 	King of Spades.
+// 	- 	2 of Diamonds.
+// 		'You lose this time!' crowed the croupier.
+// }

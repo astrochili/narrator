@@ -68,10 +68,10 @@ self.root = {
         { condition = "isTrue", success = { { text = "<>Franz<>" } }, failure = { { text = "<>a secret<>" } } },
         { text = "."},
         { condition = "isTrue", success = {
-            { text = "Success!"},
+            { text = "Success!" },
             { choice = "Check the gather!" }
         }, failure = {
-            { text = "Failure!"},
+            { text = "Failure!" },
             { choice = "Check the gather!" },
         } },
         { text = "...gather text." },
