@@ -64,8 +64,8 @@
     
 // === nested ===
 // = testStitch2
-// - I looked at Monsieur Fogg 
-// * ... and I could contain myself no longer.
+// - I looked at Monsieur Fogg   
+* ... and I could contain myself no longer.   
 //     'What is the purpose of our journey, Monsieur?'
 //     'A wager,' he replied.
 //     * * 'A wager!'[] I returned.
@@ -87,7 +87,7 @@
 // === back_in_london ===
 
 // We arrived into London at 9.45pm exactly.
-// * "There is not a moment to lose!"[] I declared.
+// * "There is not a moment to lose!"[] I declared.  
 //     -> hurry_outside 
 // * "Monsieur, let us savour this moment!"[] I declared.
 //     My master clouted me firmly around the head and dragged me out of the door. 
@@ -140,11 +140,10 @@
 /// +++ Conditions (is done):
 
 // * { condition > 0 } 'But, Monsieur, why are we travelling?'[] I asked.
-//     Conditioned choice text
-
-// -   My friend's call me {friendly_name_of_player}. I'm {age} years old.
-//     Simple condition { mood > 0 : I was feeling positive enough }.
-//     Complex condition { mood > 0 : text { mood > 50 : I was feeling | positive enough } | { mood > 50 : It was more than | I could bear } text }.
+    // Conditioned choice text
+// -   My friend's call me {friendly_name_of_player}. I'm {  age   } years old.
+-    Simple condition { mood > 0 : I was feeling positive enough } .
+   // Complex condition { cond0 : prefix { sub1 : Sub1 Success | Sub1 Failure } | { sub2 : Sub2 Success | Sub1 Failure } suffix }.
 
 /// +++
 /// +++ TODO:
