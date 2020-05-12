@@ -66,10 +66,13 @@ function Parser.parse(content)
         model.variables[variable] = lume.deserialize(value)
     end
 
-    local function convertParagraphToItems(parts, isConditionResult)
+    local function convertParagraphToItems(parts)
         if parts == nil then return nil end
         
-        local isConditionResult = isConditionResult or false
+        -- TODO: Склеить все условия и тексты друг с другом.
+        -- Учесть что бывают условия без failure, как в начале, так и в конце
+        -- Соответственно, их склеивать может быть сложнее 
+        local isFirstInParent = isFirstInParent or false
         local items = { }
         local item
 
@@ -93,7 +96,7 @@ function Parser.parse(content)
                 local text = part.text or "#" .. part.expression .. "#"
                 item.text = item.text .. text
 
-                if isConditionResult then
+                if isFirstInParent then
                     if index == 1 then
                         item.text = "<>" .. item.text
                     end
