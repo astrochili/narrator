@@ -237,11 +237,19 @@ function Story:readItems(items, path, depth, mode)
         end
     end
 
+    -- Clear paragraphs from empty items (safe prefixes and suffixes of inline conditions)
+    for index = #self.paragraphs, 1, -1 do
+        local paragraph = self.paragraphs[index]
+        if #paragraph.text == 0 and #paragraph.tags == 0 then
+            table.remove(self.paragraphs, index)
+        end
+    end
+
     return mode
 end
 
 function Story:readText(item)
-    local text = item.text or item.gather
+    local text = item.text
     local tags = type(item.tags) == "string" and { item.tags } or item.tags
 
     if text ~= nil or tags ~= nil then
@@ -266,7 +274,7 @@ function Story:readText(item)
             prevParagraph.text = prevParagraph.text .. paragraph.text
             prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
             self.paragraphs[#self.paragraphs] = prevParagraph
-        elseif #paragraph.tags > 0 or #paragraph.text > 0 then
+        else
             table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
         end
     end

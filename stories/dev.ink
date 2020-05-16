@@ -65,7 +65,7 @@
 // === nested ===
 // = testStitch2
 // - I looked at Monsieur Fogg   
-* ... and I could contain myself no longer.   
+// * ... and I could contain myself no longer.   
 //     'What is the purpose of our journey, Monsieur?'
 //     'A wager,' he replied.
 //     * * 'A wager!'[] I returned.
@@ -140,10 +140,10 @@
 /// +++ Conditions (is done):
 
 // * { condition > 0 } 'But, Monsieur, why are we travelling?'[] I asked.
-    // Conditioned choice text
+// Conditioned choice text    
 // -   My friend's call me {friendly_name_of_player}. I'm {  age   } years old.
--    Simple condition { mood > 0 : I was feeling positive enough } .
-   // Complex condition { cond0 : prefix { sub1 : Sub1 Success | Sub1 Failure } | { sub2 : Sub2 Success | Sub1 Failure } suffix }.
+// -    Simple condition: { mood > 0 : prefix { df > 3 : result } I was feeling positive enough }. 
+//    Complex condition { cond0 : prefix { sub1 : Sub1 Success | Sub1 Failure } | { sub2 : Sub2 Success | Sub1 Failure } suffix }.
 
 /// +++
 /// +++ TODO:

@@ -17,7 +17,6 @@ lpeg.locale(lpeg)
 --
 -- Parser
 
-
 local Parser = { }
 
 function Parser.parse(content)
@@ -29,10 +28,12 @@ function Parser.parse(content)
         variables = { },
         lists = { }
     }
-
     local currentKnot = "_"
     local currentStitch = "_"
     local nodesChain = { model.root[currentKnot][currentStitch] }
+
+    --
+    -- Story construction functions
 
     local function addItem(level, item)
         local level = level > 0 and level or #nodesChain
@@ -66,48 +67,44 @@ function Parser.parse(content)
         model.variables[variable] = lume.deserialize(value)
     end
 
-    local function convertParagraphToItems(parts)
+    local function convertParagraphToItems(parts, isRoot)
         if parts == nil then return nil end
-        
-        -- TODO: Склеить все условия и тексты друг с другом.
-        -- Учесть что бывают условия без failure, как в начале, так и в конце
-        -- Соответственно, их склеивать может быть сложнее 
-        local isFirstInParent = isFirstInParent or false
+
+        local isRoot = isRoot ~= nil and isRoot or false
         local items = { }
         local item
-
+        
         for index, part in ipairs(parts) do
             if part.condition ~= nil then
-                if item ~= nil then
-                    -- add a current text item to items
-                    table.insert(items, item)
-                end
-
                 item = {
                     condition = part.condition.condition,
-                    success = convertParagraphToItems(part.condition.success, true),
-                    failure = convertParagraphToItems(part.condition.failure, true)
+                    success = convertParagraphToItems(part.condition.success),
+                    failure = convertParagraphToItems(part.condition.failure)
                 }
 
                 table.insert(items, item)
                 item = nil
             else 
-                item = item or { text = "" }
+                item = item or { text = isRoot and "" or "<>" }
                 local text = part.text or "#" .. part.expression .. "#"
                 item.text = item.text .. text
 
-                if isFirstInParent then
-                    if index == 1 then
-                        item.text = "<>" .. item.text
-                    end
-                    if index == #parts then
-                        item.text = item.text .. "<>"
-                    end
-                end
-
-                if index == #parts then
+                -- is the current part the last text part?
+                local nextPart = parts[index + 1]
+                if nextPart == nil or nextPart.condition ~= nil then
+                    item.text = item.text .. (isRoot and "" or "<>")
                     table.insert(items, item)
                 end
+            end
+        end
+
+        if isRoot then
+            -- Add a safe prefix and suffix for correct conditions gluing
+            if items[1].text == nil then
+                table.insert(items, 1, { text = "" } )
+            end
+            if items[#items].text == nil then
+                table.insert(items, { text = "" } )
             end
         end
 
@@ -115,7 +112,7 @@ function Parser.parse(content)
     end
 
     local function addParagraph(level, label, parts, divert, tags)
-        local items = convertParagraphToItems(parts)
+        local items = convertParagraphToItems(parts, true)
 
         -- If the paragraph has a label, a divert or tags we need to place it as the first text item.
         if label ~= nil or divert ~= nil or tags ~= nil then
@@ -193,6 +190,9 @@ function Parser.parse(content)
         nodesChain = { node }
     end
 
+    --
+    -- LPEG parsing
+
     local eof = -1
     local sp = S(" \t") ^ 0
     local ws = S(" \t\r\n") ^ 0
@@ -228,13 +228,18 @@ function Parser.parse(content)
         return unwrapped:match("([%w_]*)%s*=%s*(.*)")
     end
 
-    local function sentenceBefore(captureTail, ...)
-        local symbol = P(1 - S(" \t"))
+    local function sentenceBefore(...)
+        local excluded
         for _, pattern in ipairs(arg) do
-            symbol = symbol - pattern
+            excluded = excluded == nil and pattern or excluded + pattern
         end
-        local pattern = (sp * symbol ^ 1) ^ 1
-        return captureTail and C(pattern * sp) or C(pattern) * sp
+
+        local character = P(1 - S(" \t")) - excluded
+        local pattern = (sp * character ^ 1) ^ 1
+        local withSpaceTail = C(pattern * sp) * #(P"{")
+        local withoutSpaceTail = C(pattern) * sp
+
+        return withSpaceTail + withoutSpaceTail
     end
 
     local ink = P({
@@ -242,13 +247,17 @@ function Parser.parse(content)
         statement = V"include" + V"list" + V"const" + V"var" + V"choice" + V"knot" + V"stitch" + V"assignValue" + comment + todo,
 
         condition = "{" * sp * Ct(V"conditionIfElse" + V"conditionIf") * sp * "}",
-        conditionIf = Cg(sentenceBefore(false, sp * S":}"), "condition") * sp * ":" * sp * Cg(V"textComplex", "success"),
+        conditionIf = Cg(sentenceBefore(S":}"), "condition") * sp * ":" * sp * Cg(V"textComplex", "success"),
         conditionIfElse = (V"conditionIf") * sp * "|" * sp * Cg(V"textComplex", "failure"),
         
-        expression = "{" * sp * sentenceBefore(false, "}") * sp * "}",
-        text = sentenceBefore(true, nl, divert, comment, tag, S"{|}") - V"statement",
+        expression = "{" * sp * sentenceBefore("}") * sp * "}",
+        text = sentenceBefore(nl, divert, comment, tag, S"{|}") - V"statement",
 
-        textComplex = Ct((Ct(Cg(V"condition", "condition") + Cg(V"expression", "expression") + Cg(V"text", "text"))) ^ 1),
+        textComplex =Ct((Ct(
+            Cg(V"condition", "condition") + 
+            Cg(V"expression", "expression") +
+            Cg(V"text", "text")
+        )) ^ 1),
         
         include = "INCLUDE" * sp * V"text" / addInclude,
         assign = C(id) * sp * "=" * sp * V("text"),
@@ -261,12 +270,12 @@ function Parser.parse(content)
         assignTemp = "temp" * Cc(true) + Cc(false),
         assignUnwrapped = V"text" / unwrapAssign,
         assignValue = gatherLevel * sp * "~" * sp * V"assignTemp" * sp * V"assignUnwrapped" / addAssign,
-
+        
         choiceCondition = V"expression" + none,
         choiceFallback = choiceLevel * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
         choiceDefault = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
         choice = (V"choiceFallback" + V"choiceDefault") / addChoice,
-        
+
         labelOptional = label + none,
         textOptional = V"textComplex" + none,
         divertOptional = divert + none,
@@ -282,15 +291,15 @@ function Parser.parse(content)
         lines = Ct(V"line" ^ 0) + eof
     })
 
-    local lines = ink:match(content)
+    local leaks = ink:match(content)
+    assert(#leaks == 0, "Something leaked while parsing")
     return model
 end
 
 return Parser
 
--- TODO: <> and tail spaces in inline conditions
--- TODO: multiline conditions
 -- TODO: sequences
+-- TODO: multiline conditions
 -- TODO: multiline sequences
 
 -- TODO
