@@ -165,10 +165,11 @@ function Parser.parse(content)
         end
     end
 
-    local function addChoice(level, sticky, condition, text, divert)
+    local function addChoice(level, sticky, label, condition, text, divert)
         local item = {
             sticky = sticky or nil,
             divert = divert,
+            label = label,
             node = { }
         }
 
@@ -314,8 +315,8 @@ function Parser.parse(content)
         assignValue = gatherLevel * sp * "~" * sp * V"assignTemp" * sp * V"assignUnwrapped" / addAssign,
         
         choiceCondition = V"expression" + none,
-        choiceFallback = choiceLevel * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
-        choiceNormal = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
+        choiceFallback = choiceLevel * sp * V"labelOptional" * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
+        choiceNormal = choiceLevel * sp * V"labelOptional" * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
         choice = (V"choiceFallback" + V"choiceNormal") / addChoice,
 
         labelOptional = label + none,
@@ -337,17 +338,3 @@ function Parser.parse(content)
 end
 
 return Parser
-
--- TODO: multiline conditions
--- TODO: multiline sequences
-
--- TODO:
--- diverts -> full paths? store diverts like a string?
--- if stitch "_" is empty add divert to first stitch (by ink)
---
--- CLEAN
--- clean output from empty knots, stitches, nodes
--- simplify nodes, success, falure, alt when it possible
---
--- Почему бы для choice и alts не зафигачивать label сразу при парсинге а не считать их в рантайме?
--- divertions котоыре ведут к labels - автозамена на цепочку чойсов
