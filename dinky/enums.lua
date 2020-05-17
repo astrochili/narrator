@@ -12,7 +12,7 @@ local self = {
     
     seqType = {
         cycle = 1,
-        stopping = 2,
+        stop = 2,
         once = 3
     },
 

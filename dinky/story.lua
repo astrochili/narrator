@@ -289,7 +289,7 @@ function Story:readAlts(item, path)
     assert(item.alts, "Alternatives can't be nil")
     local alts = lume.clone(item.alts)
 
-    local seqType = item.seq or enums.seqType.stopping
+    local seqType = item.seq or enums.seqType.stop
     if type(seqType) == "string" then
         seqType = enums.seqType[item.seq] or seqType
     end
@@ -314,7 +314,7 @@ function Story:readAlts(item, path)
     if seqType == enums.seqType.cycle then
         index = visits % #alts
         index = index > 0 and index or #alts
-    elseif seqType == enums.seqType.stopping then
+    elseif seqType == enums.seqType.stop then
         index = visits < #alts and visits or #alts
     elseif seqType == enums.seqType.once then
         index = visits

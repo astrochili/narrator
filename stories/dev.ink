@@ -20,9 +20,6 @@
 // * -> fallback3
 // * -> 
 
-// + ->
-// - - -> fallback
-
 // Something unprintable...
 
 // TODO: sdf
@@ -45,10 +42,11 @@
 // dfd
 //  sdfdsfds*/ Text after multi comment
 
-// - -> fallback 
-// - (label) TEXT -> fallback
 // - TEXT -> fallback    
-// -> fallback   
+// - (label) TEXT -> fallback
+// -> fallback
+// - -> fallback 
+   
 
 // - (greet) Hello world! <>  
 // (label) Again and again.
@@ -135,18 +133,25 @@
 // - (done)
 //     You thank the guard, and move away. -> END
 
-
-/// +++
-/// +++ Conditions (is done):
-
+/// +++ DONE: Inline conditions
+//
 // * { condition > 0 } 'But, Monsieur, why are we travelling?'[] I asked.
 // Conditioned choice text    
 // -   My friend's call me {friendly_name_of_player}. I'm {  age   } years old.
 // -    Simple condition: { mood > 0 : prefix { df > 3 : result } I was feeling positive enough }. 
 //    Complex condition { cond0 : prefix { sub1 : Sub1 Success | Sub1 Failure } | { sub2 : Sub2 Success | Sub1 Failure } suffix }.
 
-/// +++
+/// +++ DONE: Inline sequences
+//
+// pre {  -> divert | -> divert | } suf -> divert
+// pre2 { a | b -> divert | } suf2 -> divert
+// pre3 {~||a|b|c||d} suf3
+// pre4 { f | {~ g | f } | b -> divert | c | -> divert | d } suf4
+ 
+
 /// +++ TODO:
+/// +++ Multiline conditions
+/// +++ Multiline Sequences
 
 // { x > 0:
 // 	~ y = x - 1
@@ -203,14 +208,8 @@
 // - else: lots
 // }
 
-
-/// +++
-/// +++ Sequences:
-
-// text {~a|b|c||d} text
-
 // At the table, I drew a card. <>
-// { shuffle once: // (shuffle) cycle / stopping / once
+// { shuffle once: // (shuffle) cycle / stop / once
 // 	- 	Ace of Hearts.
 //      Second line
 // 	- 	King of Spades.

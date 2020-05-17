@@ -75,6 +75,8 @@ function Parser.parse(content)
         local item
         
         for index, part in ipairs(parts) do
+            local nextPart = parts[index + 1]
+
             if part.condition ~= nil then
                 item = {
                     condition = part.condition.condition,
@@ -84,14 +86,37 @@ function Parser.parse(content)
 
                 table.insert(items, item)
                 item = nil
-            else 
-                item = item or { text = isRoot and "" or "<>" }
-                local text = part.text or "#" .. part.expression .. "#"
-                item.text = item.text .. text
+            elseif part.sequence ~= nil then
+                item = {
+                    seq = part.sequence.seq,
+                    shuffle = part.sequence.shuffle and true or nil,
+                    alts = { }
+                }
+                
+                for _, alt in ipairs(part.sequence.alts) do
+                    table.insert(item.alts, convertParagraphToItems(alt))
+                end
 
-                -- is the current part the last text part?
-                local nextPart = parts[index + 1]
-                if nextPart == nil or nextPart.condition ~= nil then
+                table.insert(items, item)
+                item = nil
+            else
+                if item == nil then
+                    item = { text = (isRoot or part.divert ~= nil) and "" or "<>" }
+                end
+
+                if part.text ~= nil then
+                    item.text = item.text .. part.text
+                elseif part.expression ~= nil then
+                    item.text = item.text .. "#" .. part.expression .. "#"
+                end
+
+                if part.divert ~= nil then
+                    item.divert = part.divert
+                    item.text = #item.text > 0 and item.text or nil
+                    table.insert(items, item)
+                    item = nil
+                elseif nextPart == nil or nextPart.text == nil then
+                    -- is the current part the last text part?
                     item.text = item.text .. (isRoot and "" or "<>")
                     table.insert(items, item)
                 end
@@ -100,10 +125,14 @@ function Parser.parse(content)
 
         if isRoot then
             -- Add a safe prefix and suffix for correct conditions gluing
-            if items[1].text == nil then
+            
+            local firstItem = items[1]
+            if firstItem.text == nil and firstItem.divert == nil then
                 table.insert(items, 1, { text = "" } )
             end
-            if items[#items].text == nil then
+
+            local lastItem = items[#items]
+            if lastItem.text == nil and lastItem.divert == nil then
                 table.insert(items, { text = "" } )
             end
         end
@@ -111,22 +140,22 @@ function Parser.parse(content)
         return items
     end
 
-    local function addParagraph(level, label, parts, divert, tags)
+    local function addParagraph(level, label, parts, tags)
         local items = convertParagraphToItems(parts, true)
+        items = items or { }
 
         -- If the paragraph has a label, a divert or tags we need to place it as the first text item.
         if label ~= nil or divert ~= nil or tags ~= nil then
             local firstItem
 
-            if items[1].condition == nil then
+            if #items > 0 and items[1].condition == nil then
                 firstItem = items[1]
             else
-                local firstItem = {  }
-                table.insert(firstItem, items)
+                firstItem = {  }
+                table.insert(items, firstItem)
             end
 
             firstItem.label = label
-            firstItem.divert = divert
             firstItem.tags = tags
         end
 
@@ -250,13 +279,26 @@ function Parser.parse(content)
         conditionIf = Cg(sentenceBefore(S":}"), "condition") * sp * ":" * sp * Cg(V"textComplex", "success"),
         conditionIfElse = (V"conditionIf") * sp * "|" * sp * Cg(V"textComplex", "failure"),
         
-        expression = "{" * sp * sentenceBefore("}") * sp * "}",
-        text = sentenceBefore(nl, divert, comment, tag, S"{|}") - V"statement",
+        sequenceAltEmpty = Ct(Ct(Cg(sp * Cc"", "text") * sp * Cg(divert, "divert") ^ -1)),
+        sequenceAlt = V"textComplex" + V"sequenceAltEmpty",
+        sequenceAlts = Ct(((sp * V"sequenceAlt" * sp * "|") ^ 1) * sp * V"sequenceAlt"),
+        sequence = "{" * sp * (
+        "!" * sp * Ct(Cg(V"sequenceAlts", "alts") * Cg(Cc("once"),  "seq")) +
+        "&" * sp * Ct(Cg(V"sequenceAlts", "alts") * Cg(Cc("cycle"), "seq")) +
+        "~" * sp * Ct(Cg(V"sequenceAlts", "alts") * Cg(Cc("stop"),  "seq") * Cg(Cc(true),  "shuffle")) +
+                   Ct(Cg(V"sequenceAlts", "alts") * Cg(Cc("stop"),  "seq"))
+        ) * sp * "}",
 
-        textComplex =Ct((Ct(
+        expression = "{" * sp * sentenceBefore("}") * sp * "}",
+
+        text = sentenceBefore(nl, divert, comment, tag, S"{|}") - V"statement",
+                
+        textComplex = Ct((Ct(
             Cg(V"condition", "condition") + 
+            Cg(V"sequence", "sequence") + 
             Cg(V"expression", "expression") +
-            Cg(V"text", "text")
+            Cg(V"text", "text") * sp * (Cg(divert, "divert") ^ -1) +
+            Cg(divert, "divert")
         )) ^ 1),
         
         include = "INCLUDE" * sp * V"text" / addInclude,
@@ -273,19 +315,17 @@ function Parser.parse(content)
         
         choiceCondition = V"expression" + none,
         choiceFallback = choiceLevel * sp * V"choiceCondition" * sp * none * (divert + divertToNothing),
-        choiceDefault = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
-        choice = (V"choiceFallback" + V"choiceDefault") / addChoice,
+        choiceNormal = choiceLevel * sp * V"choiceCondition" * sp * V"text" * sp * divert ^ -1,
+        choice = (V"choiceFallback" + V"choiceNormal") / addChoice,
 
         labelOptional = label + none,
         textOptional = V"textComplex" + none,
-        divertOptional = divert + none,
         tagsOptional = tags + none,
 
-        paragraphLabel = label * sp * V"textOptional" * sp * V"divertOptional" * sp * V"tagsOptional",
-        paragraphText = V"labelOptional" * sp * V"textComplex" * sp * V"divertOptional" * sp * V"tagsOptional",
-        paragraphDivert = V"labelOptional" * sp * V"textOptional" * sp * divert * sp * V"tagsOptional",
-        paragraphTags = V"labelOptional" * sp * V"textOptional" * sp * V"divertOptional" * sp * tags,
-        paragraph = gatherLevel * sp * (V"paragraphLabel" + V"paragraphText" + V"paragraphDivert" + V"paragraphTags") / addParagraph,
+        paragraphLabel = label * sp * V"textOptional" * sp * V"tagsOptional",
+        paragraphText = V"labelOptional" * sp * V"textComplex" * sp * V"tagsOptional",
+        paragraphTags = V"labelOptional" * sp * V"textOptional" * sp * tags,
+        paragraph = gatherLevel * sp * (V"paragraphLabel" + V"paragraphText" + V"paragraphTags") / addParagraph,
 
         line = sp * (V"statement" + V"paragraph") * ws,
         lines = Ct(V"line" ^ 0) + eof
