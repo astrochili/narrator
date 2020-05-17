@@ -75,8 +75,6 @@ function Parser.parse(content)
         local item
         
         for index, part in ipairs(parts) do
-            local nextPart = parts[index + 1]
-
             if part.condition ~= nil then
                 item = {
                     condition = part.condition.condition,
@@ -100,8 +98,11 @@ function Parser.parse(content)
                 table.insert(items, item)
                 item = nil
             else
+                local nextPart = parts[index + 1]
+                local isNakedDivert = part.divert ~= nil and part.text == nil
+
                 if item == nil then
-                    item = { text = (isRoot or part.divert ~= nil) and "" or "<>" }
+                    item = { text = (isRoot or isNakedDivert) and "" or "<>" }
                 end
 
                 if part.text ~= nil then
@@ -115,10 +116,10 @@ function Parser.parse(content)
                     item.text = #item.text > 0 and item.text or nil
                     table.insert(items, item)
                     item = nil
-                elseif nextPart == nil or nextPart.text == nil then
-                    -- is the current part the last text part?
+                elseif nextPart == nil or (nextPart.text == nil and nextPart.expression == nil) then
                     item.text = item.text .. (isRoot and "" or "<>")
                     table.insert(items, item)
+                    item = nil
                 end
             end
         end
@@ -297,8 +298,7 @@ function Parser.parse(content)
             Cg(V"condition", "condition") + 
             Cg(V"sequence", "sequence") + 
             Cg(V"expression", "expression") +
-            Cg(V"text", "text") * sp * (Cg(divert, "divert") ^ -1) +
-            Cg(divert, "divert")
+            Cg(V"text", "text") * sp * (Cg(divert, "divert") ^ -1) + sp * Cg(divert, "divert")
         )) ^ 1),
         
         include = "INCLUDE" * sp * V"text" / addInclude,
@@ -332,21 +332,22 @@ function Parser.parse(content)
     })
 
     local leaks = ink:match(content)
-    assert(#leaks == 0, "Something leaked while parsing")
+    assert(#leaks == 0, "Something was leaked while parsing")
     return model
 end
 
 return Parser
 
--- TODO: sequences
 -- TODO: multiline conditions
 -- TODO: multiline sequences
 
--- TODO
+-- TODO:
 -- diverts -> full paths? store diverts like a string?
 -- if stitch "_" is empty add divert to first stitch (by ink)
 --
 -- CLEAN
--- clean output from empty knots, stitches, nodes.
+-- clean output from empty knots, stitches, nodes
+-- simplify nodes, success, falure, alt when it possible
+--
 -- Почему бы для choice и alts не зафигачивать label сразу при парсинге а не считать их в рантайме?
 -- divertions котоыре ведут к labels - автозамена на цепочку чойсов

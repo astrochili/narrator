@@ -143,10 +143,12 @@
 
 /// +++ DONE: Inline sequences
 //
-// pre {  -> divert | -> divert | } suf -> divert
-// pre2 { a | b -> divert | } suf2 -> divert
-// pre3 {~||a|b|c||d} suf3
-// pre4 { f | {~ g | f } | b -> divert | c | -> divert | d } suf4
+// pre {  -> divert | -> divert | } post -> divert
+// pre { a | b -> divert | } post -> divert
+// pre {~||a|b|c||d} post
+// pre { f | {~ g | f } | b -> divert | c | -> divert | d } post
+// pre { a { exp } b | } post
+// pre { { exp }  -> divert | } post
  
 
 /// +++ TODO:
