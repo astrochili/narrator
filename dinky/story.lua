@@ -40,7 +40,7 @@ end
 
 function Story:begin()
     if #self.paragraphs == 0 and #self.choices == 0 and not self.isOver then
-        self:read({ })
+        self:readPath({ })
     end
 end
 
@@ -89,7 +89,12 @@ function Story:choose(index)
     end
 
     self:visit(choice.path)
-    self:read(choice.divert or choice.path)
+
+    if choice.divert ~= nil then
+        self:readDivert(choice.divert)
+    else
+        self:readPath(choice.path)
+    end
 end
 
 function Story:itemsFor(knot, stitch)
@@ -101,8 +106,15 @@ function Story:itemsFor(knot, stitch)
     return stitchNode or knotNode or rootNode
 end
 
-function Story:read(path)
-    assert(path, "The path can't be nil")
+function Story:readDivert(divert)
+    assert(divert, "The reading divert can't be nil")
+    local path = self:pathFromString(path, self.currentPath) 
+    self:readPath(path)
+end
+
+function Story:readPath(path)
+    assert(path, "The reading path can't be nil")
+
     if path.knot == "END" or path.knot == "DONE" then
         self.isOver = true
     end
@@ -110,8 +122,13 @@ function Story:read(path)
         return
     end
     
-    local items = self:itemsFor(path.knot, path.stitch)    
+    local items = self:itemsFor(path.knot, path.stitch)
     self:visit(path)
+
+    if path.label ~= nil then
+        -- TODO: convert path.label to path.chain here
+    end
+
     self:readItems(items, path)
 end    
 
@@ -280,7 +297,7 @@ function Story:readText(item)
     end
 
     if item.divert ~= nil then
-        self:read(item.divert)
+        self:readDivert(item.divert)
         return enums.readMode.quit
     end
 end
@@ -331,7 +348,11 @@ function Story:readChoice(item, path)
     if isFallback then
         -- Works correctly only when a fallback is the last choice
         if #self.choices == 0 then
-            self:read(item.divert or path)
+            if choice.divert ~= nil then
+                self:readDivert(item.divert)
+            else
+                self:readPath(path)
+            end
         end
         return enums.readMode.quit
     end
