@@ -33,7 +33,7 @@
 
 // /*Multi comment 2
 // 	Multi comment 2 */
-
+// === knot
 // /*
 // 	Multi comment 3
 //     */
@@ -151,18 +151,67 @@
 // pre { { exp }  -> divert | } post
  
 
-/// +++ TODO:
-/// +++ Multiline conditions
-/// +++ Multiline Sequences
+/// +++ DONE: Multiline conditions
 
-// { x > 0:
-// 	~ y = x - 1
+// {
+//     - x > 0 : {df: df | df}
+//     text
+//     - else: kkk
+//     text
 // }
 
-// { x > 0:
+// level0 { condition1:
+//     ~ foo -= 2
+//     { condition2 :
+//         level2
+//         - case 2:
+//         * level2 -> df
+//         * dfd -> dff
+//     }
+//     level1
+// }
+
+// { 
+// - x > 0:
+//     text { true : x } #success
+// - else: 
+//     #else
+// }
+
+// prefix { x > 0: content0
+//     content1
+//     ~ foo += 1
+//     // { x }
+//     + answer -> END
+//      { y }
+//     + answerWithContent
+//     answerContent
+// } suffix
+
+// { x > 0: suc...
+//     success #dsf
+// - x < 1: mid...
+//     middle
+//     text -> END
+// - else: els...
+//     (label) else
+// }
+
+// text {x > 0: asdf} { x > 0:
 // 	~ y = x - 1
+// 	a
 // - else:
 // 	~ y = x + 1
+// 	b
+// } text {x > 0: asdf} { x == 0:
+// 	woohoo
+// } text
+
+// { x:
+// - 0: 	zero 
+// - 1: 	one 
+// - 2: 	two 
+// - else: lots
 // }
 
 // {
@@ -173,14 +222,12 @@
 // }
 
 // { 
-// 	- x == 0:
-// 		~ y = 0
 // 	- x > 0:
-// 		~ y = x - 1
+//         text1
 // 	- else: { x > 0:
-//         ~ y = x - 1
-//     }
-//     ~ y = x + 1
+//             textInside
+//         }
+//         text3
 // }
 
 // {
@@ -203,18 +250,50 @@
 //     - else: -> dream_about_marmalade
 // }
 
-// { x:
-// - 0: 	zero 
-// - 1: 	one 
-// - 2: 	two 
-// - else: lots
-// }
+
+/// +++ TODO:
+/// +++ Multiline Sequences
+
 
 // At the table, I drew a card. <>
-// { shuffle once: // (shuffle) cycle / stop / once
+
+// // Sequence: go through the alternatives, and stick on last 
+// { stopping:
+// 	-	I entered the casino.
+// 	-  I entered the casino again.
+// 	-  Once more, I went inside.
+// }
+
+// Cycle: show each in turn, and then cycle
+// { cycle:
+// 	- I held my breath.
+// 	- I waited impatiently.
+// 	- I paused.
+// }
+
+// // Once: show each, once, in turn, until all have been shown
+// { once:
+// 	- Would my luck hold?
+// 	- Could I win the hand?
+// }
+
+
+// // Shuffle: show one at random
+// At the table, I drew a card. <>
+// { shuffle: // == shuffle cycle
 // 	- 	Ace of Hearts.
-//      Second line
 // 	- 	King of Spades.
 // 	- 	2 of Diamonds.
 // 		'You lose this time!' crowed the croupier.
+// }
+
+// { shuffle stopping:
+// - 	A silver BMW roars past.
+// -	A bright yellow Mustang takes the turn. 
+// - 	There are like, cars, here. 
+// }
+
+// { shuffle once: 
+// -	The sun was hot. 
+// - 	It was a hot day. 
 // }
