@@ -17,9 +17,10 @@ local story = narrator.parseStory("stories.dev", true)
 
 local botAnswers = { 10, 1, 1, 1 }
 
-story:observe("y", function(y) print("The y did change! Now it's " .. y) end)
+story:observe("x", function(x) print("The x did change! Now it's " .. x) end)
 story:bind("beep", function() print("ATENTION. Beep! 😃") end)
 story:bind("sum", function(x, y) return x + y end)
+
 story:begin()
 
 print("\n--- Game begin ---")
