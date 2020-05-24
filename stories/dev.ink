@@ -259,9 +259,13 @@
 
 // // Sequence: go through the alternatives, and stick on last 
 // { stopping:
-// 	-	I entered the casino.
-// 	-  I entered the casino again.
-// 	-  Once more, I went inside.
+//     -  
+//     I entered the casino.
+// 	-  text
+//     I entered the casino again.
+// 	-  { x }
+    
+//     Once more, I went inside.
 // }
 
 // Cycle: show each in turn, and then cycle

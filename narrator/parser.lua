@@ -285,8 +285,12 @@ function Parser.parse(content)
     end
 
     local function multiline(params)
-        local paragraph = params.isRoot and V"paragraph" or V"switchParagraph"
+        local paragraph = params.isRoot and V"paragraph" or V"restrictedParagraph"
         return sp * paragraph ^ -1 * sp * V"multiline" * sp * paragraph ^ -1 * ws
+    end
+
+    local function multilineLinesStartedWith(startPattern)
+
     end
 
     local function itemType(type)
@@ -300,12 +304,11 @@ function Parser.parse(content)
 
         root = V"items" + eof,
         items = Ct((
-            multiline { isRoot = true } +
-            V"singleline"
+            multiline { isRoot = true } + V"singleline"
         ) ^ 0),
 
         singleline = sp * (V"global" + V"statement" + V"paragraph") * ws,
-        multiline = ("{" * sp * (V"multilineSequence" + V"switch") * sp * multilineEnd) - V"inlineCondition",
+        multiline = ("{" * sp * (V"sequence" + V"switch") * sp * multilineEnd) - V"inlineCondition",
 
         --
         -- Global declarations
@@ -398,32 +401,48 @@ function Parser.parse(content)
         switchCasesHeaded = V"switchIf" * ((sp * V"switchCase") ^ 0),
         switchCasesOnly = ws * ((sp * V"switchCase") ^ 1),
 
-        switchIf = Ct(Cg(V"switchCondition", "case") * ws * Cg(Ct(V"switchLines"), "success")),
+        switchIf = Ct(Cg(V"switchCondition", "case") * ws * Cg(Ct(V"switchItems"), "success")),
         switchCase = ("-" - divertSign) * sp * V"switchIf",
         switchCondition = sentenceBefore(":", nl) * sp * ":",
+        switchItems = (V"restrictedItem" - V"switchCase") ^ 1,
 
-        switchLines = (V"switchMultiline" + V"switchSingleline") ^ 1,
-        switchSingleline = sp * (V"global" + V"switchStatement" + V"switchParagraph" - V"switchCase" - multilineEnd) * ws,
-        switchMultiline = multiline { isRoot = false } - V"switchCase",
+        --
+        -- Multiline sequences
+        
+        sequence = Ct((V"sequenceParams" * sp * nl * sp * V"sequenceAlts") * itemType("sequence")),
 
-        switchStatement = Ct(
+        sequenceParams = (
+            V"sequenceShuffleOptional" * sp * V"sequenceType" +
+            V"sequenceShuffle" * sp * V"sequenceType" +
+            V"sequenceShuffle" * sp * V"sequenceTypeOptional"
+        ) * sp * ":",
+
+        sequenceShuffleOptional = V"sequenceShuffle" + Cg(Cc(false), "shuffle"),
+        sequenceShuffle = Cg(P"shuffle" / function() return true end, "shuffle"),
+
+        sequenceTypeOptional = V"sequenceType" + Cg(Cc"cycle", "sequence"),
+        sequenceType = Cg(P"cycle" + "stopping" + "once", "sequence"),
+
+        sequenceAlts = Cg(Ct((sp * V"sequenceAlt") ^ 1), "alts"),
+        sequenceAlt = ("-" - divertSign) * ws * Ct(V"sequenceItems"),
+        sequenceItems = (V"restrictedItem" - V"sequenceAlt") ^ 1,
+
+        --
+        -- Multiline items
+
+        restrictedItem = V"restrictedSingleline" + V"restrictedMultiline",
+        restrictedSingleline = sp * (V"global" + V"restrictedStatement" + V"restrictedParagraph" - multilineEnd) * ws,
+        restrictedMultiline = multiline { isRoot = false },
+
+        restrictedStatement = Ct(
             V"choice" * itemType("choice") +
             V"assignment" * itemType("assignment")
         ) + comment + todo,
         
-        switchParagraph = Ct((
+        restrictedParagraph = Ct((
             Cg(V"textComplex", "parts") * sp * V"tagsOptional" +
             Cg(V"textOptional", "parts") * sp * tags
-        ) * itemType("paragraph")),
-
-        --
-        -- TODO: Multiline sequences
-        
-        multilineSequence = P(false)
-        -- multilineSequence = Ct(Cg(Ct(
-        --     V"switchIf" * ((sp * V"switchCase") ^ 0) +
-        --     ws * ((sp * V"switchCase") ^ 1)
-        -- ), "switches") * itemType("sequence")),
+        ) * itemType("paragraph"))
 
     })
 
