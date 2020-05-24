@@ -1,4 +1,4 @@
-# Dinky
-Lua runtime for the Ink language.
+# Narrator
+An Ink parser and runtime implementation in Lua.
 
-**Work in progress.**
+**Work in progress**

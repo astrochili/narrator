@@ -27,7 +27,7 @@ local function merge(parent, childPath, maker)
 
     if child.version.engine and child.version.engine ~= enums.engineVersion then
         assert("Vesrion of model '" .. childPath .. "' (" .. child.version.engine ..")"
-        .. " isn't equal to version of Dinky (" .. enums.engineVersion .. ").")
+        .. " isn't equal to version of Narrator (" .. enums.engineVersion .. ").")
     end
 
     for _, include in ipairs(child.includes or { }) do
@@ -80,18 +80,18 @@ local function loadStory(path, maker)
 end
 
 --
--- Dinky
+-- Narrator
 
-local Dinky = { }
+local Narrator = { }
 
-function Dinky.parseStory(inkPath, save)
+function Narrator.parseStory(inkPath, save)
     local maker = function(path) return parseModel(path, save) end
     return loadStory(inkPath, maker)
 end
 
-function Dinky.loadStory(luaPath)
+function Narrator.loadStory(luaPath)
     local maker = function(path) return require(path) end
     return loadStory(luaPath, maker)
 end
 
-return Dinky
+return Narrator

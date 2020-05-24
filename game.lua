@@ -7,13 +7,13 @@ package.path = _VERSION == "Lua 5.3" and package.path or "./?/init.lua;" .. pack
 --
 -- Dependencies
 
-local dinky = require("dinky")
+local narrator = require("narrator")
 
 --
 -- Game
 
--- local story = dinky.loadStory("stories.dev_root")
-local story = dinky.parseStory("stories.dev", true)
+-- local story = narrator.loadStory("stories.dev_root")
+local story = narrator.parseStory("stories.dev", true)
 
 local botAnswers = { 10, 1, 1, 1 }
 
