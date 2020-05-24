@@ -141,7 +141,7 @@ function Parser.parse(content)
         return items
     end
 
-    local function addSwitches(switches)
+    local function addSwitch(cases)
         print("")
         -- TODO: clean levels of choices and paragraphs inside multilines to nil, this is the rule by ink.
         -- TODO: also choices must have diverts else ignore them, this is also the rule by ink.
@@ -305,7 +305,7 @@ function Parser.parse(content)
         ) ^ 0),
 
         singleline = sp * (V"global" + V"statement" + V"paragraph") * ws,
-        multiline = ("{" * sp * (V"multilineSequence" + V"switches") * sp * multilineEnd) - V"inlineCondition",
+        multiline = ("{" * sp * (V"multilineSequence" + V"switch") * sp * multilineEnd) - V"inlineCondition",
 
         --
         -- Global declarations
@@ -388,16 +388,19 @@ function Parser.parse(content)
         ) * sp * "}",
 
         --
-        -- Multiline switches
+        -- Multiline switch
 
-        switches = Ct(Cg(Ct(
-            V"switchIf" * ((sp * V"switchCase") ^ 0) +
-            ws * ((sp * V"switchCase") ^ 1)
-        ), "switches") * itemType("switches")),
+        switch = Ct((V"switchComparative" + V"switchConditional") * itemType("switch")),
 
-        switchIf = Ct(V"switchCondition" * ws * Cg(Ct(V"switchLines"), "success")),
+        switchComparative = Cg(V"switchCondition", "condition") * ws * Cg(Ct((sp * V"switchCase") ^ 1), "cases"),
+        switchConditional = Cg(Ct(V"switchCasesHeaded" + V"switchCasesOnly"), "cases"),
+        
+        switchCasesHeaded = V"switchIf" * ((sp * V"switchCase") ^ 0),
+        switchCasesOnly = ws * ((sp * V"switchCase") ^ 1),
+
+        switchIf = Ct(Cg(V"switchCondition", "case") * ws * Cg(Ct(V"switchLines"), "success")),
         switchCase = ("-" - divertSign) * sp * V"switchIf",
-        switchCondition = Cg(sentenceBefore(":", nl), "case") * sp * ":",
+        switchCondition = sentenceBefore(":", nl) * sp * ":",
 
         switchLines = (V"switchMultiline" + V"switchSingleline") ^ 1,
         switchSingleline = sp * (V"global" + V"switchStatement" + V"switchParagraph" - V"switchCase" - multilineEnd) * ws,
