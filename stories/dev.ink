@@ -1,6 +1,6 @@
 // INCLUDE sdf.ink   
 // CONST yyy = "2323"   
-// LIST list = aaa, (bbb), ccc   
+// LIST colors = aaa, (bbb), ccc   
 // VAR rrr = 2
 
 // ~ foo++
@@ -52,8 +52,8 @@
 // (label) Again and again.
 
 // === fallback
-// * Ans[w]er 1
-//     OK! -> fallback
+// * (label) Ans[w]er 1
+    // OK! -> fallback
 // * Answer 2
 //     OK! -> fallback
 // = testStitch1
@@ -101,17 +101,17 @@
 
 // === as_fast_as_we_could === 
 // <> as fast as we could.
-// -> END
+// -> road
 
 // === road === 
 // I ran through the forest, the dogs snapping at my heels.
-//     * I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
-//     * I did not pause for breath[] but kept on running. <>
-//     * I cheered with joy. <>
-//     - The road could not be much further! Mackie would have the engine running, and then I'd be safe.
-//     * I reached the road and looked about[]. And would you believe it?
-//     * I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
-//     - The road was empty. Mackie was nowhere to be seen.
+    // * I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
+    // * I did not pause for breath[] but kept on running. <>
+    // * I cheered with joy.
+    // - The road could not be much further! Mackie would have the engine running, and then I'd be safe.
+    // * I reached the road and looked about[]. And would you believe it?
+    // * I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
+    // - The road was empty. Mackie was nowhere to be seen.
 // -> END
 
 // === guard ===
@@ -142,16 +142,22 @@
 //    Complex condition { cond0 : prefix { sub1 : Sub1 Success | Sub1 Failure } | { sub2 : Sub2 Success | Sub1 Failure } suffix }.
 
 /// +++ DONE: Inline sequences
-//
+
 // pre {  -> divert | -> divert | } post -> divert
 // pre { a | b -> divert | } post -> divert
 // pre {~||a|b|c||d} post
 // pre { f | {~ g | f } | b -> divert | c | -> divert | d } post
 // pre { a { exp } b | } post
-// pre { { exp }  -> divert | } post
- 
+// pre { { exp } -> divert | } post
+//  { exp } -> divert
 
 /// +++ DONE: Multiline conditions
+
+// { x > 0:
+//     ~ foo += 1
+//     * answerWithContent -> END
+//     answerContent
+// }
 
 // {
 //     - x > 0 : {df: df | df}
@@ -194,7 +200,7 @@
 //     middle
 //     text -> END
 // - else: els...
-//     (label) else
+//     (notLabel) else
 // }
 
 // text {x > 0: asdf} { x > 0:

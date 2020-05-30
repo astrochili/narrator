@@ -15,7 +15,7 @@ local narrator = require("narrator")
 -- local story = narrator.loadStory("stories.dev_root")
 local story = narrator.parseStory("stories.dev", true)
 
-local botAnswers = { 10, 1, 1, 1 }
+local botAnswers = { 1, 1, 1, 1 }
 
 story:observe("x", function(x) print("The x did change! Now it's " .. x) end)
 story:bind("beep", function() print("ATENTION. Beep! 😃") end)

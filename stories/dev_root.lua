@@ -189,7 +189,7 @@ self.root = {
                 { text = "I smiled." },
                 { text = "I grimaced." },
                 { text = "I promised myself to not react again." }
-            }, seq = "cycle", shuffle = true },
+            }, sequence = "cycle", shuffle = true },
             { choice = "Casino", title = "", sticky = true, divert = { knot = "alternatives", stitch = "casino"} }
         },
 
@@ -198,7 +198,7 @@ self.root = {
                 { text = "I entered the casino."},
                 { text = "I entered the casino again. x = #x * 10#" },
                 { text = "Once more, I went inside." }
-            }, seq = "once" },
+            }, sequence = "once" },
             { choice = "Joke", title = "", sticky = true, divert = { knot = "alternatives", stitch = "joke" } }
         }        
     },

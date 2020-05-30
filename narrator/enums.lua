@@ -2,7 +2,7 @@ local self = {
 
     engineVersion = 1,
 
-    blockType = { 
+    item = { 
         text = 1,
         alts = 2,
         choice = 3,
@@ -10,9 +10,9 @@ local self = {
         variable = 5
     },
     
-    seqType = {
+    sequence = {
         cycle = 1,
-        stop = 2,
+        stopping = 2,
         once = 3
     },
 

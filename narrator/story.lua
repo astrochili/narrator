@@ -13,7 +13,7 @@ local enums = require(libPath .. ".enums")
 local Story = Object:extend()
 
 function Story:new(model)
-    self.root = model.root
+    self.tree = model.tree
     self.constants = model.constants
     self.variables = model.variables
     self.lists = model.lists
@@ -98,7 +98,7 @@ function Story:choose(index)
 end
 
 function Story:itemsFor(knot, stitch)
-    local rootNode = self.root
+    local rootNode = self.tree
     local knotNode = knot == nil and rootNode._ or rootNode[knot]
     assert(knotNode or lume.isarray(rootNode), "The knot '" .. (knot or "_") .. "' not found")
     local stitchNode = stitch == nil and knotNode._ or knotNode[stitch]
@@ -108,7 +108,7 @@ end
 
 function Story:readDivert(divert)
     assert(divert, "The reading divert can't be nil")
-    local path = self:pathFromString(path, self.currentPath) 
+    local path = self:pathFromString(divert, self.currentPath)
     self:readPath(path)
 end
 
@@ -162,12 +162,12 @@ function Story:readItems(items, path, depth, mode)
         local item = items[index]
         local skip = false
 
-        local itemType = enums.blockType.text
+        local itemType = enums.item.text
         if type(item) == "table" then
-            if item.choice ~= nil then itemType = enums.blockType.choice
-            elseif item.condition ~= nil then itemType = enums.blockType.condition
-            elseif item.var ~= nil then itemType = enums.blockType.variable
-            elseif item.alts ~= nil then itemType = enums.blockType.alts
+            if item.choice ~= nil then itemType = enums.item.choice
+            elseif item.condition ~= nil then itemType = enums.item.condition
+            elseif item.var ~= nil then itemType = enums.item.variable
+            elseif item.alts ~= nil then itemType = enums.item.alts
             end
         end
 
@@ -195,32 +195,32 @@ function Story:readItems(items, path, depth, mode)
         end
 
         -- Check the situation
-        if mode == enums.readMode.choices and itemType ~= enums.blockType.choice then
+        if mode == enums.readMode.choices and itemType ~= enums.item.choice then
             mode = enums.readMode.quit
             skip = true
-        elseif mode == enums.readMode.gathers and itemType == enums.blockType.choice then
+        elseif mode == enums.readMode.gathers and itemType == enums.item.choice then
             skip = true
         end
         
         -- Read the item
         if skip then
             -- skip
-        elseif itemType == enums.blockType.text then
+        elseif itemType == enums.item.text then
             mode = enums.readMode.text
             local safeItem = type(item) == "string" and { text = item } or item
             mode = self:readText(safeItem) or mode
-        elseif itemType == enums.blockType.alts then
+        elseif itemType == enums.item.alts then
             mode = enums.readMode.text
             local deepPath = makeDeepPath({ index }, "~")
             mode = self:readAlts(item, deepPath) or mode
-        elseif itemType == enums.blockType.choice and self:checkCondition(item.condition) then
+        elseif itemType == enums.item.choice and self:checkCondition(item.condition) then
             mode = enums.readMode.choices
             local deepPath = makeDeepPath({ index }, ">")
             mode = self:readChoice(item, deepPath) or mode
             if index == #items and type(chain[#chain]) == "number" then
                 mode = enums.readMode.quit
             end
-        elseif itemType == enums.blockType.condition then
+        elseif itemType == enums.item.condition then
             local result, chainValue
             if type(item.condition) == "string" then    
                 local success = self:checkCondition(item.condition)
@@ -238,7 +238,7 @@ function Story:readItems(items, path, depth, mode)
                 local deepPath = makeDeepPath({ index, chainValue })
                 mode = self:readItems(result, deepPath, depth + 2, mode) or mode
             end
-        elseif itemType == enums.blockType.variable then
+        elseif itemType == enums.item.variable then
             self:assignValueTo(item.var, item.value, item.temp)
         end
 
@@ -271,7 +271,7 @@ function Story:readText(item)
 
     if text ~= nil or tags ~= nil then
         local paragraph = { text = text or "<>", tags = tags or { } }
-        local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>"
+        local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>" 
         local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
         
         paragraph.text = self:replaceExpressions(paragraph.text)
@@ -306,9 +306,9 @@ function Story:readAlts(item, path)
     assert(item.alts, "Alternatives can't be nil")
     local alts = lume.clone(item.alts)
 
-    local seqType = item.seq or enums.seqType.stop
-    if type(seqType) == "string" then
-        seqType = enums.seqType[item.seq] or seqType
+    local sequence = item.sequence or enums.sequence.stopping
+    if type(sequence) == "string" then
+        sequence = enums.sequence[item.sequence] or sequence
     end
 
     self:visit(path)
@@ -328,12 +328,12 @@ function Story:readAlts(item, path)
         end
     end
 
-    if seqType == enums.seqType.cycle then
+    if sequence == enums.sequence.cycle then
         index = visits % #alts
         index = index > 0 and index or #alts
-    elseif seqType == enums.seqType.stop then
+    elseif sequence == enums.sequence.stopping then
         index = visits < #alts and visits or #alts
-    elseif seqType == enums.seqType.once then
+    elseif sequence == enums.sequence.once then
         index = visits
     end
 
@@ -357,8 +357,11 @@ function Story:readChoice(item, path)
         return enums.readMode.quit
     end
 
+    local title = self:replaceExpressions(item.choice)
+    title = title:match("(.-)(%s*)<>$") or title
+
     local choice = {
-        title = self:replaceExpressions(item.choice),
+        title = title,
         text = item.text ~= nil and self:replaceExpressions(item.text) or title,
         divert = item.divert,
         path = path
@@ -377,7 +380,7 @@ function Story:replaceExpressions(text)
         if #match == 2 then
             return "#"
         else
-            local result = self:doExpression(match:sub(2, #match-1))
+            local result = self:doExpression(match:sub(2, #match - 1))
             if type(result) == "table" then
                 result = self.listMT.__tostring(result)
             end
@@ -543,7 +546,7 @@ function Story:makeListFor(expression)
         end
     end
 
-    return result
+    return next(result) ~= nil and result or nil
 end
 
 function Story:getListNameFor(name)
@@ -627,9 +630,9 @@ function Story:pathFromString(pathString, context)
         return { knot = part1, stitch = part2, label = part3 }
     end
 
-    local path = lume.clone(context)
-    local rootNode = self.root[path.knot or "_"]
-    local knotNode = part1 ~= nil and self.root[part1] or nil
+    local path = { knot = context.knot, stitch = context.stitch }
+    local rootNode = self.tree[path.knot or "_"]
+    local knotNode = part1 ~= nil and self.tree[part1] or nil
 
     if part2 ~= nil then
         if knotNode ~= nil then

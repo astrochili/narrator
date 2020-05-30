@@ -35,7 +35,7 @@ local function merge(parent, childPath, maker)
         child = merge(child, includePath, maker)
     end
 
-    parent.root = lume.merge(parent.root or { }, child.root or { })
+    parent.tree = lume.merge(parent.tree or { }, child.tree or { })
     parent.constants = lume.merge(parent.constants or { }, child.constants or { })
     parent.lists = lume.merge(parent.lists or { }, child.lists or { })
     parent.variables = lume.merge(parent.variables or { }, child.variables or { })
@@ -84,11 +84,16 @@ end
 
 local Narrator = { }
 
+--- Parse and return story by ink file path
+-- @param inkPath string: ink file path
+-- @param save bool: save a parsed result to lua file or not
 function Narrator.parseStory(inkPath, save)
     local maker = function(path) return parseModel(path, save) end
     return loadStory(inkPath, maker)
 end
 
+--- Load and return story by lua file path
+-- @param luaPath string: lua file path
 function Narrator.loadStory(luaPath)
     local maker = function(path) return require(path) end
     return loadStory(luaPath, maker)
