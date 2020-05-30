@@ -108,6 +108,12 @@ end
 
 function Story:readDivert(divert)
     assert(divert, "The reading divert can't be nil")
+
+    if divert == "END" or divert == "DONE" then
+        self.isOver = true
+        return
+    end
+
     local path = self:pathFromString(divert, self.currentPath)
     self:readPath(path)
 end
@@ -115,9 +121,6 @@ end
 function Story:readPath(path)
     assert(path, "The reading path can't be nil")
 
-    if path.knot == "END" or path.knot == "DONE" then
-        self.isOver = true
-    end
     if self.isOver then
         return
     end
@@ -254,11 +257,16 @@ function Story:readItems(items, path, depth, mode)
         end
     end
 
-    -- Clear paragraphs from empty items (safe prefixes and suffixes of inline conditions)
-    for index = #self.paragraphs, 1, -1 do
-        local paragraph = self.paragraphs[index]
-        if #paragraph.text == 0 and #paragraph.tags == 0 then
-            table.remove(self.paragraphs, index)
+    if depth == 0 then
+        for index = #self.paragraphs, 1, -1 do
+            local paragraph = self.paragraphs[index]
+            if #paragraph.text == 0 and #paragraph.tags == 0 then
+                -- Remove safe prefixes and suffixes of failured inline conditions
+                table.remove(self.paragraphs, index)
+            else
+                -- Remove <> tail from unexpectedly broken paragraphs
+                paragraph.text = paragraph.text:match("(.-)%s*<>$") or paragraph.text
+            end
         end
     end
 
@@ -358,7 +366,7 @@ function Story:readChoice(item, path)
     end
 
     local title = self:replaceExpressions(item.choice)
-    title = title:match("(.-)(%s*)<>$") or title
+    title = title:match("(.-)%s*<>$") or title
 
     local choice = {
         title = title,
