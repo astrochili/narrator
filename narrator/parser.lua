@@ -359,6 +359,16 @@ function Constructor:addKnot(knot)
 end
 
 function Constructor:addStitch(stitch)
+    
+    -- If a root stitch is empty we need to add a divert to the first stitch in the ink file.
+    if self.currentStitch == "_" then
+        local rootStitchNode = self.model.tree[self.currentKnot]._
+        if #rootStitchNode == 0 then
+            local divertItem = { divert = stitch }
+            table.insert(rootStitchNode, divertItem)    
+        end
+    end
+
     self.currentStitch = stitch
 
     local node = { }
@@ -380,9 +390,6 @@ function Constructor:addSwitch(expression, cases)
         condition = { },
         success = { }
     }
-
-    -- TODO: clean levels of choices and paragraphs inside multilines to nil, this is the rule by ink.
-    -- TODO: also choices must have diverts else ignore them, this is also the rule by ink.
 
     for _, case in ipairs(cases) do
         if case.condition == "else" then
