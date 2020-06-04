@@ -270,6 +270,7 @@ function Constructor.constructModel(items)
     }
 
     Constructor.addNode(construction, items)
+    Constructor.clearTree(construction.model.tree)
 
     return construction.model
 end
@@ -581,6 +582,71 @@ function Constructor:addItem(level, item)
     
     local node = self.nodesChain[#self.nodesChain]
     table.insert(node, item)
+end
+
+function Constructor.clearTree(tree)
+    for knot, node in pairs(tree) do
+        for stitch, node in pairs(node) do
+            Constructor.clearNode(node)
+        end
+    end
+end
+
+function Constructor.clearNode(node)
+    for index, item in ipairs(node) do
+        
+        -- Simplify single text items
+        if item.text ~= nil and lume.count(item) == 1 then
+            node[index] = item.text
+        end
+
+        
+        if item.node ~= nil then
+            -- Remove empty choice nodes
+            if #item.node == 0 then
+                item.node = nil
+            else
+                Constructor.clearNode(item.node)
+            end
+        end
+
+        if item.condition ~= nil then
+            if #item.condition == 1 then
+                item.condition = item.condition[1]
+            end
+
+            if item.success ~= nil and item.success[1] ~= nil and item.success[1][1] ~= nil then 
+                for _, successNode in ipairs(item.success) do
+                    Constructor.clearNode(successNode)
+                end    
+            else
+                Constructor.clearNode(item.success)
+            end
+
+            if item.failure ~= nil then
+                Constructor.clearNode(item.failure)
+            end
+
+            -- Remove wrapper for simple if-else condition
+            if type(item.condition) == "string" then
+                item.success = item.success[1]
+
+                -- Remove wrapper for simple text success
+                if #item.success == 1 and type(item.success[1]) == "string" then
+                    item.success = item.success[1]
+                end
+
+                -- Remove wrapper for simple text failure
+                if item.failure ~= nil and #item.failure == 1 and type(item.failure[1]) == "string" then
+                    item.failure = item.failure[1]
+                end
+            end
+        end
+
+        if item.alts ~= nil then
+            
+        end
+    end
 end
 
 return Parser

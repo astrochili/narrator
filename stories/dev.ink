@@ -213,12 +213,12 @@
 // 	woohoo
 // } text
 
-// { x:
-// - 0: 	zero 
-// - 1: 	one 
-// - 2: 	two 
-// - else: lots
-// }
+{ x:
+- 0: 	zero 
+- 1: 	one 
+- 2: 	two 
+- else: lots
+}
 
 // {
 // 	- x > 0: 
@@ -297,11 +297,11 @@
 // 		'You lose this time!' crowed the croupier.
 // }
 
-// { shuffle stopping:
-// - 	A silver BMW roars past.
-// -	A bright yellow Mustang takes the turn. 
-// - 	There are like, cars, here. 
-// }
+{ shuffle stopping:
+- 	A silver BMW roars past.
+-	A bright yellow Mustang takes the turn. 
+- 	There are like, cars, here. 
+}
 
 // { shuffle once: 
 // -	The sun was hot. 
