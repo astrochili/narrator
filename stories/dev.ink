@@ -314,7 +314,10 @@
 // }
 // * choice3 -> END
 
+-> root
 
+=== root
+initialText
 (label) root text
 hello!
 + choice1 -> label

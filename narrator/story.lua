@@ -115,6 +115,12 @@ function Story:readDivert(divert)
     end
 
     local path = self:pathFromString(divert, self.currentPath)
+
+    if path.label ~= nil then
+        print(path.label)
+        -- TODO: convert path.label to path.chain here
+    end
+
     self:readPath(path)
 end
 
@@ -127,10 +133,6 @@ function Story:readPath(path)
     
     local items = self:itemsFor(path.knot, path.stitch)
     self:visit(path)
-
-    if path.label ~= nil then
-        -- TODO: convert path.label to path.chain here
-    end
 
     self:readItems(items, path)
 end    
