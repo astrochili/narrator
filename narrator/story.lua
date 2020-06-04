@@ -215,7 +215,7 @@ function Story:readItems(items, path, depth, mode)
         elseif itemType == enums.item.alts then
             mode = enums.readMode.text
             local deepPath = makeDeepPath({ index }, "~")
-            mode = self:readAlts(item, deepPath) or mode
+            mode = self:readAlts(item, deepPath, depth + 1, mode) or mode
         elseif itemType == enums.item.choice and self:checkCondition(item.condition) then
             mode = enums.readMode.choices
             local deepPath = makeDeepPath({ index }, ">")
@@ -310,7 +310,7 @@ function Story:readText(item)
     end
 end
 
-function Story:readAlts(item, path)
+function Story:readAlts(item, path, depth, mode)
     assert(item.alts, "Alternatives can't be nil")
     local alts = lume.clone(item.alts)
 
@@ -329,8 +329,9 @@ function Story:readAlts(item, path)
         self.seeds[seedKey] = seed
 
         for index, alt in ipairs(alts) do
-            math.randomseed(seed + index)
-            local pairIndex = index < #alts and math.random(index + 1, #alts) or index
+            math.randomseed(tonumber(tostring(seed + index):reverse():sub(1,6)))
+
+            local pairIndex = index < #alts and math.random(index, #alts) or index
             alts[index] = alts[pairIndex]
             alts[pairIndex] = alt
         end
@@ -345,9 +346,9 @@ function Story:readAlts(item, path)
         index = visits
     end
 
-    local textItem = alts[index] or ""
-    local safeItem = type(textItem) == "string" and { text = textItem } or textItem
-    return self:readText(safeItem)
+    local alt = alts[index]
+    local items = type(alt) == "string" and { alt } or alt
+    return self:readItems(items, path, depth, mode)
 end
 
 function Story:readChoice(item, path)
@@ -673,7 +674,7 @@ function Story:tagsFor(knot, stitch)
     local tags = { }
 
     for _, item in ipairs(items) do
-        if lume.count(item) > 1 or item.tags == nil then break end
+        if type(item) == "table" and lume.count(item) > 1 or item.tags == nil then break end
         local itemTags = type(item.tags) == "string" and { item.tags } or item.tags
         tags = lume.concat(tags, itemTags)
     end

@@ -270,7 +270,7 @@ function Constructor.constructModel(items)
     }
 
     Constructor.addNode(construction, items)
-    Constructor.clearTree(construction.model.tree)
+    Constructor.clear(construction.model.tree)
 
     return construction.model
 end
@@ -584,7 +584,7 @@ function Constructor:addItem(level, item)
     table.insert(node, item)
 end
 
-function Constructor.clearTree(tree)
+function Constructor.clear(tree)
     for knot, node in pairs(tree) do
         for stitch, node in pairs(node) do
             Constructor.clearNode(node)
@@ -595,56 +595,62 @@ end
 function Constructor.clearNode(node)
     for index, item in ipairs(node) do
         
-        -- Simplify single text items
+        -- Simplify text only items
         if item.text ~= nil and lume.count(item) == 1 then
             node[index] = item.text
         end
-
         
         if item.node ~= nil then
-            -- Remove empty choice nodes
+            -- Clear choice nodes
             if #item.node == 0 then
                 item.node = nil
             else
                 Constructor.clearNode(item.node)
             end
+            
         end
 
         if item.condition ~= nil then
-            if #item.condition == 1 then
+            -- Simplify single condition
+            if type(item.condition) == "table" and #item.condition == 1 then
                 item.condition = item.condition[1]
             end
 
-            if item.success ~= nil and item.success[1] ~= nil and item.success[1][1] ~= nil then 
-                for _, successNode in ipairs(item.success) do
+            -- Clear success nodes
+            if item.success[1] ~= nil and item.success[1][1] ~= nil then
+                for index, successNode in ipairs(item.success) do
                     Constructor.clearNode(successNode)
-                end    
-            else
-                Constructor.clearNode(item.success)
-            end
+                    if #successNode == 1 and type(successNode[1]) == "string" then
+                        item.success[index] = successNode[1]
+                    end
+                end
 
-            if item.failure ~= nil then
-                Constructor.clearNode(item.failure)
-            end
-
-            -- Remove wrapper for simple if-else condition
-            if type(item.condition) == "string" then
-                item.success = item.success[1]
-
-                -- Remove wrapper for simple text success
-                if #item.success == 1 and type(item.success[1]) == "string" then
+                if #item.success == 1 then
                     item.success = item.success[1]
                 end
+            else
+                Constructor.clearNode(item.success)
+                if #item.success == 1 and type(item.success[1]) == "string" then
+                    item.success = item.success[1]
+                end   
+            end
 
-                -- Remove wrapper for simple text failure
-                if item.failure ~= nil and #item.failure == 1 and type(item.failure[1]) == "string" then
+            -- Clear failure nodes
+            if item.failure ~= nil then
+                Constructor.clearNode(item.failure)
+                if #item.failure == 1 and type(item.failure[1]) == "string" then
                     item.failure = item.failure[1]
-                end
+                end       
             end
         end
 
         if item.alts ~= nil then
-            
+            for index, altNode in ipairs(item.alts) do
+                Constructor.clearNode(altNode)
+                if #altNode == 1 and type(altNode[1]) == "string" then
+                    item.alts[index] = altNode[1]
+                end
+            end
         end
     end
 end

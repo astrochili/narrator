@@ -213,12 +213,12 @@
 // 	woohoo
 // } text
 
-{ x:
-- 0: 	zero 
-- 1: 	one 
-- 2: 	two 
-- else: lots
-}
+// { x:
+// - 0: 	zero 
+// - 1: 	one 
+// - 2: 	two 
+// - else: lots
+// }
 
 // {
 // 	- x > 0: 
@@ -257,10 +257,6 @@
 // }
 
 
-/// +++ TODO:
-/// +++ Multiline Sequences
-
-
 // At the table, I drew a card. <>
 
 // // Sequence: go through the alternatives, and stick on last 
@@ -297,13 +293,28 @@
 // 		'You lose this time!' crowed the croupier.
 // }
 
-{ shuffle stopping:
-- 	A silver BMW roars past.
--	A bright yellow Mustang takes the turn. 
-- 	There are like, cars, here. 
-}
+// { shuffle stopping:
+// - 	A silver BMW roars past.
+// -	A bright yellow Mustang takes the turn. 
+// - 	There are like, cars, here. 
+// }
 
 // { shuffle once: 
-// -	The sun was hot. 
-// - 	It was a hot day. 
+// -	The sun was hot.
+// - 	It was a hot day.
+// - ddd
 // }
+
+// * choice1 -> END
+// { true:
+//     { shuffle: 
+//     - * choice2 -> END
+//     - * choice3 -> END
+//     }
+// }
+// * choice3 -> END
+
+
+(label) root text
+hello!
++ choice1 -> label
