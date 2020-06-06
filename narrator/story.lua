@@ -229,32 +229,28 @@ function Story:readItems(items, path, depth, mode)
 
         -- Go deep
         if index == deepIndex then
-            local returnedFromDepths = false
-
-            if item.node ~= nil then
+            if itemType == enums.item.choice and item.node ~= nil then
                 -- Go deep to the choice node
                 mode = enums.readMode.gathers
                 mode = self:readItems(item.node, path, depth + 1) or mode
-                returnedFromDepths = true
                 
-            elseif item.condition ~= nil then
+            elseif itemType == enums.item.condition then
                 -- Go deep to the condition node
                 local chainValue = chain[depth + 2]
                 local isSuccess = chainValue:sub(1, 1) == "t"
 
                 local node
                 if isSuccess then
-                    local successIndex = math.tointeger(chainValue:sub(2, 2)) or 0
+                    local successIndex = tonumber(chainValue:sub(2, 2)) or 0
                     node = successIndex > 0 and item.success[successIndex] or item.success
                 else
                     node = item.failure
                 end
 
                 mode = self:readItems(node, path, depth + 2, mode) or mode
-                returnedFromDepths = true
             end
 
-            if returnedFromDepths then
+            if itemType == enums.item.condition or itemType == enums.item.choice then
                 mode = mode ~= enums.readMode.quit and enums.readMode.gathers or mode
                 skip = true
             end
@@ -282,6 +278,7 @@ function Story:readItems(items, path, depth, mode)
         elseif itemType == enums.item.choice and self:checkCondition(item.condition) then
             mode = enums.readMode.choices
             local deepPath = makeDeepPath({ index }, ">")
+            deepPath.label = item.label or deepPath.label
             mode = self:readChoice(item, deepPath) or mode
             if index == #items and type(chain[#chain]) == "number" then
                 mode = enums.readMode.quit
@@ -309,7 +306,7 @@ function Story:readItems(items, path, depth, mode)
         end
 
         -- Read the label
-        if item.label ~= nil and not skip then
+        if item.label ~= nil and itemType ~= enums.item.choice and not skip then
             local labelPath = lume.clone(path)
             labelPath.label = item.label
             self:visit(labelPath)
