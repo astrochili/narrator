@@ -137,18 +137,18 @@ function Story:pathChainForLabel(path)
             if item.label == label then return { index }
 
             elseif item.node ~= nil then
-                local result = findLabelInItems(item.node)
+                local result = findLabelChainInItems(item.node)
                 if result ~= nil then
                     table.insert(result, 0, index)
                     return result
                 end
 
-            elseif item.condition ~= nil then
-                if item.success ~= nil and type(item.success) == "table" then
+            elseif item.success ~= nil then
+                if type(item.success) == "table" then
                     local isSwitch = item.success[1] ~= nil and item.success[1][1] ~= nil
                     local cases = isSwitch and item.success or { item.success }
                     for caseIndex, case in ipairs(cases) do
-                        local result = findLabelInItems(case)
+                        local result = findLabelChainInItems(case)
                         if result ~= nil then
                             table.insert(result, 0, "t" .. caseIndex)
                             table.insert(result, 0, index)
@@ -157,8 +157,8 @@ function Story:pathChainForLabel(path)
                     end
                 end
 
-                if item.failure ~= nil and type(item.failure) == "table" then
-                    local result = findLabelInItems(item.failure)
+                if type(item.failure) == "table" then
+                    local result = findLabelChainInItems(item.failure)
                     if result ~= nil then
                         table.insert(result, 0, "f")
                         table.insert(result, 0, index)
@@ -221,7 +221,7 @@ function Story:readItems(items, path, depth, mode)
         local itemType = enums.item.text
         if type(item) == "table" then
             if item.choice ~= nil then itemType = enums.item.choice
-            elseif item.condition ~= nil then itemType = enums.item.condition
+            elseif item.success ~= nil then itemType = enums.item.condition
             elseif item.var ~= nil then itemType = enums.item.variable
             elseif item.alts ~= nil then itemType = enums.item.alts
             end

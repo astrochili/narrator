@@ -546,8 +546,9 @@ end
 function Constructor:addChoice(level, sticky, label, condition, text, divert)
     local item = {
         sticky = sticky or nil,
-        divert = divert,
+        condition = condition,
         label = label,
+        divert = divert
     }
 
     if text == nil then
@@ -558,15 +559,7 @@ function Constructor:addChoice(level, sticky, label, condition, text, divert)
         item.text = (part1 or text) .. (part2 or "")
     end
 
-    if condition then
-        local conditionItem = {
-            condition = condition,
-            success = { item }
-        }
-        Constructor.addItem(self, level, conditionItem)
-    else
-        Constructor.addItem(self, level, item)
-    end
+    Constructor.addItem(self, level, item)
 
     if divert == nil then
         item.node = { }
@@ -610,7 +603,7 @@ function Constructor.clearNode(node)
             
         end
 
-        if item.condition ~= nil then
+        if item.success ~= nil then
             -- Simplify single condition
             if type(item.condition) == "table" and #item.condition == 1 then
                 item.condition = item.condition[1]
