@@ -88,8 +88,6 @@ function Story:choose(index)
         table.insert(self.paragraphs, { text = choice.text })
     end
 
-    self:visit(choice.path)
-
     if choice.divert ~= nil then
         self:readDivert(choice.divert)
     else
