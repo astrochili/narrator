@@ -84,16 +84,18 @@ end
 
 local Narrator = { }
 
---- Parse and return story by ink file path
+--- Parse story from a ink file
 -- @param inkPath string: ink file path
 -- @param save bool: save a parsed result to lua file or not
+-- @return story
 function Narrator.parseStory(inkPath, save)
     local maker = function(path) return parseModel(path, save) end
     return loadStory(inkPath, maker)
 end
 
---- Load and return story by lua file path
+--- Load story from a lua file
 -- @param luaPath string: lua file path
+-- @return story
 function Narrator.loadStory(luaPath)
     local maker = function(path) return require(path) end
     return loadStory(luaPath, maker)

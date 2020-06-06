@@ -117,11 +117,62 @@ function Story:readDivert(divert)
     local path = self:pathFromString(divert, self.currentPath)
 
     if path.label ~= nil then
-        print(path.label)
-        -- TODO: convert path.label to path.chain here
+        path.chain = self:pathChainForLabel(path)
     end
 
     self:readPath(path)
+end
+
+
+function Story:pathChainForLabel(path)
+    local label = path.label
+    local items = self:itemsFor(path.knot, path.stitch)
+
+    -- TODO: Find a more smart solution to divert to labels
+    -- TODO: This works but... isn't good.
+
+    local function findLabelChainInItems(items)        
+        for index, item in ipairs(items) do
+
+            if item.label == label then return { index }
+
+            elseif item.node ~= nil then
+                local result = findLabelInItems(item.node)
+                if result ~= nil then
+                    table.insert(result, 0, index)
+                    return result
+                end
+
+            elseif item.condition ~= nil then
+                if item.success ~= nil and type(item.success) == "table" then
+                    local isSwitch = item.success[1] ~= nil and item.success[1][1] ~= nil
+                    local cases = isSwitch and item.success or { item.success }
+                    for caseIndex, case in ipairs(cases) do
+                        local result = findLabelInItems(case)
+                        if result ~= nil then
+                            table.insert(result, 0, "t" .. caseIndex)
+                            table.insert(result, 0, index)
+                            return result
+                        end                        
+                    end
+                end
+
+                if item.failure ~= nil and type(item.failure) == "table" then
+                    local result = findLabelInItems(item.failure)
+                    if result ~= nil then
+                        table.insert(result, 0, "f")
+                        table.insert(result, 0, index)
+                        return result
+                    end                        
+                end
+            end
+        end
+
+        return nil
+    end
+
+    local chain = findLabelChainInItems(items)
+    return chain
 end
 
 function Story:readPath(path)
@@ -178,25 +229,35 @@ function Story:readItems(items, path, depth, mode)
 
         -- Go deep
         if index == deepIndex then
+            local returnedFromDepths = false
+
             if item.node ~= nil then
                 -- Go deep to the choice node
                 mode = enums.readMode.gathers
                 mode = self:readItems(item.node, path, depth + 1) or mode
-            elseif item.success ~= nil then
+                returnedFromDepths = true
+                
+            elseif item.condition ~= nil then
                 -- Go deep to the condition node
                 local chainValue = chain[depth + 2]
-                local success = chainValue:sub(1, 1) == "t"
+                local isSuccess = chainValue:sub(1, 1) == "t"
 
-                local node = item.failure    
-                if success then
+                local node
+                if isSuccess then
                     local successIndex = math.tointeger(chainValue:sub(2, 2)) or 0
                     node = successIndex > 0 and item.success[successIndex] or item.success
+                else
+                    node = item.failure
                 end
+
                 mode = self:readItems(node, path, depth + 2, mode) or mode
+                returnedFromDepths = true
             end
 
-            mode = mode ~= enums.readMode.quit and enums.readMode.gathers or mode
-            skip = true
+            if returnedFromDepths then
+                mode = mode ~= enums.readMode.quit and enums.readMode.gathers or mode
+                skip = true
+            end
         end
 
         -- Check the situation
@@ -348,7 +409,7 @@ function Story:readAlts(item, path, depth, mode)
         index = visits
     end
 
-    local alt = alts[index]
+    local alt = index <= #alts and alts[index] or { }
     local items = type(alt) == "string" and { alt } or alt
     return self:readItems(items, path, depth, mode)
 end

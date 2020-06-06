@@ -314,10 +314,22 @@
 // }
 // * choice3 -> END
 
--> root
+// -> root
 
-=== root
-initialText
-(label) root text
-hello!
-+ choice1 -> label
+// === root
+// intro
+// hello!
+// + [hi] -> eee.labelExample
+// -> END
+
+// === eee
+// don't read this!
+// - (labelExample) how are you? -> END
+
+// intro
+// { once:
+// - + hello! -> label
+// - + by! -> label
+// }
+// dont't output this!
+// - (label) outro
