@@ -1,5 +1,5 @@
 {
-    "configurations": [
+    "configurations": [     
         {
             "name": "Debug",
             "type": "lua-local",
@@ -8,6 +8,17 @@
               "lua": "lua5.1",
               "file": "${workspaceFolder}/debug.lua"
             }
+        },
+        {
+            "name": "Test",
+            "type": "lua-local",
+            "request": "launch",
+            "program": {
+                "command": "busted"
+            },
+            "args": [
+                "${workspaceFolder}/test/start.lua"
+            ],
         }
     ]
 }

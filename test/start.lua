@@ -1,6 +1,11 @@
 --
 -- Testing with Busted library
 
+-- TODO: Make busted work with a VSCode debugger
+-- if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+--     require("lldebugger").start()
+-- end
+
 local narrator = require("narrator")
 local bot = require("bot")
 
