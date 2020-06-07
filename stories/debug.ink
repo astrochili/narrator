@@ -333,11 +333,14 @@
 // }
 // dont't output this!
 // - (label) outro
-
+# tag1
+text
+# tag2
+text2
 -> meet_guard
 
 === meet_guard ===
-The guard frowns at you.
+The guard frowns at you. # tag3
 * 	(greet) [Greet him]
 	'Greetings.'
 *	(get_out) 'Get out of my way[.'],' you tell the guard.

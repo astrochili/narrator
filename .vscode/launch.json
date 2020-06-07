@@ -6,7 +6,7 @@
             "request": "launch",
             "program": {
               "lua": "lua5.1",
-              "file": "${workspaceFolder}/game.lua"
+              "file": "${workspaceFolder}/debug.lua"
             }
         }
     ]

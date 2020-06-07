@@ -80,7 +80,7 @@ local function loadStory(path, maker)
 end
 
 --
--- Narrator
+-- Public
 
 local Narrator = { }
 

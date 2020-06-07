@@ -50,7 +50,7 @@ end
 
 function Story:continue(steps)
     if not self:canContinue() then return nil end
-    local steps = steps or 1
+    local steps = steps or 0
     steps = steps > 0 and steps or #self.paragraphs
 
     local lines = { }
@@ -336,7 +336,7 @@ function Story:readText(item)
     local tags = type(item.tags) == "string" and { item.tags } or item.tags
 
     if text ~= nil or tags ~= nil then
-        local paragraph = { text = text or "<>", tags = tags or { } }
+        local paragraph = { text = text or "<>", tags = tags }
         local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>" 
         local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
         
@@ -355,7 +355,7 @@ function Story:readText(item)
         if gluedByPrev or (gluedByThis and #self.paragraphs > 0) then
             local prevParagraph = self.paragraphs[#self.paragraphs]
             prevParagraph.text = prevParagraph.text .. paragraph.text
-            prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
+            prevParagraph.tags = lume.concat(prevParagraph.tags or { }, paragraph.tags)
             self.paragraphs[#self.paragraphs] = prevParagraph
         else
             table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
