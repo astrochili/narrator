@@ -22,7 +22,7 @@ function Bot.play(story, instructor, silent)
         local paragraphs = story:continue()
         for _, paragraph in ipairs(paragraphs) do
             local text = paragraph.text or ""
-            if paragraph.tags ~= nil and #paragraph.tags > 0 then
+            if paragraph.tags then
                 text = text .. " #" .. table.concat(paragraph.tags, " #")
             end
             output(text)

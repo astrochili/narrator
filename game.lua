@@ -41,7 +41,8 @@ while story:canContinue() do
 
     -- If there is no choice, it seems the game is over
     if not story:canChoose() then break end
-
+    print("")
+    
     -- Get available choices and output them to the player
     local choices = story:getChoices()
     for i, choice in ipairs(choices) do

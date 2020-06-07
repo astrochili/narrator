@@ -357,7 +357,8 @@ function Story:readText(item)
         if gluedByPrev or (gluedByThis and #self.paragraphs > 0) then
             local prevParagraph = self.paragraphs[#self.paragraphs]
             prevParagraph.text = prevParagraph.text .. paragraph.text
-            prevParagraph.tags = lume.concat(prevParagraph.tags or { }, paragraph.tags)
+            prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
+            prevParagraph.tags = #prevParagraph.tags > 0 and prevParagraph.tags or nil
             self.paragraphs[#self.paragraphs] = prevParagraph
         else
             table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
