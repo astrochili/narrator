@@ -10,8 +10,8 @@ local narrator = require("narrator")
 local bot = require("bot")
 
 -- Loading
-local story = narrator.parseStory("stories.debug")
-local answers = { }
+local story = narrator.parseStory("test.ink.basic")
+local answers = { 1, 1, 1, 1, 1 }
 
 -- Choice instructor for a bot
 local function instructor(choices)

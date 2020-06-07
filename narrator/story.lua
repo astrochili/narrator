@@ -58,6 +58,8 @@ function Story:continue(steps)
         local paragraph = self.paragraphs[index]
         table.insert(lines, paragraph)
         table.insert(self.output, paragraph)
+    end
+    for index = 1, steps do
         table.remove(self.paragraphs, 1)
     end
 
