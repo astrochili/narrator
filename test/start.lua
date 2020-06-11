@@ -1,10 +1,7 @@
 --
 -- Testing with Busted library
 
--- TODO: Make busted work with a VSCode debugger
--- if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
---     require("lldebugger").start()
--- end
+require("busted.runner")()
 
 local narrator = require("narrator")
 local bot = require("bot")
@@ -42,7 +39,7 @@ end
 local cases = require("test.cases")
 describe("Test case", function()
     for _, case in ipairs(cases) do
-        it("'" .. case.ink .. "' is failed.", function()
+        it("'" .. case.ink .. "'.", function()
             test(case)
         end)
     end
