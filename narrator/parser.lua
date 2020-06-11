@@ -1,11 +1,11 @@
 --
 -- Dependencies
 
-local lpeg = require("lpeg")
-local lume = require("lume")
+local lpeg = require('lpeg')
+local lume = require('lume')
 
-local libPath = (...):match("(.-).[^%.]+$")
-local enums = require(libPath .. ".enums")
+local libPath = (...):match('(.-).[^%.]+$')
+local enums = require(libPath .. '.enums')
 
 --
 -- LPeg
@@ -30,45 +30,45 @@ function Parser.parse(content)
   local function getLength(array) return #array end
 
   local eof = -1
-  local sp = S(" \t") ^ 0
-  local ws = S(" \t\r\n") ^ 0
-  local nl = S("\r\n") ^ 1
+  local sp = S(' \t') ^ 0
+  local ws = S(' \t\r\n') ^ 0
+  local nl = S('\r\n') ^ 1
   local none = Cc(nil)
 
-  local divertSign = P"->"
-  local gatherMark = sp * C("-" - divertSign)
-  local gatherLevel = Cg(Ct(gatherMark ^ 1) / getLength + none, "level")
+  local divertSign = P'->'
+  local gatherMark = sp * C('-' - divertSign)
+  local gatherLevel = Cg(Ct(gatherMark ^ 1) / getLength + none, 'level')
   
-  local stickyMarks = Cg(Ct((sp * C("+")) ^ 1) / getLength, "level") * Cg(Cc(true), "sticky")
-  local choiceMarks = Cg(Ct((sp * C("*")) ^ 1) / getLength, "level") * Cg(Cc(false), "sticky")
+  local stickyMarks = Cg(Ct((sp * C('+')) ^ 1) / getLength, 'level') * Cg(Cc(true), 'sticky')
+  local choiceMarks = Cg(Ct((sp * C('*')) ^ 1) / getLength, 'level') * Cg(Cc(false), 'sticky')
   local choiceLevel = stickyMarks + choiceMarks
 
-  local id = (lpeg.alpha + "_") * (lpeg.alnum + "_") ^ 0
-  local label = Cg("(" * sp * C(id) * sp * ")", "label")
-  local address = id * ("." * id) ^ -2
-  local divert = Cg(divertSign * sp * C(address), "divert")
+  local id = (lpeg.alpha + '_') * (lpeg.alnum + '_') ^ 0
+  local label = Cg('(' * sp * C(id) * sp * ')', 'label')
+  local address = id * ('.' * id) ^ -2
+  local divert = Cg(divertSign * sp * C(address), 'divert')
   local divertToNothing = divertSign * none
-  local tag = "#" * sp * V"text"
-  local tags = Cg(Ct(tag * (sp * tag) ^ 0), "tags")
+  local tag = '#' * sp * V'text'
+  local tags = Cg(Ct(tag * (sp * tag) ^ 0), 'tags')
 
-  local todo = sp * "TODO:" * (1 - nl) ^ 0
-  local commentLine = sp * "//" * sp * (1 - nl) ^ 0
-  local commentMulti = sp * "/*" * ((P(1) - "*/") ^ 0) * "*/"
+  local todo = sp * 'TODO:' * (1 - nl) ^ 0
+  local commentLine = sp * '//' * sp * (1 - nl) ^ 0
+  local commentMulti = sp * '/*' * ((P(1) - '*/') ^ 0) * '*/'
   local comment = commentLine + commentMulti + todo
 
-  local multilineEnd = ws * "}"
+  local multilineEnd = ws * '}'
 
   --
   -- Dynamic patterns and evaluation helpers
 
   local function itemType(type)
-    return Cg(Cc(type), "type")
+    return Cg(Cc(type), 'type')
   end
 
   local function balancedMultilineItem(isRestricted)
     local isRestricted = isRestricted ~= nil and isRestricted or false
-    local paragraph = isRestricted and V"restrictedParagraph" or V"paragraph"
-    return sp * paragraph ^ -1 * sp * V"multilineItem" * sp * paragraph ^ -1 * ws
+    local paragraph = isRestricted and V'restrictedParagraph' or V'paragraph'
+    return sp * paragraph ^ -1 * sp * V'multilineItem' * sp * paragraph ^ -1 * ws
   end
 
   local function sentenceBefore(...)
@@ -77,9 +77,9 @@ function Parser.parse(content)
       excluded = excluded == nil and pattern or excluded + pattern
     end
 
-    local character = P(1 - S(" \t")) - excluded
+    local character = P(1 - S(' \t')) - excluded
     local pattern = (sp * character ^ 1) ^ 1
-    local withSpaceTail = C(pattern * sp) * #(P"{" - V"multilineItem")
+    local withSpaceTail = C(pattern * sp) * #(P'{' - V'multilineItem')
     local withoutSpaceTail = C(pattern) * sp
 
     return withSpaceTail + withoutSpaceTail
@@ -87,150 +87,150 @@ function Parser.parse(content)
 
   local function unwrapAssignment(assignment)
     local unwrapped = assignment
-    unwrapped = unwrapped:gsub("([%w_]*)%s*([%+%-])[%+%-]", "%1 = %1 %2 1")
-    unwrapped = unwrapped:gsub("([%w_]*)%s*([%+%-])=%s*(.*)", "%1 = %1 %2 %3")
-    local name, value = unwrapped:match("([%w_]*)%s*=%s*(.*)")
+    unwrapped = unwrapped:gsub('([%w_]*)%s*([%+%-])[%+%-]', '%1 = %1 %2 1')
+    unwrapped = unwrapped:gsub('([%w_]*)%s*([%+%-])=%s*(.*)', '%1 = %1 %2 %3')
+    local name, value = unwrapped:match('([%w_]*)%s*=%s*(.*)')
     return name, value
   end
 
   --
   -- Grammar rules
 
-  local inkGrammar = P({ "root",
+  local inkGrammar = P({ 'root',
 
     -- Root
 
-    root = V"items" + eof,
-    items = Ct(V"item" ^ 0),
+    root = V'items' + eof,
+    items = Ct(V'item' ^ 0),
 
-    item = balancedMultilineItem() + V"singlelineItem",
-    singlelineItem = sp * (V"global" + V"statement" + V"paragraph") * ws,
-    multilineItem = ("{" * sp * (V"sequence" + V"switch") * sp * multilineEnd) - V"inlineCondition",
+    item = balancedMultilineItem() + V'singlelineItem',
+    singlelineItem = sp * (V'global' + V'statement' + V'paragraph') * ws,
+    multilineItem = ('{' * sp * (V'sequence' + V'switch') * sp * multilineEnd) - V'inlineCondition',
 
     -- Global declarations
 
     global =
-      Ct(V"include" * itemType("include")) +
-      Ct(V"list" * itemType("list")) +
-      Ct(V"constant" * itemType("constant")) +
-      Ct(V"variable" * itemType("variable"))
+      Ct(V'include' * itemType('include')) +
+      Ct(V'list' * itemType('list')) +
+      Ct(V'constant' * itemType('constant')) +
+      Ct(V'variable' * itemType('variable'))
     ,
 
-    include = "INCLUDE" * sp * Cg(V"text", "filename"),
-    list = "LIST" * sp * V"assignmentPair",
-    constant = "CONST" * sp * V"assignmentPair",
-    variable = "VAR" * sp * V"assignmentPair",
+    include = 'INCLUDE' * sp * Cg(V'text', 'filename'),
+    list = 'LIST' * sp * V'assignmentPair',
+    constant = 'CONST' * sp * V'assignmentPair',
+    variable = 'VAR' * sp * V'assignmentPair',
 
     -- Statements
 
     statement = 
-      Ct(V"assignment" * itemType("assignment")) + 
-      Ct(V"knot" * itemType("knot")) +
-      Ct(V"stitch" * itemType("stitch")) +
-      Ct(V"choice" * itemType("choice")) +
+      Ct(V'assignment' * itemType('assignment')) + 
+      Ct(V'knot' * itemType('knot')) +
+      Ct(V'stitch' * itemType('stitch')) +
+      Ct(V'choice' * itemType('choice')) +
       comment
     ,
     
-    sectionName = C(id) * sp * P("=") ^ 0,
-    knot = "===" * sp * Cg(V"sectionName", "knot"),
-    stitch = "=" * sp * Cg(V"sectionName", "stitch"),
+    sectionName = C(id) * sp * P('=') ^ 0,
+    knot = '===' * sp * Cg(V'sectionName', 'knot'),
+    stitch = '=' * sp * Cg(V'sectionName', 'stitch'),
 
-    assignment = gatherLevel * sp * "~" * sp * V"assignmentTemp" * sp * V"assignmentPair",
-    assignmentTemp = Cg("temp" * Cc(true) + Cc(false), "temp"),
-    assignmentPair = Cg(V"text" / unwrapAssignment, "name") * Cg(Cb("name") / 2, "value"),
+    assignment = gatherLevel * sp * '~' * sp * V'assignmentTemp' * sp * V'assignmentPair',
+    assignmentTemp = Cg('temp' * Cc(true) + Cc(false), 'temp'),
+    assignmentPair = Cg(V'text' / unwrapAssignment, 'name') * Cg(Cb('name') / 2, 'value'),
 
-    choiceCondition = Cg(V"expression" + none, "condition"),
-    choiceFallback = choiceLevel * sp * V"labelOptional" * sp * V"choiceCondition" * sp * (divert + divertToNothing),
-    choiceNormal = choiceLevel * sp * V"labelOptional" * sp * V"choiceCondition" * sp * Cg(V"text", "text") * sp * divert ^ -1,
-    choice = V"choiceFallback" + V"choiceNormal",
+    choiceCondition = Cg(V'expression' + none, 'condition'),
+    choiceFallback = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * (divert + divertToNothing),
+    choiceNormal = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * Cg(V'text', 'text') * sp * divert ^ -1,
+    choice = V'choiceFallback' + V'choiceNormal',
 
     -- Paragraph
 
-    paragraph = Ct(gatherLevel * sp * (V"paragraphLabel" + V"paragraphText" + V"paragraphTags") * itemType("paragraph")),
-    paragraphLabel = label * sp * Cg(V"textOptional", "parts") * sp * V"tagsOptional",
-    paragraphText = V"labelOptional" * sp * Cg(V"textComplex", "parts") * sp * V"tagsOptional",
-    paragraphTags = V"labelOptional" * sp * Cg(V"textOptional", "parts") * sp * tags,
+    paragraph = Ct(gatherLevel * sp * (V'paragraphLabel' + V'paragraphText' + V'paragraphTags') * itemType('paragraph')),
+    paragraphLabel = label * sp * Cg(V'textOptional', 'parts') * sp * V'tagsOptional',
+    paragraphText = V'labelOptional' * sp * Cg(V'textComplex', 'parts') * sp * V'tagsOptional',
+    paragraphTags = V'labelOptional' * sp * Cg(V'textOptional', 'parts') * sp * tags,
     
     labelOptional = label + none,
-    textOptional = V"textComplex" + none,
+    textOptional = V'textComplex' + none,
     tagsOptional = tags + none,
 
     textComplex = Ct((Ct(
-      Cg(V"inlineCondition", "condition") + 
-      Cg(V"inlineSequence", "sequence") + 
-      Cg(V"expression", "expression") +
-      Cg(V"text", "text") * sp * (divert ^ -1) + sp * divert
-    ) - V"multilineItem") ^ 1),
+      Cg(V'inlineCondition', 'condition') + 
+      Cg(V'inlineSequence', 'sequence') + 
+      Cg(V'expression', 'expression') +
+      Cg(V'text', 'text') * sp * (divert ^ -1) + sp * divert
+    ) - V'multilineItem') ^ 1),
 
-    text = sentenceBefore(nl, divert, comment, tag, S"{|}") - V"statement",
+    text = sentenceBefore(nl, divert, comment, tag, S'{|}') - V'statement',
 
     -- Inline expressions, conditions, sequences
 
-    expression = "{" * sp * sentenceBefore("}", nl) * sp * "}",
+    expression = '{' * sp * sentenceBefore('}', nl) * sp * '}',
 
-    inlineCondition = "{" * sp * Ct(V"inlineIfElse" + V"inlineIf") * sp * "}",
-    inlineIf = Cg(sentenceBefore(S":}" + nl), "condition") * sp * ":" * sp * Cg(V"textComplex", "success"),
-    inlineIfElse = (V"inlineIf") * sp * "|" * sp * Cg(V"textComplex", "failure"),
+    inlineCondition = '{' * sp * Ct(V'inlineIfElse' + V'inlineIf') * sp * '}',
+    inlineIf = Cg(sentenceBefore(S':}' + nl), 'condition') * sp * ':' * sp * Cg(V'textComplex', 'success'),
+    inlineIfElse = (V'inlineIf') * sp * '|' * sp * Cg(V'textComplex', 'failure'),
     
-    inlineAltEmpty = Ct(Ct(Cg(sp * Cc"", "text") * sp * divert ^ -1)),
-    inlineAlt = V"textComplex" + V"inlineAltEmpty",
-    inlineAlts = Ct(((sp * V"inlineAlt" * sp * "|") ^ 1) * sp * V"inlineAlt"),
-    inlineSequence = "{" * sp * (
-    "!" * sp * Ct(Cg(V"inlineAlts", "alts") * Cg(Cc("once"), "sequence")) +
-    "&" * sp * Ct(Cg(V"inlineAlts", "alts") * Cg(Cc("cycle"), "sequence")) +
-    "~" * sp * Ct(Cg(V"inlineAlts", "alts") * Cg(Cc("stopping"), "sequence") * Cg(Cc(true),  "shuffle")) +
-           Ct(Cg(V"inlineAlts", "alts") * Cg(Cc("stopping"), "sequence"))
-    ) * sp * "}",
+    inlineAltEmpty = Ct(Ct(Cg(sp * Cc'', 'text') * sp * divert ^ -1)),
+    inlineAlt = V'textComplex' + V'inlineAltEmpty',
+    inlineAlts = Ct(((sp * V'inlineAlt' * sp * '|') ^ 1) * sp * V'inlineAlt'),
+    inlineSequence = '{' * sp * (
+    '!' * sp * Ct(Cg(V'inlineAlts', 'alts') * Cg(Cc('once'), 'sequence')) +
+    '&' * sp * Ct(Cg(V'inlineAlts', 'alts') * Cg(Cc('cycle'), 'sequence')) +
+    '~' * sp * Ct(Cg(V'inlineAlts', 'alts') * Cg(Cc('stopping'), 'sequence') * Cg(Cc(true),  'shuffle')) +
+           Ct(Cg(V'inlineAlts', 'alts') * Cg(Cc('stopping'), 'sequence'))
+    ) * sp * '}',
 
     -- Multiline conditions and switches
 
-    switch = Ct((V"switchComparative" + V"switchConditional") * itemType("switch")),
+    switch = Ct((V'switchComparative' + V'switchConditional') * itemType('switch')),
 
-    switchComparative = Cg(V"switchCondition", "expression") * ws * Cg(Ct((sp * V"switchCase") ^ 1), "cases"),
-    switchConditional = Cg(Ct(V"switchCasesHeaded" + V"switchCasesOnly"), "cases"),
+    switchComparative = Cg(V'switchCondition', 'expression') * ws * Cg(Ct((sp * V'switchCase') ^ 1), 'cases'),
+    switchConditional = Cg(Ct(V'switchCasesHeaded' + V'switchCasesOnly'), 'cases'),
     
-    switchCasesHeaded = V"switchIf" * ((sp * V"switchCase") ^ 0),
-    switchCasesOnly = ws * ((sp * V"switchCase") ^ 1),
+    switchCasesHeaded = V'switchIf' * ((sp * V'switchCase') ^ 0),
+    switchCasesOnly = ws * ((sp * V'switchCase') ^ 1),
 
-    switchIf = Ct(Cg(V"switchCondition", "condition") * ws * Cg(Ct(V"switchItems"), "node")),
-    switchCase = ("-" - divertSign) * sp * V"switchIf",
-    switchCondition = sentenceBefore(":", nl) * sp * ":" * sp * comment ^ -1,
-    switchItems = (V"restrictedItem" - V"switchCase") ^ 1,
+    switchIf = Ct(Cg(V'switchCondition', 'condition') * ws * Cg(Ct(V'switchItems'), 'node')),
+    switchCase = ('-' - divertSign) * sp * V'switchIf',
+    switchCondition = sentenceBefore(':', nl) * sp * ':' * sp * comment ^ -1,
+    switchItems = (V'restrictedItem' - V'switchCase') ^ 1,
 
     -- Multiline sequences
     
-    sequence = Ct((V"sequenceParams" * sp * nl * sp * V"sequenceAlts") * itemType("sequence")),
+    sequence = Ct((V'sequenceParams' * sp * nl * sp * V'sequenceAlts') * itemType('sequence')),
 
     sequenceParams = (
-      V"sequenceShuffleOptional" * sp * V"sequenceType" +
-      V"sequenceShuffle" * sp * V"sequenceType" +
-      V"sequenceShuffle" * sp * V"sequenceTypeOptional"
-    ) * sp * ":" * sp * comment ^ -1,
+      V'sequenceShuffleOptional' * sp * V'sequenceType' +
+      V'sequenceShuffle' * sp * V'sequenceType' +
+      V'sequenceShuffle' * sp * V'sequenceTypeOptional'
+    ) * sp * ':' * sp * comment ^ -1,
 
-    sequenceShuffleOptional = V"sequenceShuffle" + Cg(Cc(false), "shuffle"),
-    sequenceShuffle = Cg(P"shuffle" / function() return true end, "shuffle"),
+    sequenceShuffleOptional = V'sequenceShuffle' + Cg(Cc(false), 'shuffle'),
+    sequenceShuffle = Cg(P'shuffle' / function() return true end, 'shuffle'),
 
-    sequenceTypeOptional = V"sequenceType" + Cg(Cc"cycle", "sequence"),
-    sequenceType = Cg(P"cycle" + "stopping" + "once", "sequence"),
+    sequenceTypeOptional = V'sequenceType' + Cg(Cc'cycle', 'sequence'),
+    sequenceType = Cg(P'cycle' + 'stopping' + 'once', 'sequence'),
 
-    sequenceAlts = Cg(Ct((sp * V"sequenceAlt") ^ 1), "alts"),
-    sequenceAlt = ("-" - divertSign) * ws * Ct(V"sequenceItems"),
-    sequenceItems = (V"restrictedItem" - V"sequenceAlt") ^ 1,
+    sequenceAlts = Cg(Ct((sp * V'sequenceAlt') ^ 1), 'alts'),
+    sequenceAlt = ('-' - divertSign) * ws * Ct(V'sequenceItems'),
+    sequenceItems = (V'restrictedItem' - V'sequenceAlt') ^ 1,
 
     -- Restricted items inside multiline items
 
-    restrictedItem = balancedMultilineItem(true) + V"restrictedSinglelineItem",
-    restrictedSinglelineItem = sp * (V"global" + V"restrictedStatement" + V"restrictedParagraph" - multilineEnd) * ws,
+    restrictedItem = balancedMultilineItem(true) + V'restrictedSinglelineItem',
+    restrictedSinglelineItem = sp * (V'global' + V'restrictedStatement' + V'restrictedParagraph' - multilineEnd) * ws,
 
     restrictedStatement = Ct(
-      V"choice" * itemType("choice") +
-      V"assignment" * itemType("assignment")
+      V'choice' * itemType('choice') +
+      V'assignment' * itemType('assignment')
     ) + comment,
     
     restrictedParagraph = Ct((
-      Cg(V"textComplex", "parts") * sp * V"tagsOptional" +
-      Cg(V"textOptional", "parts") * sp * tags
-    ) * itemType("paragraph"))
+      Cg(V'textComplex', 'parts') * sp * V'tagsOptional' +
+      Cg(V'textOptional', 'parts') * sp * tags
+    ) * itemType('paragraph'))
 
   })
 
@@ -248,8 +248,8 @@ end
 function Constructor.constructModel(items)
   
   local construction = {
-    currentKnot = "_",
-    currentStitch = "_",
+    currentKnot = '_',
+    currentStitch = '_',
   }
 
   construction.model = {
@@ -286,42 +286,42 @@ function Constructor:addNode(items, isRestricted)
       -- b) choices without diverts 
 
       item.level = nil
-      if item.type == "choice" and item.divert == nil then
+      if item.type == 'choice' and item.divert == nil then
         item.type = nil
       end
     end
 
-    if item.type == "include" then
+    if item.type == 'include' then
       -- filename
       Constructor.addInclude(self, item.filename)
-    elseif item.type == "list" then
+    elseif item.type == 'list' then
       -- name, value
       Constructor.addList(self, item.name, item.value)
-    elseif item.type == "constant" then
+    elseif item.type == 'constant' then
       -- name, value
       Constructor.addConstant(self, item.name, item.value)
-    elseif item.type == "variable" then
+    elseif item.type == 'variable' then
       -- name, value
       Constructor.addVariable(self, item.name, item.value)
-    elseif item.type == "knot" then
+    elseif item.type == 'knot' then
       -- knot
       Constructor.addKnot(self, item.knot)
-    elseif item.type == "stitch" then
+    elseif item.type == 'stitch' then
       -- stitch
       Constructor.addStitch(self, item.stitch)
-    elseif item.type == "switch" then
+    elseif item.type == 'switch' then
       -- expression, cases
       Constructor.addSwitch(self, item.expression, item.cases)
-    elseif item.type == "sequence" then
+    elseif item.type == 'sequence' then
       -- sequence, shuffle, alts
       Constructor.addSequence(self, item.sequence, item.shuffle, item.alts)
-    elseif item.type == "assignment" then
+    elseif item.type == 'assignment' then
       -- level, name, value, temp
       Constructor.addAssignment(self, item.level, item.name, item.value, item.temp)
-    elseif item.type == "paragraph" then
+    elseif item.type == 'paragraph' then
       -- level, label, parts, tags
       Constructor.addParagraph(self, item.level, item.label, item.parts, item.tags)
-    elseif item.type == "choice" then
+    elseif item.type == 'choice' then
       -- level, sticky, label, condition, text, divert
       Constructor.addChoice(self, item.level, item.sticky, item.label, item.condition, item.text, item.divert)
     end
@@ -333,10 +333,10 @@ function Constructor:addInclude(filename)
 end
 
 function Constructor:addList(name, value)
-  local items = lume.array(value:gmatch("[%w_%.]+"))
+  local items = lume.array(value:gmatch('[%w_%.]+'))
   self.model.lists[name] = items
 
-  local switched = lume.array(value:gmatch("%b()"))
+  local switched = lume.array(value:gmatch('%b()'))
   switched = lume.map(switched, function(item) return item:sub(2, #item - 1) end)
   self.model.variables[name] = { [name] = { } }
   lume.each(switched, function(item) self.model.variables[name][name][item] = true end)
@@ -352,7 +352,7 @@ end
 
 function Constructor:addKnot(knot)
   self.currentKnot = knot
-  self.currentStitch = "_"
+  self.currentStitch = '_'
 
   local node = { }
   self.model.tree[self.currentKnot] = { [self.currentStitch] = node }
@@ -362,7 +362,7 @@ end
 function Constructor:addStitch(stitch)
   
   -- If a root stitch is empty we need to add a divert to the first stitch in the ink file.
-  if self.currentStitch == "_" then
+  if self.currentStitch == '_' then
     local rootStitchNode = self.model.tree[self.currentKnot]._
     if #rootStitchNode == 0 then
       local divertItem = { divert = stitch }
@@ -381,8 +381,8 @@ function Constructor:addSwitch(expression, cases)
   if expression then
     -- Convert switch cases to comparing conditions with expression
     for _, case in ipairs(cases) do
-      if case.condition ~= "else" then
-        case.condition = expression .. "==" .. case.condition
+      if case.condition ~= 'else' then
+        case.condition = expression .. '==' .. case.condition
       end
     end
   end
@@ -393,7 +393,7 @@ function Constructor:addSwitch(expression, cases)
   }
 
   for _, case in ipairs(cases) do
-    if case.condition == "else" then
+    if case.condition == 'else' then
       local failureNode = { }
       table.insert(self.nodesChain, failureNode)
       Constructor.addNode(self, case.node, true)
@@ -498,13 +498,13 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
       local isNakedDivert = part.divert ~= nil and part.text == nil
 
       if item == nil then
-        item = { text = (isRoot or isNakedDivert) and "" or "<>" }
+        item = { text = (isRoot or isNakedDivert) and '' or '<>' }
       end
 
       if part.text ~= nil then
         item.text = item.text .. part.text
       elseif part.expression ~= nil then
-        item.text = item.text .. "#" .. part.expression .. "#"
+        item.text = item.text .. '#' .. part.expression .. '#'
       end
 
       if part.divert ~= nil then
@@ -518,7 +518,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
         local nextPartIsNakedDivert = nextPart ~= nil and (nextPartIsSeparated and nextPart.divert ~= nil)
   
         if nextPart == nil or (nextPartIsSeparated and not nextPartIsNakedDivert) then
-          item.text = item.text .. (isRoot and "" or "<>")
+          item.text = item.text .. (isRoot and '' or '<>')
           table.insert(items, item)
           item = nil
         end
@@ -531,12 +531,12 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
     
     local firstItem = items[1]
     if firstItem.text == nil and firstItem.divert == nil then
-      table.insert(items, 1, { text = "" } )
+      table.insert(items, 1, { text = '' } )
     end
 
     local lastItem = items[#items]
     if lastItem.text == nil and lastItem.divert == nil then
-      table.insert(items, { text = "" } )
+      table.insert(items, { text = '' } )
     end
   end
 
@@ -554,9 +554,9 @@ function Constructor:addChoice(level, sticky, label, condition, text, divert)
   if text == nil then
     item.choice = 0
   else
-    local part1, divider, part2 = text:match("(.*)%[(.*)%](.*)")
-    item.choice = (part1 or text) .. (divider or "")
-    item.text = (part1 or text) .. (part2 or "")
+    local part1, divider, part2 = text:match('(.*)%[(.*)%](.*)')
+    item.choice = (part1 or text) .. (divider or '')
+    item.text = (part1 or text) .. (part2 or '')
   end
 
   Constructor.addItem(self, level, item)
@@ -605,7 +605,7 @@ function Constructor.clearNode(node)
 
     if item.success ~= nil then
       -- Simplify single condition
-      if type(item.condition) == "table" and #item.condition == 1 then
+      if type(item.condition) == 'table' and #item.condition == 1 then
         item.condition = item.condition[1]
       end
 
@@ -613,7 +613,7 @@ function Constructor.clearNode(node)
       if item.success[1] ~= nil and item.success[1][1] ~= nil then
         for index, successNode in ipairs(item.success) do
           Constructor.clearNode(successNode)
-          if #successNode == 1 and type(successNode[1]) == "string" then
+          if #successNode == 1 and type(successNode[1]) == 'string' then
             item.success[index] = successNode[1]
           end
         end
@@ -623,7 +623,7 @@ function Constructor.clearNode(node)
         end
       else
         Constructor.clearNode(item.success)
-        if #item.success == 1 and type(item.success[1]) == "string" then
+        if #item.success == 1 and type(item.success[1]) == 'string' then
           item.success = item.success[1]
         end   
       end
@@ -631,7 +631,7 @@ function Constructor.clearNode(node)
       -- Clear failure nodes
       if item.failure ~= nil then
         Constructor.clearNode(item.failure)
-        if #item.failure == 1 and type(item.failure[1]) == "string" then
+        if #item.failure == 1 and type(item.failure[1]) == 'string' then
           item.failure = item.failure[1]
         end     
       end
@@ -640,7 +640,7 @@ function Constructor.clearNode(node)
     if item.alts ~= nil then
       for index, altNode in ipairs(item.alts) do
         Constructor.clearNode(altNode)
-        if #altNode == 1 and type(altNode[1]) == "string" then
+        if #altNode == 1 and type(altNode[1]) == 'string' then
           item.alts[index] = altNode[1]
         end
       end

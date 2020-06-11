@@ -1,10 +1,10 @@
 --
 -- Testing with Busted library
 
-require("busted.runner")()
+require('busted.runner')()
 
-local narrator = require("narrator")
-local bot = require("bot")
+local narrator = require('narrator')
+local bot = require('bot')
 
 --- Run a test with parameters
 -- @param inkPath string: a path to the ink file
@@ -26,20 +26,20 @@ end
 --- Run a test case
 -- @param case table: a test case with name and answers
 local function test(case)
-  local inkPath = "test/ink/" .. case.ink .. ".ink"
-  local txtPath = "test/txt/" .. (case.txt or case.ink) .. ".txt"
-  local file = io.open(txtPath, "r")
-  local expected = file:read("*all")
+  local inkPath = 'test/ink/' .. case.ink .. '.ink'
+  local txtPath = 'test/txt/' .. (case.txt or case.ink) .. '.txt'
+  local file = io.open(txtPath, 'r')
+  local expected = file:read('*all')
   file:close()
 
   run(inkPath, case.answers, expected)
 end
 
 -- Iterate and run test cases
-local cases = require("test.cases")
-describe("Test case", function()
+local cases = require('test.cases')
+describe('Test case', function()
   for _, case in ipairs(cases) do
-    it("'" .. case.ink .. "'.", function()
+    it('\'' .. case.ink .. '\'.', function()
       test(case)
     end)
   end

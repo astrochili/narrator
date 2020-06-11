@@ -1,11 +1,11 @@
 --
 -- Dependencies
 
-local lume = require("lume")
-local Object = require("classic")
+local lume = require('lume')
+local Object = require('classic')
 
-local libPath = (...):match("(.-).[^%.]+$")
-local enums = require(libPath .. ".enums")
+local libPath = (...):match('(.-).[^%.]+$')
+local enums = require(libPath .. '.enums')
 
 --
 -- Story
@@ -18,7 +18,7 @@ function Story:new(model)
   self.variables = model.variables
   self.lists = model.lists
   
-  self.listMT = require(libPath .. ".list.mt")
+  self.listMT = require(libPath .. '.list.mt')
   self.listMT.lists = self.lists
 
   self.version = model.constants.tree or 0
@@ -78,10 +78,10 @@ end
 function Story:choose(index)
   if self:canContinue() then return nil end
   local choiceIsAvailable = index > 0 and index <= #self.choices
-  assert(choiceIsAvailable, "Choice index " .. index .. " out of bounds 1-" .. #self.choices)
+  assert(choiceIsAvailable, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
 
   local choice = self.choices[index]
-  assert(choice, "Choice index " .. index .. " out of bounds 1-" .. #self.choices)
+  assert(choice, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
   
   self.paragraphs = { }
   self.choices = { }
@@ -100,16 +100,16 @@ end
 function Story:itemsFor(knot, stitch)
   local rootNode = self.tree
   local knotNode = knot == nil and rootNode._ or rootNode[knot]
-  assert(knotNode or lume.isarray(rootNode), "The knot '" .. (knot or "_") .. "' not found")
+  assert(knotNode or lume.isarray(rootNode), 'The knot \'' .. (knot or '_') .. '\' not found')
   local stitchNode = stitch == nil and knotNode._ or knotNode[stitch]
-  assert(stitchNode or lume.isarray(knotNode), "The stitch '" .. (knot or "_") .. "." .. (stitch or "_") .. "' not found")
+  assert(stitchNode or lume.isarray(knotNode), 'The stitch \'' .. (knot or '_') .. '.' .. (stitch or '_') .. '\' not found')
   return stitchNode or knotNode or rootNode
 end
 
 function Story:readDivert(divert)
-  assert(divert, "The reading divert can't be nil")
+  assert(divert, 'The reading divert can\'t be nil')
 
-  if divert == "END" or divert == "DONE" then
+  if divert == 'END' or divert == 'DONE' then
     self.isOver = true
     return
   end
@@ -144,23 +144,23 @@ function Story:pathChainForLabel(path)
         end
 
       elseif item.success ~= nil then
-        if type(item.success) == "table" then
+        if type(item.success) == 'table' then
           local isSwitch = item.success[1] ~= nil and item.success[1][1] ~= nil
           local cases = isSwitch and item.success or { item.success }
           for caseIndex, case in ipairs(cases) do
             local result = findLabelChainInItems(case)
             if result ~= nil then
-              table.insert(result, 0, "t" .. caseIndex)
+              table.insert(result, 0, 't' .. caseIndex)
               table.insert(result, 0, index)
               return result
             end
           end
         end
 
-        if type(item.failure) == "table" then
+        if type(item.failure) == 'table' then
           local result = findLabelChainInItems(item.failure)
           if result ~= nil then
-            table.insert(result, 0, "f")
+            table.insert(result, 0, 'f')
             table.insert(result, 0, index)
             return result
           end
@@ -176,7 +176,7 @@ function Story:pathChainForLabel(path)
 end
 
 function Story:readPath(path)
-  assert(path, "The reading path can't be nil")
+  assert(path, 'The reading path can\'t be nil')
 
   if self.isOver then
     return
@@ -189,8 +189,8 @@ function Story:readPath(path)
 end
 
 function Story:readItems(items, path, depth, mode)
-  assert(items, "Items can't be nil")
-  assert(path, "Path can't be nil")
+  assert(items, 'Items can\'t be nil')
+  assert(path, 'Path can\'t be nil')
 
   local chain = path.chain or { }
   local depth = depth or 0
@@ -207,7 +207,7 @@ function Story:readItems(items, path, depth, mode)
     local deepPath = lume.clone(path)
     deepPath.chain = deepChain
     if labelPrefix then
-      deepPath.label = labelPrefix .. table.concat(deepChain, ".")
+      deepPath.label = labelPrefix .. table.concat(deepChain, '.')
     end
     return deepPath
   end
@@ -219,7 +219,7 @@ function Story:readItems(items, path, depth, mode)
     local skip = false
 
     local itemType = enums.item.text
-    if type(item) == "table" then
+    if type(item) == 'table' then
       if item.choice ~= nil then itemType = enums.item.choice
       elseif item.success ~= nil then itemType = enums.item.condition
       elseif item.var ~= nil then itemType = enums.item.variable
@@ -237,7 +237,7 @@ function Story:readItems(items, path, depth, mode)
       elseif itemType == enums.item.condition then
         -- Go deep to the condition node
         local chainValue = chain[depth + 2]
-        local isSuccess = chainValue:sub(1, 1) == "t"
+        local isSuccess = chainValue:sub(1, 1) == 't'
 
         local node
         if isSuccess then
@@ -269,35 +269,35 @@ function Story:readItems(items, path, depth, mode)
       -- skip
     elseif itemType == enums.item.text then
       mode = enums.readMode.text
-      local safeItem = type(item) == "string" and { text = item } or item
+      local safeItem = type(item) == 'string' and { text = item } or item
       mode = self:readText(safeItem) or mode
     elseif itemType == enums.item.alts then
       mode = enums.readMode.text
-      local deepPath = makeDeepPath({ index }, "~")
+      local deepPath = makeDeepPath({ index }, '~')
       mode = self:readAlts(item, deepPath, depth + 1, mode) or mode
     elseif itemType == enums.item.choice and self:checkCondition(item.condition) then
       mode = enums.readMode.choices
-      local deepPath = makeDeepPath({ index }, ">")
+      local deepPath = makeDeepPath({ index }, '>')
       deepPath.label = item.label or deepPath.label
       mode = self:readChoice(item, deepPath) or mode
-      if index == #items and type(chain[#chain]) == "number" then
+      if index == #items and type(chain[#chain]) == 'number' then
         mode = enums.readMode.quit
       end
     elseif itemType == enums.item.condition then
       local result, chainValue
-      if type(item.condition) == "string" then  
+      if type(item.condition) == 'string' then  
         local success = self:checkCondition(item.condition)
         result = success and item.success or (item.failure or { })
-        chainValue = success and "t" or "f"
-      elseif type(item.condition) == "table" then
+        chainValue = success and 't' or 'f'
+      elseif type(item.condition) == 'table' then
         local success = self:checkSwitch(item.condition)
         result = success > 0 and item.success[success] or (item.failure or { })
-        chainValue = success > 0 and ("t" .. success) or "f"
+        chainValue = success > 0 and ('t' .. success) or 'f'
       end
-      if type(result) == "string" then
+      if type(result) == 'string' then
         mode = enums.readMode.text
         mode = self:readText({ text = result }) or mode
-      elseif type(result) == "table" then
+      elseif type(result) == 'table' then
         local deepPath = makeDeepPath({ index, chainValue })
         mode = self:readItems(result, deepPath, depth + 2, mode) or mode
       end
@@ -325,7 +325,7 @@ function Story:readItems(items, path, depth, mode)
         table.remove(self.paragraphs, index)
       else
         -- Remove <> tail from unexpectedly broken paragraphs
-        paragraph.text = paragraph.text:match("(.-)%s*<>$") or paragraph.text
+        paragraph.text = paragraph.text:match('(.-)%s*<>$') or paragraph.text
       end
     end
   end
@@ -335,12 +335,12 @@ end
 
 function Story:readText(item)
   local text = item.text
-  local tags = type(item.tags) == "string" and { item.tags } or item.tags
+  local tags = type(item.tags) == 'string' and { item.tags } or item.tags
 
   if text ~= nil or tags ~= nil then
-    local paragraph = { text = text or "<>", tags = tags }
-    local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == "<>" 
-    local gluedByThis = text ~= nil and text:sub(1, 2) == "<>"
+    local paragraph = { text = text or '<>', tags = tags }
+    local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == '<>' 
+    local gluedByThis = text ~= nil and text:sub(1, 2) == '<>'
     
     paragraph.text = self:replaceExpressions(paragraph.text)
 
@@ -372,11 +372,11 @@ function Story:readText(item)
 end
 
 function Story:readAlts(item, path, depth, mode)
-  assert(item.alts, "Alternatives can't be nil")
+  assert(item.alts, 'Alternatives can\'t be nil')
   local alts = lume.clone(item.alts)
 
   local sequence = item.sequence or enums.sequence.stopping
-  if type(sequence) == "string" then
+  if type(sequence) == 'string' then
     sequence = enums.sequence[item.sequence] or sequence
   end
 
@@ -385,7 +385,7 @@ function Story:readAlts(item, path, depth, mode)
   local index = 0
 
   if item.shuffle then
-    local seedKey = (path.knot or "_") .. "." .. (path.stitch or "_") .. ":" .. path.label
+    local seedKey = (path.knot or '_') .. '.' .. (path.stitch or '_') .. ':' .. path.label
     local seed = visits % #alts == 1 and os.time() or self.seeds[seedKey]
     self.seeds[seedKey] = seed
 
@@ -408,7 +408,7 @@ function Story:readAlts(item, path, depth, mode)
   end
 
   local alt = index <= #alts and alts[index] or { }
-  local items = type(alt) == "string" and { alt } or alt
+  local items = type(alt) == 'string' and { alt } or alt
   return self:readItems(items, path, depth, mode)
 end
 
@@ -428,7 +428,7 @@ function Story:readChoice(item, path)
   end
 
   local title = self:replaceExpressions(item.choice)
-  title = title:match("(.-)%s*<>$") or title
+  title = title:match('(.-)%s*<>$') or title
 
   local choice = {
     title = title,
@@ -446,16 +446,16 @@ end
 -- Expressions
 
 function Story:replaceExpressions(text)
-  return text:gsub("%b##", function(match)
+  return text:gsub('%b##', function(match)
     if #match == 2 then
-      return "#"
+      return '#'
     else
       local result = self:doExpression(match:sub(2, #match - 1))
-      if type(result) == "table" then
+      if type(result) == 'table' then
         result = self.listMT.__tostring(result)
       end
-      if type(result) == "boolean" then result = result and 1 or 0 end
-      if result == nil then result = "" end
+      if type(result) == 'boolean' then result = result and 1 or 0 end
+      if result == nil then result = '' end
       return result
     end
   end)
@@ -477,22 +477,22 @@ function Story:checkCondition(condition)
 end
 
 function Story:doExpression(expression)
-  assert(type(expression) == "string", "Expression must be a string")
+  assert(type(expression) == 'string', 'Expression must be a string')
 
-  local code = ""
+  local code = ''
   local lists = { }
   
-  expression = expression:gsub("!=", "~=")
-  expression = expression:gsub("%s*||%s*", " or ")  
-  expression = expression:gsub("%s*%&%&%s*", " and ")
-  expression = expression:gsub("%s*has%s*", " ? ")
-  expression = expression:gsub("%s*hasnt%s*", " !? ")
+  expression = expression:gsub('!=', '~=')
+  expression = expression:gsub('%s*||%s*', ' or ')  
+  expression = expression:gsub('%s*%&%&%s*', ' and ')
+  expression = expression:gsub('%s*has%s*', ' ? ')
+  expression = expression:gsub('%s*hasnt%s*', ' !? ')
   
   -- Check for functions
-  expression = expression:gsub("[%a_][%w_]*%(.*%)", function(match)
-    local functionName = match:match("([%a_][%w_]*)%(")
-    local paramsString = match:match("[%a_][%w_]*%((.+)%)")
-    local params = paramsString ~= nil and lume.map(lume.split(paramsString, ","), lume.trim) or nil
+  expression = expression:gsub('[%a_][%w_]*%(.*%)', function(match)
+    local functionName = match:match('([%a_][%w_]*)%(')
+    local paramsString = match:match('[%a_][%w_]*%((.+)%)')
+    local params = paramsString ~= nil and lume.map(lume.split(paramsString, ','), lume.trim) or nil
 
     for index, param in ipairs(params or { }) do
       params[index] = self:doExpression(param)
@@ -501,44 +501,44 @@ function Story:doExpression(expression)
     local func = self.functions[functionName]
     if func ~= nil then
       local value = func((table.unpack or unpack)(params or { }))
-      if type(value) == "table" then
+      if type(value) == 'table' then
         lists[#lists + 1] = value
-        return "__list" .. #lists
+        return '__list' .. #lists
       else
         return lume.serialize(value)
       end
-    elseif self.lists[functionName] ~= nil and type(params[1]) == "number" then
+    elseif self.lists[functionName] ~= nil and type(params[1]) == 'number' then
       local item = self.lists[functionName][params[1]]
       if item ~= nil then
         lists[#lists + 1] = { [functionName] = { [item] = true } }
-        return "__list" .. #lists
+        return '__list' .. #lists
       end  
     end
     
-    return "nil"
+    return 'nil'
   end)
 
   -- Check for lists
-  expression = expression:gsub("%(([%s%w%.,_]*)%)", function(match)
+  expression = expression:gsub('%(([%s%w%.,_]*)%)', function(match)
     local list = self:makeListFor(match)
     if list ~= nil then
       lists[#lists + 1] = list
-      return "__list" .. #lists
+      return '__list' .. #lists
     else
-      return "nil"
+      return 'nil'
     end
   end)
 
   -- Check for variables
-  expression = expression:gsub("[[\"\'%a_][%w_%.\"\']*", function(match)
-    local exceptions = { "and", "or", "true", "false", "nil"}
-    if lume.find(exceptions, match) or match:match("[\"\'].*[\"\']") or match:match("__list%d*") then
+  expression = expression:gsub('[[\"\'%a_][%w_%.\"\']*', function(match)
+    local exceptions = { 'and', 'or', 'true', 'false', 'nil'}
+    if lume.find(exceptions, match) or match:match('[\"\'].*[\"\']') or match:match('__list%d*') then
       return match
     else
       local value = self:getValueFor(match)
-      if type(value) == "table" then
+      if type(value) == 'table' then
         lists[#lists + 1] = value
-        return "__list" .. #lists
+        return '__list' .. #lists
       else
         return lume.serialize(value)
       end
@@ -546,27 +546,27 @@ function Story:doExpression(expression)
   end)
 
   -- Check for match operation
-  expression = expression:gsub("[\"\'%a_][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a_][%w_%.\"\']*", function(match)
-    local lhs, operator, rhs = match:match("([\"\'%a_][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a_][%w_%.\"\']*)")
-    if lhs:match("__list%d*") then
-      return lhs .. " % " .. rhs .. (operator == "!?" and " == false" or " == true")
+  expression = expression:gsub('[\"\'%a_][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a_][%w_%.\"\']*', function(match)
+    local lhs, operator, rhs = match:match('([\"\'%a_][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a_][%w_%.\"\']*)')
+    if lhs:match('__list%d*') then
+      return lhs .. ' % ' .. rhs .. (operator == '!?' and ' == false' or ' == true')
     else
-      return lhs .. ":match(" .. rhs .. ")" .. (operator == "!?" and " == nil" or " ~= nil")
+      return lhs .. ':match(' .. rhs .. ')' .. (operator == '!?' and ' == nil' or ' ~= nil')
     end
   end)
 
   -- Attach the metatable to list tables
   if #lists > 0 then
-    code = code .. "local mt = require('" .. libPath .. ".list.mt')\n"
-    code = code .. "mt.lists = " .. lume.serialize(self.lists) .. "\n\n"
+    code = code .. 'local mt = require(\'' .. libPath .. '.list.mt\')\n'
+    code = code .. 'mt.lists = ' .. lume.serialize(self.lists) .. '\n\n'
     for index, list in pairs(lists) do
-      local name = "__list" .. index
-      code = code .. "local " .. name .. " = " .. lume.serialize(list) .. "\n"
-      code = code .. "setmetatable(" .. name .. ", mt)\n\n"
+      local name = '__list' .. index
+      code = code .. 'local ' .. name .. ' = ' .. lume.serialize(list) .. '\n'
+      code = code .. 'setmetatable(' .. name .. ', mt)\n\n'
     end
   end
   
-  code = code .. "return " .. expression
+  code = code .. 'return ' .. expression
   return lume.dostring(code)
 end
 
@@ -606,7 +606,7 @@ end
 
 function Story:makeListFor(expression)
   local result = { }
-  local items = lume.array(expression:gmatch("[%w_%.]+"))
+  local items = lume.array(expression:gmatch('[%w_%.]+'))
   
   for _, item in ipairs(items) do
     local listName, itemName = self:getListNameFor(item)
@@ -620,7 +620,7 @@ function Story:makeListFor(expression)
 end
 
 function Story:getListNameFor(name)
-  local listName, itemName = name:match("([%w_]+)%.([%w_]+)")
+  local listName, itemName = name:match('([%w_]+)%.([%w_]+)')
   itemName = itemName or name
 
   if listName == nil then
@@ -647,20 +647,20 @@ function Story:visit(path)
 
   if pathIsChanged then
     if self.currentPath == nil or path.knot ~= self.currentPath.knot then
-      local knot = path.knot or "_"
+      local knot = path.knot or '_'
       local visits = self.visits[knot] or { _root = 0 }
       visits._root = visits._root + 1
       self.visits[knot] = visits
     end
   
-    local knot, stitch = path.knot or "_", path.stitch or "_"
+    local knot, stitch = path.knot or '_', path.stitch or '_'
     local visits = self.visits[knot][stitch] or { _root = 0 }
     visits._root = visits._root + 1
     self.visits[knot][stitch] = visits
   end
 
   if path.label ~= nil then
-    local knot, stitch, label = path.knot or "_", path.stitch or "_", path.label
+    local knot, stitch, label = path.knot or '_', path.stitch or '_', path.label
     self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } } 
     self.visits[knot][stitch] = self.visits[knot][stitch] or { _root = 1 }
     local visits = self.visits[knot][stitch][label] or 0
@@ -675,7 +675,7 @@ end
 
 function Story:visitsFor(path)
   if path == nil then return 0 end
-  local knot, stitch, label = path.knot or "_", path.stitch or "_", path.label
+  local knot, stitch, label = path.knot or '_', path.stitch or '_', path.label
 
   local knotVisits = self.visits[knot]
   if knotVisits == nil then return 0
@@ -690,9 +690,9 @@ function Story:visitsFor(path)
 end
 
 function Story:pathFromString(pathString, context)
-  local part1, part2, part3 = pathString:match("([%w_]+)%.([%w_]+)%.([%w_]+)")
+  local part1, part2, part3 = pathString:match('([%w_]+)%.([%w_]+)%.([%w_]+)')
   if part1 == nil then
-    part1, part2 = pathString:match("([%w_]+)%.([%w_]+)")
+    part1, part2 = pathString:match('([%w_]+)%.([%w_]+)')
     part1 = part1 or pathString
   end
 
@@ -701,7 +701,7 @@ function Story:pathFromString(pathString, context)
   end
 
   local path = { knot = context.knot, stitch = context.stitch }
-  local rootNode = self.tree[path.knot or "_"]
+  local rootNode = self.tree[path.knot or '_']
   local knotNode = part1 ~= nil and self.tree[part1] or nil
 
   if part2 ~= nil then
@@ -735,8 +735,8 @@ function Story:tagsFor(knot, stitch)
   local tags = { }
 
   for _, item in ipairs(items) do
-    if type(item) == "table" and lume.count(item) > 1 or item.tags == nil then break end
-    local itemTags = type(item.tags) == "string" and { item.tags } or item.tags
+    if type(item) == 'table' and lume.count(item) > 1 or item.tags == nil then break end
+    local itemTags = type(item.tags) == 'string' and { item.tags } or item.tags
     tags = lume.concat(tags, itemTags)
   end
 

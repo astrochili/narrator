@@ -1,22 +1,22 @@
 --
 -- Dependencies
 
-local lume = require("lume")
+local lume = require('lume')
 
-local libPath = (...):gsub(".init$", "")
-local enums = require(libPath .. ".enums")
-local parser = require(libPath .. ".parser")
-local Story = require(libPath .. ".story")
+local libPath = (...):gsub('.init$', '')
+local enums = require(libPath .. '.enums')
+local parser = require(libPath .. '.parser')
+local Story = require(libPath .. '.story')
 
 --
 -- Private
 
 local function clearPath(path)
-  local path = path:gsub(".lua$", "")
-  local path = path:gsub(".ink$", "")
+  local path = path:gsub('.lua$', '')
+  local path = path:gsub('.ink$', '')
 
-  if path:match("%.") and not path:match("/") then
-    path = path:gsub("%.", "/")
+  if path:match('%.') and not path:match('/') then
+    path = path:gsub('%.', '/')
   end
 
   return path
@@ -26,8 +26,8 @@ local function merge(parent, childPath, maker)
   local child = maker(childPath)
 
   if child.version.engine and child.version.engine ~= enums.engineVersion then
-    assert("Vesrion of model '" .. childPath .. "' (" .. child.version.engine ..")"
-    .. " isn't equal to version of Narrator (" .. enums.engineVersion .. ").")
+    assert('Vesrion of model \'' .. childPath .. '\' (' .. child.version.engine .. ')'
+    .. ' isn\'t equal to version of Narrator (' .. enums.engineVersion .. ').')
   end
 
   for _, include in ipairs(child.includes or { }) do
@@ -44,26 +44,26 @@ local function merge(parent, childPath, maker)
 end
 
 local function parseModel(path, save)
-  local inkPath = path .. ".ink"
-  local luaPath = path .. ".lua"
+  local inkPath = path .. '.ink'
+  local luaPath = path .. '.lua'
 
-  local file = io.open(inkPath, "r")
-  assert(file, "File doesn't exist: " .. inkPath)
+  local file = io.open(inkPath, 'r')
+  assert(file, 'File doesn\'t exist: ' .. inkPath)
 
-  local content = file:read("*all")
+  local content = file:read('*all')
   file:close()
 
   local model = parser.parse(content)
 
   if save then
     local data = lume.serialize(model)
-    data = data:gsub("%[%d+%]=", "")
-    data = data:gsub("[\"[%w_]+\"]", function(match) return
+    data = data:gsub('%[%d+%]=', '')
+    data = data:gsub('[\"[%w_]+\"]', function(match) return
       match:sub(3, #match - 2)
     end)
     
-    local file = io.open(luaPath, "w")
-    file:write("return " .. data)
+    local file = io.open(luaPath, 'w')
+    file:write('return ' .. data)
     file:close()
   end
 

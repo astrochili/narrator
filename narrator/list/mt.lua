@@ -1,7 +1,7 @@
 --
 -- Dependencies
 
-local lume = require("lume")
+local lume = require('lume')
 
 --
 -- Metatable
@@ -29,35 +29,35 @@ function mt.__tostring(self)
     end
   end
 
-  return table.concat(items, ", ")
+  return table.concat(items, ', ')
 end
 
 --
 -- Operators
 
 function mt.__add(lhs, rhs) -- +
-  if type(rhs) == "table" then
+  if type(rhs) == 'table' then
     return mt.__addList(lhs, rhs)
-  elseif type(rhs) == "number" then
+  elseif type(rhs) == 'number' then
     return mt.__shiftByNumber(lhs, rhs)
   else
-    error("Attempt to sum the list with " .. type(rhs))
+    error('Attempt to sum the list with ' .. type(rhs))
   end
 end
 
 function mt.__sub(lhs, rhs) -- -
-  if type(rhs) == "table" then
+  if type(rhs) == 'table' then
     return mt.__subList(lhs, rhs)
-  elseif type(rhs) == "number" then
+  elseif type(rhs) == 'number' then
     return mt.__shiftByNumber(lhs, -rhs)
   else
-    error("Attempt to sub the list with " .. type(rhs))
+    error('Attempt to sub the list with ' .. type(rhs))
   end
 end
 
 function mt.__mod(lhs, rhs) -- % (contain)
-  if type(rhs) ~= "table" then
-    error("Attempt to check content of the list for " .. type(rhs))
+  if type(rhs) ~= 'table' then
+    error('Attempt to check content of the list for ' .. type(rhs))
   end
 
   for listName, listItems in pairs(rhs) do
@@ -71,8 +71,8 @@ function mt.__mod(lhs, rhs) -- % (contain)
 end
 
 function mt.__pow(lhs, rhs) -- ^ (intersection)
-  if type(rhs) ~= "table" then
-    error("Attempt to interselect the list with " .. type(rhs))
+  if type(rhs) ~= 'table' then
+    error('Attempt to interselect the list with ' .. type(rhs))
   end
 
   local intersection = { }
@@ -104,8 +104,8 @@ function mt.__len(self) -- #
 end
 
 function mt.__eq(lhs, rhs) -- ==
-  if type(rhs) ~= "table" then
-    error("Attempt to compare the list with " .. type(rhs))
+  if type(rhs) ~= 'table' then
+    error('Attempt to compare the list with ' .. type(rhs))
   end
 
   for listName, listItems in pairs(lhs) do
@@ -116,8 +116,8 @@ function mt.__eq(lhs, rhs) -- ==
 end
 
 function mt.__lt(lhs, rhs) -- <
-  if type(rhs) ~= "table" then
-    error("Attempt to compare the list with " .. type(rhs))
+  if type(rhs) ~= 'table' then
+    error('Attempt to compare the list with ' .. type(rhs))
   end
 
   -- LEFT < RIGHT means "the smallest value in LEFT is bigger than the largest values in RIGHT"
@@ -129,8 +129,8 @@ function mt.__lt(lhs, rhs) -- <
 end
 
 function mt.__le(lhs, rhs) -- <=
-  if type(rhs) ~= "table" then
-    error("Attempt to compare the list with " .. type(rhs))
+  if type(rhs) ~= 'table' then
+    error('Attempt to compare the list with ' .. type(rhs))
   end
 
   -- LEFT <= RIGHT means "the smallest value in RIGHT is at least the smallest value in LEFT,

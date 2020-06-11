@@ -21,9 +21,9 @@ function Bot.play(story, instructor, silent)
   while story:canContinue() or story:canChoose() do
     local paragraphs = story:continue()
     for _, paragraph in ipairs(paragraphs) do
-      local text = paragraph.text or ""
+      local text = paragraph.text or ''
       if paragraph.tags then
-        text = text .. " #" .. table.concat(paragraph.tags, " #")
+        text = text .. ' #' .. table.concat(paragraph.tags, ' #')
       end
       output(text)
     end
@@ -32,19 +32,19 @@ function Bot.play(story, instructor, silent)
 
     local choices = story:getChoices()
     local answer = instructor(choices)
-    output("")
+    output('')
 
     for i, choice in ipairs(choices) do
-      local prefix = (i == answer and ">" or i) .. ") "
+      local prefix = (i == answer and '>' or i) .. ') '
       local text = prefix .. choice.title
       output(text)
     end
-    output("")
+    output('')
   
     story:choose(answer)
   end
 
-  return table.concat(book, "\n")
+  return table.concat(book, '\n')
 end
 
 return Bot

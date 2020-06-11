@@ -3,14 +3,14 @@
 -- Local Lua Debugger by Tom Blind (https://github.com/tomblind/local-lua-debugger-vscode)
 
 -- Environment
-package.path = _VERSION == "Lua 5.3" and package.path or "./?/init.lua;" .. package.path
+package.path = _VERSION == 'Lua 5.3' and package.path or './?/init.lua;' .. package.path
 
 -- Dependencies
-local narrator = require("narrator")
-local bot = require("bot")
+local narrator = require('narrator')
+local bot = require('bot')
 
 -- Loading
-local story = narrator.parseStory("stories.debug")
+local story = narrator.parseStory('stories.debug')
 local answers = { 1, 1, 1, 1, 1 }
 
 -- Choice instructor for a bot
@@ -24,6 +24,6 @@ local function instructor(choices)
 end
 
 -- Game
-print("--- Game started ---\n")
+print('--- Game started ---\n')
 bot.play(story, instructor)
-print("\n--- Game over ---")
+print('\n--- Game over ---')
