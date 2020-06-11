@@ -15,12 +15,12 @@ local answers = { 1, 1, 1, 1, 1 }
 
 -- Choice instructor for a bot
 local function instructor(choices)
-    local answer = table.remove(answers, 1)
-    if answer == nil then
-        math.randomseed(os.clock() * 100000000000)
-        answer = math.random(1, #choices)
-    end
-    return answer
+  local answer = table.remove(answers, 1)
+  if answer == nil then
+    math.randomseed(os.clock() * 100000000000)
+    answer = math.random(1, #choices)
+  end
+  return answer
 end
 
 -- Game

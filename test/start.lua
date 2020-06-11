@@ -11,36 +11,36 @@ local bot = require("bot")
 -- @param answers table: an array of bot answers (numbers)
 -- @param expected string: an expected output of the game
 local function run(inkPath, answers, expected)
-    local story = narrator.parseStory(inkPath)
-    
-    local function instructor()
-        local answer = table.remove(answers, 1)
-        assert.truthy(answer)
-        return answer
-    end
+  local story = narrator.parseStory(inkPath)
+  
+  local function instructor()
+    local answer = table.remove(answers, 1)
+    assert.truthy(answer)
+    return answer
+  end
 
-    local book = bot.play(story, instructor, true)
-    assert.are.same(expected, book)
+  local book = bot.play(story, instructor, true)
+  assert.are.same(expected, book)
 end
 
 --- Run a test case
 -- @param case table: a test case with name and answers
 local function test(case)
-    local inkPath = "test/ink/" .. case.ink .. ".ink"
-    local txtPath = "test/txt/" .. (case.txt or case.ink) .. ".txt"
-    local file = io.open(txtPath, "r")
-    local expected = file:read("*all")
-    file:close()
+  local inkPath = "test/ink/" .. case.ink .. ".ink"
+  local txtPath = "test/txt/" .. (case.txt or case.ink) .. ".txt"
+  local file = io.open(txtPath, "r")
+  local expected = file:read("*all")
+  file:close()
 
-    run(inkPath, case.answers, expected)
+  run(inkPath, case.answers, expected)
 end
 
 -- Iterate and run test cases
 local cases = require("test.cases")
 describe("Test case", function()
-    for _, case in ipairs(cases) do
-        it("'" .. case.ink .. "'.", function()
-            test(case)
-        end)
-    end
+  for _, case in ipairs(cases) do
+    it("'" .. case.ink .. "'.", function()
+      test(case)
+    end)
+  end
 end)

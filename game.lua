@@ -23,38 +23,38 @@ story:begin()
 print("--- Game started ---\n")
 
 while story:canContinue() do
-    
-    -- Get current paragraphs to output
-    local paragraphs = story:continue()
+  
+  -- Get current paragraphs to output
+  local paragraphs = story:continue()
 
-    for _, paragraph in ipairs(paragraphs) do
-        local text = paragraph.text
+  for _, paragraph in ipairs(paragraphs) do
+    local text = paragraph.text
 
-        -- You can handle tags as you like, but we attach them to text here.
-        if paragraph.tags then
-            text = text .. " #" .. table.concat(paragraph.tags, " #")
-        end
-
-        -- Output text to the player
-        print(text)
+    -- You can handle tags as you like, but we attach them to text here.
+    if paragraph.tags then
+      text = text .. " #" .. table.concat(paragraph.tags, " #")
     end
 
-    -- If there is no choice, it seems the game is over
-    if not story:canChoose() then break end
-    print("")
-    
-    -- Get available choices and output them to the player
-    local choices = story:getChoices()
-    for i, choice in ipairs(choices) do
-        print(i .. ") " .. choice.title)
-    end
+    -- Output text to the player
+    print(text)
+  end
 
-    -- Read the choice from the player input
-    answer = tonumber(io.read())
-    print("")
+  -- If there is no choice, it seems the game is over
+  if not story:canChoose() then break end
+  print("")
+  
+  -- Get available choices and output them to the player
+  local choices = story:getChoices()
+  for i, choice in ipairs(choices) do
+    print(i .. ") " .. choice.title)
+  end
 
-    -- Send answer to the story to generate new paragraphs
-    story:choose(answer)
+  -- Read the choice from the player input
+  answer = tonumber(io.read())
+  print("")
+
+  -- Send answer to the story to generate new paragraphs
+  story:choose(answer)
 end
 
 print("\n--- Game over ---")
