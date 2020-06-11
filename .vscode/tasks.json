@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Test with Busted",
+            "label": "Busted",
             "command": "busted",
             "args": [
                 "${workspaceFolder}/test/start.lua"
