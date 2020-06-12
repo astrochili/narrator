@@ -15,7 +15,7 @@ The [Ink](https://www.inklestudios.com/ink/) language parser and runtime impleme
 local narrator = require('narrator')
 
 -- Parse and load an ink story
-local story = narrator.parseStory('stories.game', { save = false })
+local story = narrator.parseStory('stories.game', { save = true })
 
 -- Or load an already parsed and stored story
 -- local story = narrator.loadStory('stories.game')
@@ -68,16 +68,16 @@ end
 
 Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/).
 ```
-luarocks install lpeg
+$ luarocks install lpeg
 ```
 
 Runtime uses [lume](https://github.com/rxi/lume/) and [classic](https://github.com/rxi/classic).
 ```
-luarocks install lume
-luarocks install classic
+$ luarocks install lume
+$ luarocks install classic
 ```
 
 Tests use [busted](https://github.com/Olivine-Labs/busted).
 ```
-luarocks install busted
+$ luarocks install busted
 ```
