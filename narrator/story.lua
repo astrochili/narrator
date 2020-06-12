@@ -1,11 +1,10 @@
 --
 -- Dependencies
 
-local lume = require('lume')
-local Object = require('classic')
-
 local libPath = (...):match('(.-).[^%.]+$')
 local enums = require(libPath .. '.enums')
+local lume = require(libPath .. '.libs.lume')
+local Object = require(libPath .. '.libs.classic')
 
 --
 -- Story

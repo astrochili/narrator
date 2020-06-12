@@ -1,10 +1,10 @@
 --
 -- Dependencies
 
-local lpeg = require('lpeg')
-local lume = require('lume')
-
 local libPath = (...):match('(.-).[^%.]+$')
+
+local lpeg = require('lpeg')
+local lume = require(libPath .. '.libs.lume')
 local enums = require(libPath .. '.enums')
 
 --
