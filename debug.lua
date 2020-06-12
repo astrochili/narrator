@@ -10,7 +10,11 @@ local narrator = require('narrator')
 local bot = require('bot')
 
 -- Loading
-local story = narrator.parseStory('stories.debug')
+-- local book = narrator.parseFile('stories.debug', { save = true })
+-- local book = narrator.parseBook('Hello world!', { '=== one === \n text 1', '=== two === \n text 2' })
+local book = require('stories.debug')
+
+local story = narrator.initStory(book)
 local answers = { 1, 1, 1, 1, 1 }
 
 -- Choice instructor for a bot

@@ -16,11 +16,12 @@ The [Ink](https://www.inklestudios.com/ink/) language parser and runtime impleme
 -- Dependencies
 local narrator = require('narrator')
 
--- Parse and load an ink story
-local story = narrator.parseStory('stories.game', { save = true })
+-- Parse a book from the Ink file.
+-- You can save a book anywhere to load it in the future, the book is just a Lua table.
+local book = narrator.parseFile('stories.game', { save = false })
 
--- Or load an already parsed and stored story
--- local story = narrator.loadStory('stories.game')
+-- Init the story from a book
+local story = narrator.initStory(book)
 
 -- Bind local function to observe the ink variable 'x'
 story:observe('x', function(x) print('The x did change! Now it\'s ' .. x) end)

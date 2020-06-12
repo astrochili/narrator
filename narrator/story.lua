@@ -12,16 +12,16 @@ local enums = require(libPath .. '.enums')
 
 local Story = Object:extend()
 
-function Story:new(model)
-  self.tree = model.tree
-  self.constants = model.constants
-  self.variables = model.variables
-  self.lists = model.lists
+function Story:new(book)
+  self.tree = book.tree
+  self.constants = book.constants
+  self.variables = book.variables
+  self.lists = book.lists
   
   self.listMT = require(libPath .. '.list.mt')
   self.listMT.lists = self.lists
 
-  self.version = model.constants.tree or 0
+  self.version = book.constants.tree or 0
   self.migrate = function(state, oldVersion, newVersion) return state end
 
   self.functions = self:inkFunctions()

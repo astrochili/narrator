@@ -11,6 +11,9 @@ local Story = require(libPath .. '.story')
 --
 -- Private
 
+--- Clears path from '.lua' and '.ink' extensions and replace '.' to '/' or '\'
+-- @param path string: path to clear
+-- @return string: a clean path
 local function clearPath(path)
   local path = path:gsub('.lua$', '')
   local path = path:gsub('.ink$', '')
@@ -23,62 +26,65 @@ local function clearPath(path)
   return path
 end
 
-local function merge(parent, childPath, maker)
-  local child = maker(childPath)
+--- Parse an Ink file to a string content
+-- @param path string: path to an Ink file
+-- @return string: a content string
+local function readFile(path)
+  local path = clearPath(path) .. '.ink'
 
-  if child.version.engine and child.version.engine ~= enums.engineVersion then
-    assert('Vesrion of model \'' .. childPath .. '\' (' .. child.version.engine .. ')'
-    .. ' isn\'t equal to version of Narrator (' .. enums.engineVersion .. ').')
-  end
-
-  for _, include in ipairs(child.includes or { }) do
-    local includePath = childPath:match('(.-)[^%./]+$') .. clearPath(include)
-    child = merge(child, includePath, maker)
-  end
-
-  parent.tree = lume.merge(parent.tree or { }, child.tree or { })
-  parent.constants = lume.merge(parent.constants or { }, child.constants or { })
-  parent.lists = lume.merge(parent.lists or { }, child.lists or { })
-  parent.variables = lume.merge(parent.variables or { }, child.variables or { })
-  
-  return parent
-end
-
-local function parseModel(path, params)
-  local params = params or { save = false }
-  local inkPath = path .. '.ink'
-  local luaPath = path .. '.lua'
-
-  local file = io.open(inkPath, 'r')
-  assert(file, 'File doesn\'t exist: ' .. inkPath)
+  local file = io.open(path, 'r')
+  assert(file, 'File doesn\'t exist: ' .. path)
 
   local content = file:read('*all')
   file:close()
 
-  local model = parser.parse(content)
-
-  if params.save then
-    local data = lume.serialize(model)
-    data = data:gsub('%[%d+%]=', '')
-    data = data:gsub('[\"[%w_]+\"]', function(match) return
-      match:sub(3, #match - 2)
-    end)
-    
-    local file = io.open(luaPath, 'w')
-    file:write('return ' .. data)
-    file:close()
-  end
-
-  return model
+  return content
 end
 
-local function loadStory(path, maker)
-  local cleanPath = clearPath(path)
+--- Save a book to lua module
+-- @param book table: a book
+-- @param path string: a path to save
+-- @return bool: success
+local function saveBook(book, path)
+  local path = clearPath(path)  .. '.lua'
 
-  local model = merge({ }, cleanPath, maker)
-  local story = Story(model)
+  local data = lume.serialize(book)
+  data = data:gsub('%[%d+%]=', '')
+  data = data:gsub('[\"[%w_]+\"]', function(match) return
+    match:sub(3, #match - 2)
+  end)
+  
+  local file = io.open(path, 'w')
+  if file == nil then
+    return false
+  end
+  
+  file:write('return ' .. data)
+  file:close()
+  
+  return true
+end
 
-  return story
+--- Merge a chapter to a book
+-- @param book table: a parent book
+-- @param chapter table: a chapter to merge
+-- @return table: a book
+local function merge(book, chapter)
+  -- Check a engine version compatibility
+  if chapter.version.engine and chapter.version.engine ~= enums.engineVersion then
+    assert('Version ' .. chapter.version.engine .. ' of book isn\'t equal to the version ' .. enums.engineVersion .. ' of Narrator.')
+  end
+
+  -- Remove the root knot in chapters to avoid conflicts
+  chapter.tree._ = nil
+
+  -- Merge a chapter to a book
+  book.tree = lume.merge(book.tree or { }, chapter.tree or { })
+  book.constants = lume.merge(book.constants or { }, chapter.constants or { })
+  book.lists = lume.merge(book.lists or { }, chapter.lists or { })
+  book.variables = lume.merge(book.variables or { }, chapter.variables or { })
+  
+  return book
 end
 
 --
@@ -86,21 +92,57 @@ end
 
 local Narrator = { }
 
---- Parse story from a ink file
--- @param inkPath string: ink file path
--- @param save bool: save a parsed result to lua file or not
--- @return story
-function Narrator.parseStory(inkPath, save)
-  local maker = function(path) return parseModel(path, save) end
-  return loadStory(inkPath, maker)
+--- Parse a book from an Ink file
+-- Use parsing in development, but prefer already parsed and stored books in production
+-- Required: lpeg, io
+-- @param path string: path to an Ink file
+-- @param params table: parameters { save }
+-- @param params.save bool: save a parsed book to a lua file
+-- @return a book
+function Narrator.parseFile(path, params)
+  local params = params or { save = false }
+
+  local content = readFile(path)
+  local book = parser.parse(content)
+  
+  for _, include in ipairs(book.includes) do
+    local includePath = path:match('(.-)[^%./]+$') .. clearPath(include)
+    local chapter = parseFile(includePath)
+    merge(book, chapter)
+  end  
+
+  if params.save then
+    saveBook(book, path)
+  end
+
+  return book
 end
 
---- Load story from a lua file
--- @param luaPath string: lua file path
--- @return story
-function Narrator.loadStory(luaPath)
-  local maker = function(path) return require(path) end
-  return loadStory(luaPath, maker)
+--- Parse a book from Ink content
+-- Use parsing in development, but prefer already parsed and stored books in production
+-- Required: lpeg
+-- @param content string: root Ink content
+-- @param includes table: an array of strings with Ink content inclusions
+-- @return table: a book
+function Narrator.parseBook(content, includes)
+  local includes = includes or { }
+  
+  local book = parser.parse(content)
+  
+  for _, include in ipairs(includes) do
+    local chapter = parser.parse(include)
+    merge(book, chapter)
+  end  
+
+  return book
+end
+
+--- Init a story from a book
+-- @param book table: a book
+-- @return table: a story
+function Narrator.initStory(book)
+  local story = Story(book)
+  return story
 end
 
 return Narrator

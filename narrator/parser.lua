@@ -20,8 +20,9 @@ lpeg.locale(lpeg)
 local Parser = { }
 local Constructor = { }
 
---- Parse ink content and return story model
+--- Parse Ink content
 -- @param content string: ink content to parse
+-- @return table: a book
 function Parser.parse(content)
 
   --
@@ -239,7 +240,7 @@ function Parser.parse(content)
 
   local parsedItems = inkGrammar:match(content)
   return Constructor.constructModel(parsedItems)
-
+  
 end
 
 --
