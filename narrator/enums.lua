@@ -1,7 +1,12 @@
-local self = {
+--
+-- Enums
 
+local enums = {
+
+  -- Release version of Narrator
   engineVersion = 1,
 
+  -- Story item type
   item = { 
     text = 1,
     alts = 2,
@@ -10,12 +15,14 @@ local self = {
     variable = 5
   },
   
+  -- Alternatives sequence type
   sequence = {
     cycle = 1,
     stopping = 2,
     once = 3
   },
 
+  -- Runtime reading mode
   readMode = { 
     text = 1,
     choices = 2,
@@ -25,4 +32,4 @@ local self = {
 
 }
 
-return self
+return enums

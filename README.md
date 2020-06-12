@@ -3,10 +3,12 @@ The [Ink](https://www.inklestudios.com/ink/) language parser and runtime impleme
 
 *Work in progress*
 
-## TODO:
-- Test cases
+## Roadmap
+- File system independent story loading
 - Documentation
-- A cross-environment parsed files interaction
+- Test cases
+- Dependencies reducing
+- Defold extension
 
 ## Quick example
 
