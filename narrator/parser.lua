@@ -2,10 +2,12 @@
 -- Dependencies
 
 local libPath = (...):match('(.-).[^%.]+$')
-
-local lpeg = require('lpeg')
 local lume = require(libPath .. '.libs.lume')
 local enums = require(libPath .. '.enums')
+
+-- Safe lpeg requiring
+if not pcall(require, 'lpeg') then return nil end
+local lpeg = require('lpeg')
 
 --
 -- LPeg
