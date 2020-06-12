@@ -8,7 +8,10 @@ package.path = _VERSION == 'Lua 5.3' and package.path or './?/init.lua;' .. pack
 local narrator = require('narrator')
 
 -- Parse and load an ink story
-local story = narrator.parseStory('stories.game')
+local story = narrator.parseStory('stories.game', { save = true })
+
+-- Or load an already parsed and stored story
+-- local story = narrator.loadStory('stories.game')
 
 -- Bind local function to observe the ink variable 'x'
 story:observe('x', function(x) print('The x did change! Now it\'s ' .. x) end)

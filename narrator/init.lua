@@ -43,7 +43,8 @@ local function merge(parent, childPath, maker)
   return parent
 end
 
-local function parseModel(path, save)
+local function parseModel(path, params)
+  local params = params or { save = false }
   local inkPath = path .. '.ink'
   local luaPath = path .. '.lua'
 
@@ -55,7 +56,7 @@ local function parseModel(path, save)
 
   local model = parser.parse(content)
 
-  if save then
+  if params.save then
     local data = lume.serialize(model)
     data = data:gsub('%[%d+%]=', '')
     data = data:gsub('[\"[%w_]+\"]', function(match) return
