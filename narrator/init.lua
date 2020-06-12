@@ -100,6 +100,7 @@ local Narrator = { }
 -- @return a book
 function Narrator.parseFile(path, params)
   local params = params or { save = false }
+  assert(parser, "Can't parse anything without a parser.")
 
   local content = readFile(path)
   local book = parser.parse(content)
@@ -125,6 +126,7 @@ end
 -- @return table: a book
 function Narrator.parseBook(content, includes)
   local includes = includes or { }
+  assert(parser, "Can't parse anything without a parser.")
   
   local book = parser.parse(content)
   

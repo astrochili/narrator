@@ -67,7 +67,7 @@ end
 
 ## Dependencies
 
-Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/).
+Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/). Functions ```parseFile()``` and ```parseBook()``` won't work without lpeg.
 ```
 $ luarocks install lpeg
 ```
@@ -75,4 +75,11 @@ $ luarocks install lpeg
 Tests use [busted](https://github.com/Olivine-Labs/busted).
 ```
 $ luarocks install busted
+```
+
+## Tests
+
+To start tests you can run a VSCode task ```Busted``` or run it from the terminal.
+```
+$ busted tests/start.lua
 ```
