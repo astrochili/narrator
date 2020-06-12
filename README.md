@@ -72,12 +72,6 @@ Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/).
 $ luarocks install lpeg
 ```
 
-Runtime uses [lume](https://github.com/rxi/lume/) and [classic](https://github.com/rxi/classic).
-```
-$ luarocks install lume
-$ luarocks install classic
-```
-
 Tests use [busted](https://github.com/Olivine-Labs/busted).
 ```
 $ luarocks install busted
