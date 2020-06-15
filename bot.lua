@@ -21,9 +21,9 @@ function Bot.play(story, instructor, params)
   
   story:begin()
   
-  while story:canContinue() do
+  while story:canContinue() or story:canChoose() do
     local paragraphs = story:continue()
-    for _, paragraph in ipairs(paragraphs) do
+    for _, paragraph in ipairs(paragraphs or { }) do
       local text = paragraph.text or ''
       if paragraph.tags then
         text = text .. ' #' .. table.concat(paragraph.tags, ' #')

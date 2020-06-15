@@ -57,7 +57,7 @@ function Parser.parse(content)
   local todo = sp * 'TODO:' * (1 - nl) ^ 0
   local commentLine = sp * '//' * sp * (1 - nl) ^ 0
   local commentMulti = sp * '/*' * ((P(1) - '*/') ^ 0) * '*/'
-  local comment = commentLine + commentMulti + todo
+  local comment = commentLine + commentMulti
 
   local multilineEnd = ws * '}'
 
@@ -82,7 +82,7 @@ function Parser.parse(content)
 
     local character = P(1 - S(' \t')) - excluded
     local pattern = (sp * character ^ 1) ^ 1
-    local withSpaceTail = C(pattern * sp) * #(P'{' - V'multilineItem')
+    local withSpaceTail = C(pattern * sp) * #((P'{' + divert) - V'multilineItem')
     local withoutSpaceTail = C(pattern) * sp
 
     return withSpaceTail + withoutSpaceTail
@@ -131,7 +131,7 @@ function Parser.parse(content)
       Ct(V'knot' * itemType('knot')) +
       Ct(V'stitch' * itemType('stitch')) +
       Ct(V'choice' * itemType('choice')) +
-      comment
+      comment + todo
     ,
     
     sectionName = C(id) * sp * P('=') ^ 0,
@@ -144,7 +144,7 @@ function Parser.parse(content)
 
     choiceCondition = Cg(V'expression' + none, 'condition'),
     choiceFallback = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * (divert + divertToNothing),
-    choiceNormal = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * Cg(V'text', 'text') * sp * divert ^ -1,
+    choiceNormal = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * Cg(V'text', 'text') * divert ^ -1,
     choice = V'choiceFallback' + V'choiceNormal',
 
     -- Paragraph
@@ -162,7 +162,7 @@ function Parser.parse(content)
       Cg(V'inlineCondition', 'condition') + 
       Cg(V'inlineSequence', 'sequence') + 
       Cg(V'expression', 'expression') +
-      Cg(V'text', 'text') * sp * (divert ^ -1) + sp * divert
+      Cg(V'text', 'text') * (divert ^ -1) + divert
     ) - V'multilineItem') ^ 1),
 
     text = sentenceBefore(nl, divert, comment, tag, S'{|}') - V'statement',
@@ -228,7 +228,7 @@ function Parser.parse(content)
     restrictedStatement = Ct(
       V'choice' * itemType('choice') +
       V'assignment' * itemType('assignment')
-    ) + comment,
+    ) + comment + todo,
     
     restrictedParagraph = Ct((
       Cg(V'textComplex', 'parts') * sp * V'tagsOptional' +
@@ -505,14 +505,14 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
       end
 
       if part.text ~= nil then
-        item.text = item.text .. part.text
+        item.text = item.text .. part.text:gsub('%s+', ' ')
       elseif part.expression ~= nil then
         item.text = item.text .. '#' .. part.expression .. '#'
       end
 
       if part.divert ~= nil then
         item.divert = part.divert
-        item.text = #item.text > 0 and item.text or nil
+        item.text = #item.text > 0 and (item.text .. '<>') or nil
         table.insert(items, item)
         item = nil
       else
@@ -557,9 +557,17 @@ function Constructor:addChoice(level, sticky, label, condition, text, divert)
   if text == nil then
     item.choice = 0
   else
-    local part1, divider, part2 = text:match('(.*)%[(.*)%](.*)')
-    item.choice = (part1 or text) .. (divider or '')
-    item.text = (part1 or text) .. (part2 or '')
+    local prefix, divider, suffix = text:match('(.*)%[(.*)%](.*)')
+    prefix = prefix or text
+    divider = divider or ''
+    suffix = suffix or ''
+
+    if divert then
+      suffix = suffix .. '<>'
+    end
+    
+    item.text = (prefix .. suffix):gsub('%s+', ' ')
+    item.choice = (prefix .. divider):gsub('%s+', ' ')
   end
 
   Constructor.addItem(self, level, item)

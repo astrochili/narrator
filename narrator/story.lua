@@ -90,6 +90,7 @@ function Story:choose(index)
   end
 
   if choice.divert ~= nil then
+    self:visit(choice.path)
     self:readDivert(choice.divert)
   else
     self:readPath(choice.path)
@@ -417,7 +418,7 @@ function Story:readChoice(item, path)
   if isFallback then
     -- Works correctly only when a fallback is the last choice
     if #self.choices == 0 then
-      if choice.divert ~= nil then
+      if item.divert ~= nil then
         self:readDivert(item.divert)
       else
         self:readPath(path)

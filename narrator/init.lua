@@ -10,6 +10,8 @@ local Story = require(libPath .. '.story')
 --
 -- Private
 
+local folderSeparator = package.config:sub(1, 1)
+
 --- Clears path from '.lua' and '.ink' extensions and replace '.' to '/' or '\'
 -- @param path string: path to clear
 -- @return string: a clean path
@@ -17,7 +19,6 @@ local function clearPath(path)
   local path = path:gsub('.lua$', '')
   local path = path:gsub('.ink$', '')
 
-  local folderSeparator = package.config:sub(1, 1)
   if path:match('%.') and not path:match(folderSeparator) then
     path = path:gsub('%.', folderSeparator)
   end
@@ -74,7 +75,10 @@ local function merge(book, chapter)
     assert('Version ' .. chapter.version.engine .. ' of book isn\'t equal to the version ' .. enums.engineVersion .. ' of Narrator.')
   end
 
-  -- Remove the root knot in chapters to avoid conflicts
+  -- Merge the root knot and it's stitch
+  book.tree._._ = lume.concat(chapter.tree._._, book.tree._._)
+  chapter.tree._._ = nil
+  book.tree._ = lume.merge(chapter.tree._, book.tree._)
   chapter.tree._ = nil
 
   -- Merge a chapter to a book
@@ -106,8 +110,9 @@ function Narrator.parseFile(path, params)
   local book = parser.parse(content)
   
   for _, include in ipairs(book.includes) do
-    local includePath = path:match('(.-)[^%./]+$') .. clearPath(include)
-    local chapter = parseFile(includePath)
+    local folderPath = path:match('(.*' .. folderSeparator .. ')')
+    local includePath = folderPath .. clearPath(include) .. '.ink'
+    local chapter = Narrator.parseFile(includePath)
     merge(book, chapter)
   end  
 
