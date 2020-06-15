@@ -10,13 +10,15 @@
             }
         },
         {
-            "name": "Test",
+            "name": "Busted",
             "type": "lua-local",
             "request": "launch",
             "program": {
-                "lua": "lua5.3",
-                "file": "${workspaceFolder}/test/start.lua"
-              }
+                "command": "busted"
+            },
+            "args": [
+                "${workspaceFolder}/test/start.lua",
+            ],
         }
     ]
 }

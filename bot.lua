@@ -4,21 +4,24 @@
 local Bot = { }
 
 --- Play a story by bot
--- @param story Story: a stoary instance
--- @param instructor function: function that will be return the answer index by choices array
--- @param output function: function that will be output text line, by default it's print()
-function Bot.play(story, instructor, silent)
-  local silent = silent or false
+-- @param story Story: a story instance
+-- @param instructor function: function that will be return the answer index
+-- @param params.print bool: print a game log to console or not, false by default
+-- @return string: a log of the game
+function Bot.play(story, instructor, params)
+  local params = params or { print = false }
 
-  local book = { }
+  local log = { }
+  local step = 1
+  
   local function output(text)
-    if not silent then print(text) end
-    table.insert(book, text)
+    if params.print then print(text) end
+    table.insert(log, text)
   end  
   
   story:begin()
   
-  while story:canContinue() or story:canChoose() do
+  while story:canContinue() do
     local paragraphs = story:continue()
     for _, paragraph in ipairs(paragraphs) do
       local text = paragraph.text or ''
@@ -31,9 +34,15 @@ function Bot.play(story, instructor, silent)
     if not story:canChoose() then break end
 
     local choices = story:getChoices()
-    local answer = instructor(choices)
-    output('')
+    local answer = instructor(choices, step)
+    step = step + 1
 
+    -- Check for a signal to emergency exit
+    if answer == -1 then
+      return nil
+    end
+
+    output('')
     for i, choice in ipairs(choices) do
       local prefix = (i == answer and '>' or i) .. ') '
       local text = prefix .. choice.title
@@ -44,7 +53,7 @@ function Bot.play(story, instructor, silent)
     story:choose(answer)
   end
 
-  return table.concat(book, '\n')
+  return table.concat(log, '\n')
 end
 
 return Bot
