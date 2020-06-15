@@ -11,7 +11,7 @@ local bot = require('bot')
 local narrator = require('narrator')
 local lume = require('narrator.libs.lume')
 
-local folderSeparator = package.config:sub(1,1)
+local folderSeparator = package.config:sub(1, 1)
 
 --- Make path fot ink
 -- @param case string: a test case

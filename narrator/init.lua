@@ -17,7 +17,7 @@ local function clearPath(path)
   local path = path:gsub('.lua$', '')
   local path = path:gsub('.ink$', '')
 
-  local folderSeparator = package.config:sub(1,1)
+  local folderSeparator = package.config:sub(1, 1)
   if path:match('%.') and not path:match(folderSeparator) then
     path = path:gsub('%.', folderSeparator)
   end
