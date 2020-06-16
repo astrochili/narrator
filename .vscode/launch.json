@@ -17,7 +17,7 @@
                 "command": "busted"
             },
             "args": [
-                "${workspaceFolder}/test/start.lua",
+                "${workspaceFolder}/test/run.lua",
             ],
         }
     ]

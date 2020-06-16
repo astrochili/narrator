@@ -97,7 +97,7 @@ end
 
 --- Generate possible results for a test case and save them to txt files
 -- @param case string: a test case
--- @param override bool: override a txt file if it already exists
+-- @param override bool: override a txt file if it already exists.
 local function generateTxtForCase(case, override)
   local override = override ~= nil and override or false
   local results = getPossibleResults(case)

@@ -81,5 +81,5 @@ $ luarocks install busted
 
 To start tests you can run a VSCode task ```Busted``` or run it from the terminal.
 ```
-$ busted tests/start.lua
+$ busted tests/run.lua
 ```

@@ -20,6 +20,35 @@ local units = {
   -- 'glue',
   -- 'stitches',
   -- 'includes',
+  'conditional-choices',
+  -- 'conditional-text',
+  -- 'alternatives',
+  -- 'queries',
+  -- 'gathers',
+  -- 'nested',
+  -- 'labels',
+  -- 'vars',
+  -- 'constants',
+  -- 'lists',
+  -- 'lists-enums',
+  -- 'lists-queries',
+  -- 'temp-vars',
+  -- 'conditions',
+  -- 'conditional-blocks',
+  -- 'switch-blocks',
+  -- 'multiline-alts',
+}
+
+local runtime = {
+  -- 'continue',
+  -- 'knot-tags',
+  -- 'globa-tags',
+  -- 'set-get',
+  -- 'visits',
+  -- 'jumping',
+  -- 'observing',
+  -- 'binding',
+  -- 'save-load'
 }
 
 local cases = { }
