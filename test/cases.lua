@@ -9,34 +9,35 @@ local stories = {
 }
 
 local units = {
-  -- 'line',
-  -- 'lines',
-  -- 'comments',
-  -- 'tags',
-  -- 'choices',
-  -- 'fallback',
-  -- 'sticky'
-  -- 'knots',
-  -- 'glue',
-  -- 'stitches',
   -- 'includes',
-  -- 'conditional-choices',
-  -- 'expressions',
-  -- 'conditional-text',
-  -- 'alternatives',
-  -- 'queries',
-  -- 'gathers',
+  -- 'comments',
+  -- 'knots',
+  -- 'stitches',
+
+  -- 'text-line',
+  -- 'text-lines',
+  -- 'text-tags',
+  -- 'text-glue',
+    
+  -- 'choices-basic',
+  -- 'choices-conditional',
+  -- 'choices-sticky'
+  -- 'choices-fallback',  
+
   -- 'nested',
   -- 'labels',
   -- 'vars',
-  -- 'constants',
-  -- 'lists',
+  -- 'expressions',
+  -- 'queries',
+
+  -- 'conditions-inline',
+  -- 'conditions-switch',
+  -- 'alts-inline',
+  -- 'alts-blocks',
+  
+  -- 'lists-basic',
   -- 'lists-enums',
   -- 'lists-queries',
-  -- 'conditions',
-  -- 'conditional-blocks',
-  -- 'switch-blocks',
-  -- 'multiline-alts',
 }
 
 local runtime = {
