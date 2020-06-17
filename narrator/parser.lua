@@ -546,7 +546,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
   return items
 end
 
-function Constructor:addChoice(level, sticky, label, condition, text, divert)
+function Constructor:addChoice(level, sticky, label, condition, sentence, divert)
   local item = {
     sticky = sticky or nil,
     condition = condition,
@@ -554,20 +554,25 @@ function Constructor:addChoice(level, sticky, label, condition, text, divert)
     divert = divert
   }
 
-  if text == nil then
+  if sentence == nil then
     item.choice = 0
   else
-    local prefix, divider, suffix = text:match('(.*)%[(.*)%](.*)')
-    prefix = prefix or text
+    local prefix, divider, suffix = sentence:match('(.*)%[(.*)%](.*)')
+    prefix = prefix or sentence
     divider = divider or ''
     suffix = suffix or ''
 
-    if divert then
-      suffix = suffix .. '<>'
+    local text = (prefix .. suffix):gsub('%s+', ' ')
+    local choice = (prefix .. divider):gsub('%s+', ' '):gsub('^%s*(.-)%s*$', '%1')
+
+    if divert and #text > 0 and text:match('%S+') then
+      text = text .. '<>'
+    else
+      text = text:gsub('^%s*(.-)%s*$', '%1')
     end
     
-    item.text = (prefix .. suffix):gsub('%s+', ' ')
-    item.choice = (prefix .. divider):gsub('%s+', ' ')
+    item.text = text
+    item.choice = choice
   end
 
   Constructor.addItem(self, level, item)

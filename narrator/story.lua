@@ -531,7 +531,7 @@ function Story:doExpression(expression)
 
   -- Check for variables
   expression = expression:gsub('[[\"\'%a_][%w_%.\"\']*', function(match)
-    local exceptions = { 'and', 'or', 'true', 'false', 'nil'}
+    local exceptions = { 'and', 'or', 'true', 'false', 'nil', 'not'}
     if lume.find(exceptions, match) or match:match('[\"\'].*[\"\']') or match:match('__list%d*') then
       return match
     else
@@ -675,7 +675,8 @@ end
 
 function Story:visitsFor(path)
   if path == nil then return 0 end
-  local knot, stitch, label = path.knot or '_', path.stitch or '_', path.label
+  local knot, stitch, label = path.knot or '_', path.stitch, path.label
+  if stitch == nil and label ~= nil then stitch = '_' end
 
   local knotVisits = self.visits[knot]
   if knotVisits == nil then return 0
@@ -718,6 +719,7 @@ function Story:pathFromString(pathString, context)
   elseif part1 ~= nil then
     if knotNode ~= nil then
       path.knot = part1
+      path.stitch = nil
     elseif rootNode ~= nil and rootNode[part1] ~= nil then
       path.stitch = part1
     else
