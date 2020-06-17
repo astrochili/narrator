@@ -451,11 +451,20 @@ function Story:replaceExpressions(text)
       return '#'
     else
       local result = self:doExpression(match:sub(2, #match - 1))
+
       if type(result) == 'table' then
         result = self.listMT.__tostring(result)
+      elseif type(result) == 'boolean' then
+        result = result and 1 or 0
+      elseif type(result) == 'number' then
+        result = tostring(result)
+        if result:sub(-2) == '.0' then
+          result = result:sub(1, -3)
+        end
+      elseif result == nil then
+        result = ''
       end
-      if type(result) == 'boolean' then result = result and 1 or 0 end
-      if result == nil then result = '' end
+
       return result
     end
   end)
