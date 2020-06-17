@@ -134,8 +134,8 @@ function Parser.parse(content)
       comment + todo
     ,
     
-    sectionName = C(id) * sp * P('=') ^ 0,
-    knot = '===' * sp * Cg(V'sectionName', 'knot'),
+    sectionName = C(id) * sp * P'=' ^ 0,
+    knot = P'==' * (P'=' ^ 0) * sp * Cg(V'sectionName', 'knot'),
     stitch = '=' * sp * Cg(V'sectionName', 'stitch'),
 
     assignment = gatherLevel * sp * '~' * sp * V'assignmentTemp' * sp * V'assignmentPair',
@@ -517,11 +517,11 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
         item = nil
       else
         local nextPart = parts[index + 1]
-        local nextPartIsSeparated = nextPart ~= nil and (nextPart.text == nil and nextPart.expression == nil)
-        local nextPartIsNakedDivert = nextPart ~= nil and (nextPartIsSeparated and nextPart.divert ~= nil)
-  
-        if nextPart == nil or (nextPartIsSeparated and not nextPartIsNakedDivert) then
-          item.text = item.text .. (isRoot and '' or '<>')
+        local nextIsSeparated = nextPart and not nextPart.text and not nextPart.expression
+        local nextIsNakedDivert = nextPart and nextPartIsSeparated and nextPart.divert
+
+        if not nextPart or (nextIsSeparated and not nextIsNakedDivert) then
+          item.text = item.text .. '<>'
           table.insert(items, item)
           item = nil
         end

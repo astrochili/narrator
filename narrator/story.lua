@@ -172,6 +172,7 @@ function Story:pathChainForLabel(path)
   end
 
   local chain = findLabelChainInItems(items)
+  assert(chain, 'Label \'' ..path.label .. '\' not found')
   return chain
 end
 
@@ -320,7 +321,7 @@ function Story:readItems(items, path, depth, mode)
   if depth == 0 then
     for index = #self.paragraphs, 1, -1 do
       local paragraph = self.paragraphs[index]
-      if #paragraph.text == 0 and #paragraph.tags == 0 then
+      if (not paragraph.text or #paragraph.text == 0) and (not paragraph.tags or #paragraph.tags == 0) then
         -- Remove safe prefixes and suffixes of failured inline conditions
         table.remove(self.paragraphs, index)
       else
@@ -343,6 +344,7 @@ function Story:readText(item)
     local gluedByThis = text ~= nil and text:sub(1, 2) == '<>'
     
     paragraph.text = self:replaceExpressions(paragraph.text)
+    paragraph.text = paragraph.text:gsub('%s+', ' ')
 
     if gluedByPrev then
       local prevParagraph = self.paragraphs[#self.paragraphs]
@@ -356,7 +358,7 @@ function Story:readText(item)
 
     if gluedByPrev or (gluedByThis and #self.paragraphs > 0) then
       local prevParagraph = self.paragraphs[#self.paragraphs]
-      prevParagraph.text = prevParagraph.text .. paragraph.text
+      prevParagraph.text = (prevParagraph.text .. paragraph.text):gsub('%s+', ' ')
       prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
       prevParagraph.tags = #prevParagraph.tags > 0 and prevParagraph.tags or nil
       self.paragraphs[#self.paragraphs] = prevParagraph
