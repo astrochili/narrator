@@ -74,18 +74,14 @@ function Parser.parse(content)
     return sp * paragraph ^ -1 * sp * V'multilineItem' * sp * paragraph ^ -1 * ws
   end
 
-  local function sentenceBefore(...)
-    local excluded
-    for _, pattern in ipairs({...}) do
-      excluded = excluded == nil and pattern or excluded + pattern
-    end
-
+  local function sentenceBefore(excluded, tailed)
+    local tailed = tailed or false
     local character = P(1 - S(' \t')) - excluded
     local pattern = (sp * character ^ 1) ^ 1
-    local withSpaceTail = C(pattern * sp) * #((P'{' + divert) - V'multilineItem')
-    local withoutSpaceTail = C(pattern) * sp
-
-    return withSpaceTail + withoutSpaceTail
+    -- local withSpaceTail = C(pattern * sp) * #((P'{' + divert) - V'multilineItem')
+    -- local withoutSpaceTail = C(pattern * sp)
+    -- return withSpaceTail + withoutSpaceTail
+    return tailed and C(pattern * sp) or C(pattern) * sp
   end
 
   local function unwrapAssignment(assignment)
@@ -162,14 +158,14 @@ function Parser.parse(content)
       Cg(V'inlineCondition', 'condition') + 
       Cg(V'inlineSequence', 'sequence') + 
       Cg(V'expression', 'expression') +
-      Cg(V'text', 'text') * (divert ^ -1) + divert
+      Cg(V'text' + ' ', 'text') * (divert ^ -1) + divert
     ) - V'multilineItem') ^ 1),
 
-    text = sentenceBefore(nl, divert, comment, tag, S'{|}') - V'statement',
+    text = sentenceBefore(nl + divert + comment + tag + S'{|}', true) - V'statement',
 
     -- Inline expressions, conditions, sequences
 
-    expression = '{' * sp * sentenceBefore('}', nl) * sp * '}',
+    expression = '{' * sp * sentenceBefore('}' + nl) * sp * '}',
 
     inlineCondition = '{' * sp * Ct(V'inlineIfElse' + V'inlineIf') * sp * '}',
     inlineIf = Cg(sentenceBefore(S':}' + nl), 'condition') * sp * ':' * sp * Cg(V'textComplex', 'success'),
@@ -197,7 +193,7 @@ function Parser.parse(content)
 
     switchIf = Ct(Cg(V'switchCondition', 'condition') * ws * Cg(Ct(V'switchItems'), 'node')),
     switchCase = ('-' - divertSign) * sp * V'switchIf',
-    switchCondition = sentenceBefore(':', nl) * sp * ':' * sp * comment ^ -1,
+    switchCondition = sentenceBefore(':' + nl) * sp * ':' * sp * comment ^ -1,
     switchItems = (V'restrictedItem' - V'switchCase') ^ 1,
 
     -- Multiline sequences

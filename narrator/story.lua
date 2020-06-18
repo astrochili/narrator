@@ -496,8 +496,8 @@ function Story:doExpression(expression)
   expression = expression:gsub('!=', '~=')
   expression = expression:gsub('%s*||%s*', ' or ')  
   expression = expression:gsub('%s*%&%&%s*', ' and ')
-  expression = expression:gsub('%s*has%s*', ' ? ')
-  expression = expression:gsub('%s*hasnt%s*', ' !? ')
+  expression = expression:gsub('%s+has%s+', ' ? ')
+  expression = expression:gsub('%s+hasnt%s+', ' !? ')
   
   -- Check for functions
   expression = expression:gsub('[%a_][%w_]*%(.*%)', function(match)

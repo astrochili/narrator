@@ -24,7 +24,8 @@ local units = {
   -- 'branching',
   -- 'nesting',
   -- 'labels',
-  -- 'vars',
+  -- 'loop'
+  'vars',
   -- 'expressions',
   -- 'queries',
 
