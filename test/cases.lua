@@ -3,10 +3,7 @@
 
 local folderSeparator = package.config:sub(1, 1)
 
-local stories = {
-  -- 'monsieur_fogg',
-  -- 'back_in_london'
-}
+local stories = { }
 
 local units = {
   -- 'includes',
@@ -24,7 +21,8 @@ local units = {
   -- 'choices-sticky'
   -- 'choices-fallback',  
 
-  -- 'nested',
+  -- 'branching',
+  -- 'nesting',
   -- 'labels',
   -- 'vars',
   -- 'expressions',
@@ -55,10 +53,11 @@ local runtime = {
 local cases = { }
 
 for _, story in ipairs(stories) do
-  table.insert(cases, "stories" .. folderSeparator .. story)
+  table.insert(cases, story)
 end
+
 for _, unit in ipairs(units) do
-  table.insert(cases, "units" .. folderSeparator .. unit)
+  table.insert(cases, unit)
 end
 
 return cases

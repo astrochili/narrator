@@ -475,7 +475,9 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
   local item
   
   for index, part in ipairs(parts) do
-    if part.condition ~= nil then
+
+    if part.condition then -- Inline condition part
+
       item = {
         condition = part.condition.condition,
         success = Constructor.convertParagraphPartsToItems(part.condition.success),
@@ -484,7 +486,9 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
 
       table.insert(items, item)
       item = nil
-    elseif part.sequence ~= nil then
+
+    elseif part.sequence then -- Inline sequence part
+      
       item = {
         sequence = part.sequence.sequence,
         shuffle = part.sequence.shuffle and true or nil,
@@ -497,35 +501,39 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
 
       table.insert(items, item)
       item = nil
-    else
-      local isNakedDivert = part.divert ~= nil and part.text == nil
+
+    else -- Text, expression and divert may be
+
+      local isDivertOnly = part.divert ~= nil and part.text == nil
 
       if item == nil then
-        item = { text = (isRoot or isNakedDivert) and '' or '<>' }
+        item = { text = (isRoot or isDivertOnly) and '' or '<>' }
       end
 
-      if part.text ~= nil then
+      if part.text then
         item.text = item.text .. part.text:gsub('%s+', ' ')
-      elseif part.expression ~= nil then
+      elseif part.expression then
         item.text = item.text .. '#' .. part.expression .. '#'
       end
 
-      if part.divert ~= nil then
+      if part.divert then
         item.divert = part.divert
         item.text = #item.text > 0 and (item.text .. '<>') or nil
         table.insert(items, item)
         item = nil
       else
-        local nextPart = parts[index + 1]
-        local nextIsSeparated = nextPart and not nextPart.text and not nextPart.expression
-        local nextIsNakedDivert = nextPart and nextPartIsSeparated and nextPart.divert
+        local next = parts[index + 1]
+        local nextIsBlock = next and not (next.text or next.expression)
 
-        if not nextPart or (nextIsSeparated and not nextIsNakedDivert) then
-          item.text = item.text .. '<>'
+        if not next or nextIsBlock then
+          if not isRoot or nextIsBlock then
+            item.text = item.text .. '<>'
+          end
           table.insert(items, item)
-          item = nil
+          item = nil  
         end
       end
+
     end
   end
 
