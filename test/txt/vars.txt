@@ -3,5 +3,5 @@
 201
 151
 150
-Hmm. Hello, Katy! Do you have 500 bucks? 20 pennies may be?
-Nope .
+Hello, Katy! Do you have 500 bucks? 20 pennies may be?
+Nope.

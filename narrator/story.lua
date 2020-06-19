@@ -493,13 +493,14 @@ function Story:doExpression(expression)
   local code = ''
   local lists = { }
   
+  -- Replace operators
   expression = expression:gsub('!=', '~=')
   expression = expression:gsub('%s*||%s*', ' or ')  
   expression = expression:gsub('%s*%&%&%s*', ' and ')
   expression = expression:gsub('%s+has%s+', ' ? ')
   expression = expression:gsub('%s+hasnt%s+', ' !? ')
   
-  -- Check for functions
+  -- Replace functions results
   expression = expression:gsub('[%a_][%w_]*%(.*%)', function(match)
     local functionName = match:match('([%a_][%w_]*)%(')
     local paramsString = match:match('[%a_][%w_]*%((.+)%)')
@@ -529,7 +530,7 @@ function Story:doExpression(expression)
     return 'nil'
   end)
 
-  -- Check for lists
+  -- Replace lists
   expression = expression:gsub('%(([%s%w%.,_]*)%)', function(match)
     local list = self:makeListFor(match)
     if list ~= nil then
@@ -539,11 +540,20 @@ function Story:doExpression(expression)
       return 'nil'
     end
   end)
+  
+  -- Store strings to the bag before to replace variables
+  -- otherwise it can replace strings inside quotes to nils.
+  -- Info: Ink doesn't interpret single quotes '' as string expression value
+  local stringsBag = { }
+  expression = expression:gsub('%b\"\"', function(match)
+    table.insert(stringsBag, match)
+    return '#' .. #stringsBag .. '#'
+  end)
 
-  -- Check for variables
-  expression = expression:gsub('[[\"\'%a_][%w_%.\"\']*', function(match)
+  -- Replace variables
+  expression = expression:gsub('[%a_][%w_%.]*', function(match)
     local exceptions = { 'and', 'or', 'true', 'false', 'nil', 'not'}
-    if lume.find(exceptions, match) or match:match('[\"\'].*[\"\']') or match:match('__list%d*') then
+    if lume.find(exceptions, match) or match:match('__list%d*') then
       return match
     else
       local value = self:getValueFor(match)
@@ -556,14 +566,20 @@ function Story:doExpression(expression)
     end
   end)
 
-  -- Check for match operation
-  expression = expression:gsub('[\"\'%a_][%w_%.\"\']*[%s]*[%?!]+[%s]*[\"\'%a_][%w_%.\"\']*', function(match)
-    local lhs, operator, rhs = match:match('([\"\'%a_][%w_%.\"\']*)[%s]*([%!?]+)[%s]*([\"\'%a_][%w_%.\"\']*)')
+  -- Replace with math results
+  expression = expression:gsub('[%a_#][%w_%.#]*[%s]*[%?!]+[%s]*[%a_#][%w_%.#]*', function(match)
+    local lhs, operator, rhs = match:match('([%a_#][%w_%.#]*)[%s]*([%!?]+)[%s]*([%a_#][%w_%.#]*)')
     if lhs:match('__list%d*') then
-      return lhs .. ' % ' .. rhs .. (operator == '!?' and ' == false' or ' == true')
+      return lhs .. ' % ' .. rhs .. (operator == '?' and ' == true' or ' == false')
     else
-      return lhs .. ':match(' .. rhs .. ')' .. (operator == '!?' and ' == nil' or ' ~= nil')
+      return 'string.match(' .. lhs .. ', ' .. rhs .. ')' .. (operator == '?' and ' ~= nil' or ' == nil')
     end
+  end)
+
+  -- Restore strings after variables replacement
+  expression = expression:gsub('%b##', function(match)
+    local index = tonumber(match:sub(2, -2))
+    return stringsBag[index or 0]
   end)
 
   -- Attach the metatable to list tables
