@@ -1,12 +1,10 @@
 # Narrator
 The [Ink](https://www.inklestudios.com/ink/) language parser and runtime implementation in Lua.
 
-*Work in progress*
-
 ## Roadmap
 - Documentation
-- Test cases
 - Defold extension
+- Improvement and optimization
 
 ## Quick example
 
@@ -67,19 +65,24 @@ end
 
 ## Dependencies
 
-Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/). Functions ```parseFile()``` and ```parseBook()``` won't work without lpeg.
+Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/). Functions ```parseFile()``` and ```parseBook()``` won't work without ```lpeg```.
+
 ```
 $ luarocks install lpeg
 ```
 
-Tests use [busted](https://github.com/Olivine-Labs/busted).
+You really don't need ```lpeg``` in release, but you need it locally to parse Ink content and generate lua versions of 'books' to play.
+
+## Tests
+
+To run tests you need to install [busted](https://github.com/Olivine-Labs/busted).
 ```
 $ luarocks install busted
 ```
 
-## Tests
-
-To start tests you can run a VSCode task ```Busted``` or run it from the terminal.
+After that you can run tests from the terminal:
 ```
 $ busted tests/run.lua
 ```
+
+By the way, there are some configs for [VSCode](https://code.visualstudio.com/). For example, a task named ```Busted``` runs tests.
