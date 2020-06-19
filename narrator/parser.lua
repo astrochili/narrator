@@ -115,7 +115,7 @@ function Parser.parse(content)
       Ct(V'variable' * itemType('variable'))
     ,
 
-    include = 'INCLUDE' * sp * Cg(V'text', 'filename'),
+    include = 'INCLUDE' * sp * Cg(sentenceBefore(nl), 'filename'),
     list = 'LIST' * sp * V'assignmentPair',
     constant = 'CONST' * sp * V'assignmentPair',
     variable = 'VAR' * sp * V'assignmentPair',
@@ -136,7 +136,7 @@ function Parser.parse(content)
 
     assignment = gatherLevel * sp * '~' * sp * V'assignmentTemp' * sp * V'assignmentPair',
     assignmentTemp = Cg('temp' * Cc(true) + Cc(false), 'temp'),
-    assignmentPair = Cg(V'text' / unwrapAssignment, 'name') * Cg(Cb('name') / 2, 'value'),
+    assignmentPair = Cg(sentenceBefore(nl) / unwrapAssignment, 'name') * Cg(Cb('name') / 2, 'value'),
 
     choiceCondition = Cg(V'expression' + none, 'condition'),
     choiceFallback = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * (divert + divertToNothing),
@@ -237,21 +237,22 @@ function Parser.parse(content)
   -- Result
 
   local parsedItems = inkGrammar:match(content)
-  return Constructor.constructModel(parsedItems)
+  local book = Constructor.constructBook(parsedItems)
+  return book
   
 end
 
 --
--- Story model construction
+-- A book construction
 
-function Constructor.constructModel(items)
+function Constructor.constructBook(items)
   
   local construction = {
     currentKnot = '_',
     currentStitch = '_',
   }
 
-  construction.model = {
+  construction.book = {
     includes = { },
     lists = { },
     constants = { },
@@ -259,19 +260,19 @@ function Constructor.constructModel(items)
     tree = { _ = { _ = { } } }
   }
 
-  construction.model.version = {
+  construction.book.version = {
     engine = enums.engineVersion,
     tree = 1
   }
   
   construction.nodesChain = {
-    construction.model.tree[construction.currentKnot][construction.currentStitch]
+    construction.book.tree[construction.currentKnot][construction.currentStitch]
   }
 
   Constructor.addNode(construction, items)
-  Constructor.clear(construction.model.tree)
+  Constructor.clear(construction.book.tree)
 
-  return construction.model
+  return construction.book
 end
 
 function Constructor:addNode(items, isRestricted)
@@ -328,25 +329,27 @@ function Constructor:addNode(items, isRestricted)
 end
 
 function Constructor:addInclude(filename)
-  table.insert(self.model.includes, filename)
+  table.insert(self.book.includes, filename)
 end
 
 function Constructor:addList(name, value)
   local items = lume.array(value:gmatch('[%w_%.]+'))
-  self.model.lists[name] = items
+  self.book.lists[name] = items
 
   local switched = lume.array(value:gmatch('%b()'))
   switched = lume.map(switched, function(item) return item:sub(2, #item - 1) end)
-  self.model.variables[name] = { [name] = { } }
-  lume.each(switched, function(item) self.model.variables[name][name][item] = true end)
+  self.book.variables[name] = { [name] = { } }
+  lume.each(switched, function(item) self.book.variables[name][name][item] = true end)
 end
 
 function Constructor:addConstant(constant, value)
-  self.model.constants[constant] = lume.deserialize(value)
+  local value = lume.deserialize(value)
+  self.book.constants[constant] = lume.deserialize(value)
 end
 
 function Constructor:addVariable(variable, value)
-  self.model.variables[variable] = lume.deserialize(value)
+  local value = lume.deserialize(value) or self.book.constants[value]
+  self.book.variables[variable] = value
 end
 
 function Constructor:addKnot(knot)
@@ -354,7 +357,7 @@ function Constructor:addKnot(knot)
   self.currentStitch = '_'
 
   local node = { }
-  self.model.tree[self.currentKnot] = { [self.currentStitch] = node }
+  self.book.tree[self.currentKnot] = { [self.currentStitch] = node }
   self.nodesChain = { node }
 end
 
@@ -362,7 +365,7 @@ function Constructor:addStitch(stitch)
   
   -- If a root stitch is empty we need to add a divert to the first stitch in the ink file.
   if self.currentStitch == '_' then
-    local rootStitchNode = self.model.tree[self.currentKnot]._
+    local rootStitchNode = self.book.tree[self.currentKnot]._
     if #rootStitchNode == 0 then
       local divertItem = { divert = stitch }
       table.insert(rootStitchNode, divertItem)  
@@ -372,7 +375,7 @@ function Constructor:addStitch(stitch)
   self.currentStitch = stitch
 
   local node = { }
-  self.model.tree[self.currentKnot][self.currentStitch] = node
+  self.book.tree[self.currentKnot][self.currentStitch] = node
   self.nodesChain = { node }
 end
 

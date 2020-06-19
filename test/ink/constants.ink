@@ -17,4 +17,5 @@ VAR suitcase_location = HALLWAY
 -  secret_agent_location < suitcase_location:
 	The secret agent moves forward.
 	~ secret_agent_location++
+	-> report_progress
 }
