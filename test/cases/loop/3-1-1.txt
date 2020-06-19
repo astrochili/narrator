@@ -19,5 +19,5 @@
 'Tell me about the security system.'
 'It's ancient,' the guard assures you. 'Old as coal.'
 He scratches his head.
-'Well, can't stand around talking all day,' he declares. 
-You thank the guard, and move away. 
+'Well, can't stand around talking all day,' he declares.
+You thank the guard, and move away.

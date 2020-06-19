@@ -10,4 +10,4 @@
 2) 'Tell me about the security system.'
 >) Enough talking
 
-You thank the guard, and move away. 
+You thank the guard, and move away.

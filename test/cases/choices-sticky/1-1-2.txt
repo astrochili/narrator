@@ -4,8 +4,8 @@
 
 You eat another donut.
 
->) Ok, is it fine? 
-2) Ok, it's fine! 
+>) Ok, is it fine?
+2) Ok, it's fine!
 
 Ok, is it fine?
 

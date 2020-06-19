@@ -17,11 +17,11 @@ He told me a joke. I laughed politely.
 He told me a joke. I smiled.
 He told me a joke. I grimaced.
 He told me a joke. I promised myself to not react again.
-He told me a joke. 
-I tossed the coin. Heads. Use RANDOM_SEED()?
-I tossed the coin. Heads. Use RANDOM_SEED()?
-I took a step forward. 
-I took a step forward. 
+He told me a joke.
+I tossed the coin. Heads.
+I tossed the coin. Tails.
+I took a step forward.
+I took a step forward.
 I took a step forward. Then the lights went out. So dark...
 The Ratbear wastes no time and swipes at you.
 The Ratbear scratches into your leg.

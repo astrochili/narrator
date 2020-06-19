@@ -7,7 +7,13 @@
 'It's ancient,' the guard assures you. 'Old as coal.'
 
 1) 'Can I get a uniform from somewhere?'
-2) 'Are there dogs?'
+>) 'Are there dogs?'
+3) Enough talking
+
+'Are there dogs?'
+'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
+
+1) 'Can I get a uniform from somewhere?'
 >) Enough talking
 
-You thank the guard, and move away. 
+You thank the guard, and move away.

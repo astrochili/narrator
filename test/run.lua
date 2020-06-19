@@ -17,7 +17,7 @@ local folderSeparator = package.config:sub(1, 1)
 -- @param case string: a test case
 -- @return string: a path
 local function inkPath(case)  
-  local path = 'test' .. folderSeparator .. 'ink' .. folderSeparator .. case .. '.ink'
+  local path = 'test' .. folderSeparator .. 'cases' .. folderSeparator .. case .. '.ink'
   return path
 end
 
@@ -26,7 +26,7 @@ end
 -- @param answers table: a sequence of answers (numbers)
 -- @return string: a path
 local function txtPath(case, answers)
-  local path = 'test' .. folderSeparator .. 'txt' .. folderSeparator .. case
+  local path = 'test' .. folderSeparator .. 'cases' .. folderSeparator .. case
   if answers and #answers > 0 then
     path = path .. folderSeparator .. table.concat(answers, "-")
   end

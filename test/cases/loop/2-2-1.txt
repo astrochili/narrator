@@ -13,7 +13,11 @@
 'Are there dogs?'
 'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
 
-1) 'Can I get a uniform from somewhere?'
->) Enough talking
+>) 'Can I get a uniform from somewhere?'
+2) Enough talking
 
-You thank the guard, and move away. 
+'Can I get a uniform from somewhere?' you ask the cheerful guard.
+'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
+He scratches his head.
+'Well, can't stand around talking all day,' he declares.
+You thank the guard, and move away.

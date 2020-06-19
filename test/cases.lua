@@ -6,38 +6,38 @@ local folderSeparator = package.config:sub(1, 1)
 local stories = { }
 
 local units = {
-  -- 'includes',
-  -- 'comments',
-  -- 'knots',
-  -- 'stitches',
+  'includes',
+  'comments',
+  'knots',
+  'stitches',
 
-  -- 'text-line',
-  -- 'text-lines',
-  -- 'text-tags',
-  -- 'text-glue',
+  'text-line',
+  'text-lines',
+  'text-tags',
+  'text-glue',
     
-  -- 'choices-basic',
-  -- 'choices-conditional',
-  -- 'choices-sticky'
-  -- 'choices-fallback',  
+  'choices-basic',
+  'choices-conditional',
+  'choices-sticky',
+  'choices-fallback',  
 
-  -- 'branching',
-  -- 'nesting',
-  -- 'labels',
-  -- 'loop'
-  -- 'vars',
-  -- 'constants',
-  -- 'expressions',
-  -- 'queries',
+  'branching',
+  'nesting',
+  'labels',
+  'loop',
+  'vars',
+  'constants',
+  'expressions',
+  'queries',
 
-  -- 'conditions-inline',
-  -- 'alts-inline',
-  -- 'conditions-switch',
-  -- 'alts-blocks',
+  'conditions-inline',
+  'alts-inline',
+  'conditions-switch',
+  'alts-blocks',
   
-  -- 'lists-basic',
-  -- 'lists-operators',
-  -- 'lists-queries',
+  'lists-basic',
+  'lists-operators',
+  'lists-queries',
 }
 
 local runtime = {
