@@ -137,7 +137,7 @@ local function testCase(case)
     local results = getPossibleResults(case)
     for _, result in ipairs(results) do
       describe('Sequence [' .. table.concat(result.sequence, "-") .. '].', function()
-        local txtPath = txtPath(case, #results > 0 and result.sequence or nil)
+        local txtPath = txtPath(case, #results > 1 and result.sequence or nil)
         local file = io.open(txtPath, 'r')
 
         it('Checking results.', function()
@@ -171,5 +171,5 @@ local function testCases(cases)
 end
 
 local cases = require('test.cases')
-generateTxtForCases(cases, true)
--- testCases(cases)
+-- generateTxtForCases(cases, true)
+testCases(cases)
