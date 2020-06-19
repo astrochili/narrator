@@ -14,7 +14,7 @@ local Story = Object:extend()
 function Story:new(book)
   self.tree = book.tree
   self.constants = book.constants
-  self.variables = book.variables
+  self.variables = lume.clone(book.variables)
   self.lists = book.lists
   
   self.listMT = require(libPath .. '.list.mt')
@@ -55,6 +55,8 @@ function Story:continue(steps)
   local lines = { }
   for index = 1, steps do
     local paragraph = self.paragraphs[index]
+    -- TODO: Read raw text with tails and trim them in one place only.
+    paragraph.text = paragraph.text:gsub('^%s*(.-)%s*$', '%1')
     table.insert(lines, paragraph)
     table.insert(self.output, paragraph)
   end
@@ -388,11 +390,11 @@ function Story:readAlts(item, path, depth, mode)
 
   if item.shuffle then
     local seedKey = (path.knot or '_') .. '.' .. (path.stitch or '_') .. ':' .. path.label
-    local seed = visits % #alts == 1 and os.time() or self.seeds[seedKey]
+    local seed = visits % #alts == 1 and (self.debugSeed or os.time() * 1000) or self.seeds[seedKey]
     self.seeds[seedKey] = seed
 
     for index, alt in ipairs(alts) do
-      math.randomseed(tonumber(tostring(seed + index):reverse():sub(1,6)))
+      math.randomseed(seed + index)
 
       local pairIndex = index < #alts and math.random(index, #alts) or index
       alts[index] = alts[pairIndex]
@@ -482,8 +484,16 @@ function Story:checkSwitch(conditions)
 end
 
 function Story:checkCondition(condition)
-  if condition == nil then return true end
+  if condition == nil then
+    return true
+  end
+
   local result = self:doExpression(condition)
+
+  if type(result) == 'table' and not next(result) then
+    result = nil
+  end
+  
   return result ~= nil and result ~= false
 end
 
@@ -501,7 +511,7 @@ function Story:doExpression(expression)
   expression = expression:gsub('%s+hasnt%s+', ' !? ')
   
   -- Replace functions results
-  expression = expression:gsub('[%a_][%w_]*%(.*%)', function(match)
+  expression = expression:gsub('[%a_][%w_]*%b()', function(match)
     local functionName = match:match('([%a_][%w_]*)%(')
     local paramsString = match:match('[%a_][%w_]*%((.+)%)')
     local params = paramsString ~= nil and lume.map(lume.split(paramsString, ','), lume.trim) or nil
@@ -519,12 +529,12 @@ function Story:doExpression(expression)
       else
         return lume.serialize(value)
       end
-    elseif self.lists[functionName] ~= nil and type(params[1]) == 'number' then
-      local item = self.lists[functionName][params[1]]
-      if item ~= nil then
-        lists[#lists + 1] = { [functionName] = { [item] = true } }
-        return '__list' .. #lists
-      end  
+    elseif self.lists[functionName] ~= nil then
+      local index = params and params[1] or 0
+      local item = self.lists[functionName][index]
+      local list = item and { [functionName] = { [item] = true } } or { }
+      lists[#lists + 1] = list
+      return '__list' .. #lists
     end
     
     return 'nil'
@@ -633,6 +643,10 @@ end
 
 function Story:makeListFor(expression)
   local result = { }
+  if not expression:find('%S') then
+    return result
+  end
+
   local items = lume.array(expression:gmatch('[%w_%.]+'))
   
   for _, item in ipairs(items) do
@@ -821,9 +835,12 @@ end
 function Story:inkFunctions()
   return {
     CHOICE_COUNT = function() return #self.choices end,
-    SEED_RANDOM = function(seed) math.randomseed(seed) end,
+    SEED_RANDOM = function(seed) self.debugSeed = seed end,
     POW = function(x, y) return math.pow(x, y) end,
-    RANDOM = function(x, y) return math.random(x, y) end,
+    RANDOM = function(x, y)
+      math.randomseed(self.debugSeed or os.clock() * 1000)
+      return math.random(x, y)
+    end,
     INT = function(x) return math.floor(x) end,
     FLOOR = function(x) return math.floor(x) end,
     FLOAT = function(x) return x end,
@@ -835,7 +852,10 @@ function Story:inkFunctions()
     LIST_COUNT = function(list) return self.listMT.__len(list) end,
     LIST_MIN = function(list) return self.listMT.minValueOf(list) end,
     LIST_MAX = function(list) return self.listMT.maxValueOf(list) end,
-    LIST_RANDOM = function(list) return self.listMT.randomValueOf(list) end,
+    LIST_RANDOM = function(list)
+      math.randomseed(self.debugSeed or os.clock() * 1000)
+      return self.listMT.randomValueOf(list)
+    end,
     LIST_ALL = function(list) return self.listMT.posibleValuesOf(list) end,
     LIST_RANGE = function(list, min, max) return self.listMT.rangeOf(list, min, max) end,
     LIST_INVERT = function(list) return self.listMT.invert(list) end

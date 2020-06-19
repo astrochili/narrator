@@ -26,17 +26,18 @@ local units = {
   -- 'labels',
   -- 'loop'
   -- 'vars',
+  -- 'constants',
   -- 'expressions',
   -- 'queries',
 
   -- 'conditions-inline',
   -- 'alts-inline',
-  'conditions-switch',
-  'alts-blocks',
+  -- 'conditions-switch',
+  -- 'alts-blocks',
   
-  'lists-basic',
-  'lists-enums',
-  'lists-queries',
+  -- 'lists-basic',
+  -- 'lists-operators',
+  -- 'lists-queries',
 }
 
 local runtime = {

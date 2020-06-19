@@ -78,10 +78,10 @@ function Parser.parse(content)
     local tailed = tailed or false
     local character = P(1 - S(' \t')) - excluded
     local pattern = (sp * character ^ 1) ^ 1
-    -- local withSpaceTail = C(pattern * sp) * #((P'{' + divert) - V'multilineItem')
-    -- local withoutSpaceTail = C(pattern * sp)
-    -- return withSpaceTail + withoutSpaceTail
-    return tailed and C(pattern * sp) or C(pattern) * sp
+    local withTail = C(pattern * sp)
+    local withoutTail = C(pattern) * sp
+    local withoutTailAlways = C(pattern) * sp * #(tags + nl)
+    return withoutTailAlways + (tailed and withTail or withoutTail)
   end
 
   local function unwrapAssignment(assignment)
@@ -115,10 +115,10 @@ function Parser.parse(content)
       Ct(V'variable' * itemType('variable'))
     ,
 
-    include = 'INCLUDE' * sp * Cg(sentenceBefore(nl), 'filename'),
-    list = 'LIST' * sp * V'assignmentPair',
-    constant = 'CONST' * sp * V'assignmentPair',
-    variable = 'VAR' * sp * V'assignmentPair',
+    include = 'INCLUDE ' * sp * Cg(sentenceBefore(nl + comment), 'filename'),
+    list = 'LIST ' * sp * V'assignmentPair',
+    constant = 'CONST ' * sp * V'assignmentPair',
+    variable = 'VAR ' * sp * V'assignmentPair',
 
     -- Statements
 
@@ -136,7 +136,7 @@ function Parser.parse(content)
 
     assignment = gatherLevel * sp * '~' * sp * V'assignmentTemp' * sp * V'assignmentPair',
     assignmentTemp = Cg('temp' * Cc(true) + Cc(false), 'temp'),
-    assignmentPair = Cg(sentenceBefore(nl) / unwrapAssignment, 'name') * Cg(Cb('name') / 2, 'value'),
+    assignmentPair = Cg(sentenceBefore(nl + comment) / unwrapAssignment, 'name') * Cg(Cb('name') / 2, 'value'),
 
     choiceCondition = Cg(V'expression' + none, 'condition'),
     choiceFallback = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * (divert + divertToNothing),
@@ -300,9 +300,6 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'constant' then
       -- name, value
       Constructor.addConstant(self, item.name, item.value)
-    elseif item.type == 'variable' then
-      -- name, value
-      Constructor.addVariable(self, item.name, item.value)
     elseif item.type == 'knot' then
       -- knot
       Constructor.addKnot(self, item.knot)
@@ -315,7 +312,7 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'sequence' then
       -- sequence, shuffle, alts
       Constructor.addSequence(self, item.sequence, item.shuffle, item.alts)
-    elseif item.type == 'assignment' then
+    elseif item.type == 'variable' or item.type == 'assignment' then
       -- level, name, value, temp
       Constructor.addAssignment(self, item.level, item.name, item.value, item.temp)
     elseif item.type == 'paragraph' then
@@ -345,11 +342,6 @@ end
 function Constructor:addConstant(constant, value)
   local value = lume.deserialize(value)
   self.book.constants[constant] = lume.deserialize(value)
-end
-
-function Constructor:addVariable(variable, value)
-  local value = lume.deserialize(value) or self.book.constants[value]
-  self.book.variables[variable] = value
 end
 
 function Constructor:addKnot(knot)
@@ -432,7 +424,7 @@ function Constructor:addSequence(sequence, shuffle, alts)
   Constructor.addItem(self, level, item)
 end
 
-function Constructor:addAssignment(level, name, value, temp)  
+function Constructor:addAssignment(level, name, value, temp)
   local item = {
     temp = temp or nil,
     var = name,
@@ -543,10 +535,12 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
     if firstItem.text == nil and firstItem.divert == nil then
       table.insert(items, 1, { text = '' } )
     end
-
+    
     local lastItem = items[#items]
     if lastItem.text == nil and lastItem.divert == nil then
       table.insert(items, { text = '' } )
+    elseif lastItem.text ~= nil and lastItem.divert == nil then
+      lastItem.text = lastItem.text:gsub('(.-)%s*$', '%1')
     end
   end
 

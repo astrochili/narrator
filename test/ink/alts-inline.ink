@@ -17,7 +17,8 @@ He told me a joke. {!I laughed politely.|I smiled.|I grimaced.|I promised myself
 { counter < 20 : -> joke | -> coin}
 
 = coin
-I tossed the coin. {~Heads|Heads}. Use RANDOM_SEED()?
+{ SEED_RANDOM(counter) }
+I tossed the coin. {~Heads|Tails}.
 ~ counter++
 { counter < 22 : -> coin | -> lights}
 

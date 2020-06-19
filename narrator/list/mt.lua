@@ -12,7 +12,15 @@ local mt = { lists = { } }
 function mt.__tostring(self)
   local pool = { }
 
-  for listName, listItems in pairs(self) do
+  local listKeys = { }
+  for key, _ in pairs(self) do
+    table.insert(listKeys, key)
+  end
+  table.sort(listKeys)
+
+  for i = 1, #listKeys do
+    local listName = listKeys[i]
+    local listItems = self[listName]
     for index = 1, #mt.lists[listName] do
       pool[index] = pool[index] or { }
       local itemName = mt.lists[listName][index]
@@ -109,8 +117,32 @@ function mt.__eq(lhs, rhs) -- ==
     error('Attempt to compare the list with ' .. type(rhs))
   end
 
-  for listName, listItems in pairs(lhs) do
-    if rhs[listName] == nil then return false end
+  local function keysCount(object) 
+    local count = 0
+    for _, _ in pairs(object) do
+      count = count + 1
+    end  
+    return count
+  end
+
+  local leftListsCount = keysCount(lhs)
+  local rightListsCount = keysCount(rhs)
+  if leftListsCount ~= rightListsCount then
+    return false
+  end
+
+  for listName, leftItems in pairs(lhs) do
+    local rightItems = rhs[listName]
+    if rightItems == nil then
+      return false
+    end
+
+    local leftItemsCount = keysCount(leftItems)
+    local rightItemsCount = keysCount(rightItems)
+  
+    if leftItemsCount ~= rightItemsCount then
+      return false
+    end
   end
 
   return mt.__mod(lhs, rhs)
@@ -121,12 +153,12 @@ function mt.__lt(lhs, rhs) -- <
     error('Attempt to compare the list with ' .. type(rhs))
   end
 
-  -- LEFT < RIGHT means "the smallest value in LEFT is bigger than the largest values in RIGHT"
+  -- LEFT < RIGHT means "the smallest value in RIGHT is bigger than the largest values in LEFT"
   
   local minLeft = mt.minValueOf(lhs, true)
   local maxRight = mt.maxValueOf(rhs, true)
 
-  return minLeft > maxRight
+  return minLeft < maxRight
 end
 
 function mt.__le(lhs, rhs) -- <=
@@ -134,8 +166,8 @@ function mt.__le(lhs, rhs) -- <=
     error('Attempt to compare the list with ' .. type(rhs))
   end
 
-  -- LEFT <= RIGHT means "the smallest value in RIGHT is at least the smallest value in LEFT,
-  --            and the largest value in RIGHT is at least the largest value in LEFT".
+  -- LEFT => RIGHT means "the smallest value in RIGHT is at least the smallest value in LEFT,
+  --                  and the largest value in RIGHT is at least the largest value in LEFT".
 
   local minRight = mt.minValueOf(rhs, true)
   local minLeft = mt.minValueOf(lhs, true)
@@ -166,8 +198,8 @@ function mt.__subList(lhs, rhs)
 
   for listName, listItems in pairs(rhs) do
     if lhs[listName] ~= nil then
-      for itemName, itemValue in pairs(listItems) do
-        lhs[listName][itemValue] = nil
+      for itemName, _ in pairs(listItems) do
+        lhs[listName][itemName] = nil
       end  
     end
   end
@@ -212,7 +244,15 @@ function mt.minValueOf(list, raw)
   local minIndex = 0
   local minValue = { }
 
-  for listName, listItems in pairs(list) do
+  local listKeys = { }
+  for key, _ in pairs(list) do
+    table.insert(listKeys, key)
+  end
+  table.sort(listKeys)
+
+  for i = 1, #listKeys do
+    local listName = listKeys[i]
+    local listItems = list[listName]
     for itemName, itemValue in pairs(listItems) do
       if itemValue == true then
         local index = lume.find(mt.lists[listName], itemName)
@@ -231,7 +271,15 @@ function mt.maxValueOf(list, raw)
   local maxIndex = 0
   local maxValue = { }
 
-  for listName, listItems in pairs(list) do
+  local listKeys = { }
+  for key, _ in pairs(list) do
+    table.insert(listKeys, key)
+  end
+  table.sort(listKeys)
+
+  for i = 1, #listKeys do
+    local listName = listKeys[i]
+    local listItems = list[listName]
     for itemName, itemValue in pairs(listItems) do
       if itemValue == true then
         local index = lume.find(mt.lists[listName], itemName)
@@ -249,16 +297,31 @@ end
 function mt.randomValueOf(list)
   local items = { }
 
-  for listName, listItems in pairs(list) do
-    for itemName, itemValue in pairs(listItems) do
+  local listKeys = { }
+  for key, _ in pairs(list) do
+    table.insert(listKeys, key)
+  end
+  table.sort(listKeys)
+
+  for i = 1, #listKeys do
+    local listName = listKeys[i]
+    local listItems = list[listName]
+    local itemsKeys = { }
+    for key, _ in pairs(listItems) do
+      table.insert(itemsKeys, key)
+    end    
+    table.sort(itemsKeys)
+
+    for i = 1, #itemsKeys do
+      local itemName = itemsKeys[i]
+      local itemValue = listItems[itemName]
       if itemValue == true then
         local result = { [listName] = { [itemName] = true } }
-        table.insert(result)
+        table.insert(items, result)
       end
     end
   end
 
-  math.randomseed(os.time)
   local randomIndex = math.random(1, #items)
   return items[randomIndex]
 end
@@ -296,15 +359,24 @@ function mt.posibleValuesOf(list)
 end
 
 function mt.rangeOf(list, min, max)
-  local result = mt.posibleValuesOf(list)
+  if type(min) ~= 'table' and type(min) ~= 'number' then
+    error('Attempt to get a range with incorrect min value of type ' .. type(min))
+  end
+  if type(max) ~= 'table' and type(max) ~= 'number' then
+    error('Attempt to get a range with incorrect max value of type ' .. type(max))
+  end
 
-  for listName, listItems in pairs(list) do
+  local result = { }
+  local allList = mt.posibleValuesOf(list)
+  local minIndex = type(min) == 'number' and min or mt.firstRawValueOf(min)
+  local maxIndex = type(max) == 'number' and max or mt.firstRawValueOf(max)
+
+  for listName, listItems in pairs(allList) do
     for itemName, itemValue in pairs(listItems) do
-      if itemValue == true then
-        local index = lume.find(mt.lists[listName], itemName)
-        if index and index < min or index > max then
-          result[listName][itemName] = nil
-        end
+      local index = lume.find(mt.lists[listName], itemName)
+      if index and index >= minIndex and index <= maxIndex and list[listName][itemName] == true then
+        result[listName] = result[listName] or { }
+        result[listName][itemName] = true
       end
     end
   end
