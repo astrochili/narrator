@@ -100,8 +100,8 @@ function Story:choose(index)
     table.insert(self.paragraphs, { text = choice.text })
   end
 
+  self:visit(choice.path)
   if choice.divert ~= nil then
-    self:visit(choice.path)
     self:readDivert(choice.divert)
   else
     self:readPath(choice.path)

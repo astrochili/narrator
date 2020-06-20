@@ -2,49 +2,49 @@
 -- Test cases
 
 local runtime = {
-  -- 'continue',
-  -- 'observing',
-  -- 'binding',
-  -- 'set-get',
+  'continue',
+  'observing',
+  'binding',
+  'set-get',
   'visits',
-  -- 'tags',
-  -- 'jumping',
-  -- 'save-load'
+  'tags',
+  'jumping',
+  'save-load'
 }
 
 local units = {
-  -- 'includes',
-  -- 'comments',
-  -- 'knots',
-  -- 'stitches',
+  'includes',
+  'comments',
+  'knots',
+  'stitches',
 
-  -- 'text-line',
-  -- 'text-lines',
-  -- 'text-tags',
-  -- 'text-glue',
+  'text-line',
+  'text-lines',
+  'text-tags',
+  'text-glue',
     
-  -- 'choices-basic',
-  -- 'choices-conditional',
-  -- 'choices-sticky',
-  -- 'choices-fallback',  
+  'choices-basic',
+  'choices-conditional',
+  'choices-sticky',
+  'choices-fallback',  
 
-  -- 'branching',
-  -- 'nesting',
+  'branching',
+  'nesting',
   'labels',
   'loop',
-  -- 'vars',
-  -- 'constants',
-  -- 'expressions',
-  -- 'queries',
+  'vars',
+  'constants',
+  'expressions',
+  'queries',
 
-  -- 'conditions-inline',
-  -- 'alts-inline',
-  -- 'conditions-switch',
-  -- 'alts-blocks',
+  'conditions-inline',
+  'alts-inline',
+  'conditions-switch',
+  'alts-blocks',
   
-  -- 'lists-basic',
-  -- 'lists-operators',
-  -- 'lists-queries',
+  'lists-basic',
+  'lists-operators',
+  'lists-queries',
 }
 
 local stories = {
