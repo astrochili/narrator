@@ -14,19 +14,19 @@ local lume = require('narrator.libs.lume')
 local folderSeparator = package.config:sub(1, 1)
 
 --- Make path fot ink
--- @param case string: a test case
+-- @param case string: an Ink test case
 -- @return string: a path
 local function inkPath(case)  
-  local path = 'test' .. folderSeparator .. 'cases' .. folderSeparator .. case .. '.ink'
+  local path = 'test' .. folderSeparator .. case .. '.ink'
   return path
 end
 
 --- Make path fot txt
--- @param case string: a test case
+-- @param case string: an Ink test case
 -- @param answers table: a sequence of answers (numbers)
 -- @return string: a path
 local function txtPath(case, answers)
-  local path = 'test' .. folderSeparator .. 'cases' .. folderSeparator .. case
+  local path = 'test' .. folderSeparator .. case
   if answers and #answers > 0 then
     path = path .. folderSeparator .. table.concat(answers, "-")
   end
@@ -35,7 +35,7 @@ local function txtPath(case, answers)
 end
 
 --- Get all possible sequences and logs of the case
--- @param case string: a test case
+-- @param case string: an Ink test case
 -- @return table: an array of possible games { sequence, log }
 local function getPossibleResults(case)
   local path = inkPath(case)
@@ -95,10 +95,10 @@ local function getPossibleResults(case)
   return results
 end
 
---- Generate possible results for a test case and save them to txt files
--- @param case string: a test case
+--- Create possible results for an Ink test case and save them to txt files
+-- @param case string: an Ink test case
 -- @param override bool: override a txt file if it already exists.
-local function generateTxtForCase(case, override)
+local function createTxtForInkCase(case, override)
   local override = override ~= nil and override or false
   local results = getPossibleResults(case)
   
@@ -127,10 +127,19 @@ local function generateTxtForCase(case, override)
   end
 end
 
---- Test the case
--- @param case string: a test case
-local function testCase(case)
-  describe('Test case \'' .. case .. '\'.', function()
+--- Create possible results for Ink test cases and save them to txt files
+-- @param cases table: an array of Ink test cases
+-- @param override bool: override the txt file if it already exists
+local function createTxtForInkCases(cases, override)
+  for _, case in ipairs(cases) do
+    createTxtForInkCase(case, override)
+  end
+end
+
+--- Test an Ink case
+-- @param case string: an Ink test case
+local function testInkCase(case)
+  describe('Test Ink case \'' .. case .. '\'.', function()
     local path = inkPath(case)
     local book = narrator.parseFile(path)
 
@@ -153,23 +162,35 @@ local function testCase(case)
   end)
 end
 
---- Generate possible results for test cases and save them to txt files
+--- Test Ink cases
 -- @param cases table: an array of test cases
--- @param override bool: override the txt file if it already exists
-local function generateTxtForCases(cases, override)
+local function testInkCases(cases)
   for _, case in ipairs(cases) do
-    generateTxtForCase(case, override)
+    testInkCase(case)
   end
 end
 
---- Test the cases
--- @param cases table: an array of test cases
-local function testCases(cases)
+--- Test a runtime case
+-- @param case string: a runtime test case
+local function testLuaCase(case)
+  
+end
+
+--- Test runtime cases
+-- @param cases table: an array of runtime test cases
+local function testLuaCases(cases)
   for _, case in ipairs(cases) do
-    testCase(case)
+    testLuaCase(case)
   end
 end
 
 local cases = require('test.cases')
--- generateTxtForCases(cases, true)
-testCases(cases)
+
+local runtime = cases.runtime
+local units = cases.units
+local stories = cases.stories
+
+-- createTxtForInkCases(units, true)
+testLuaCases(runtime)
+testInkCases(units)
+testInkCases(stories)

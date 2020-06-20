@@ -1,9 +1,15 @@
 --
 -- Test cases
 
-local folderSeparator = package.config:sub(1, 1)
-
-local stories = { }
+local runtime = {
+  'continue',
+  -- 'knot-global-tags',
+  -- 'set-get-var-visits',
+  -- 'jumping',
+  -- 'observing',
+  -- 'binding',
+  -- 'save-load'
+}
 
 local units = {
   'includes',
@@ -40,26 +46,23 @@ local units = {
   'lists-queries',
 }
 
-local runtime = {
-  -- 'continue',
-  -- 'knot-tags',
-  -- 'globa-tags',
-  -- 'set-get',
-  -- 'visits',
-  -- 'jumping',
-  -- 'observing',
-  -- 'binding',
-  -- 'save-load'
+local stories = {
+  -- No complex stories at the moment
 }
 
-local cases = { }
+local cases = {
+  runtime = runtime,
+  units = units,
+  stories = stories
+}
 
-for _, story in ipairs(stories) do
-  table.insert(cases, story)
-end
-
-for _, unit in ipairs(units) do
-  table.insert(cases, unit)
+local folderSeparator = package.config:sub(1, 1)
+for folderName, folderCases in pairs(cases) do
+  local itemsWithFoldes = { }
+  for _, case in ipairs(folderCases) do
+    table.insert(itemsWithFoldes, folderName .. folderSeparator .. case)
+  end
+  cases[folderName] = itemsWithFoldes
 end
 
 return cases
