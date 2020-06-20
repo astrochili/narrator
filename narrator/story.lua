@@ -20,7 +20,7 @@ function Story:new(book)
   self.listMT = require(libPath .. '.list.mt')
   self.listMT.lists = self.lists
 
-  self.version = book.constants.tree or 0
+  self.version = book.constants.version or 0
   self.migrate = function(state, oldVersion, newVersion) return state end
 
   self.functions = self:inkFunctions()
@@ -48,7 +48,10 @@ function Story:canContinue()
 end
 
 function Story:continue(steps)
-  if not self:canContinue() then return nil end
+  if not self:canContinue() then
+    return nil
+  end
+
   local steps = steps or 0
   steps = steps > 0 and steps or #self.paragraphs
 
@@ -72,12 +75,18 @@ function Story:canChoose()
 end
 
 function Story:getChoices()
-  if self:canContinue() then return nil end
+  if self:canContinue() then
+    return nil
+  end
+
   return self.choices
 end
 
 function Story:choose(index)
-  if self:canContinue() then return nil end
+  if self:canContinue() then
+    return nil
+  end
+  
   local choiceIsAvailable = index > 0 and index <= #self.choices
   assert(choiceIsAvailable, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
 
@@ -184,10 +193,14 @@ function Story:readPath(path)
   if self.isOver then
     return
   end
-  
-  local items = self:itemsFor(path.knot, path.stitch)
-  self:visit(path)
 
+  -- Visit only the paths without labels.
+  -- Items with labels will increment visits counter by themself in readItems().
+  if not path.label then
+    self:visit(path)
+  end
+
+  local items = self:itemsFor(path.knot, path.stitch)
   self:readItems(items, path)
 end
 
@@ -625,17 +638,28 @@ end
 
 function Story:getValueFor(variable)
   local result = self.temp[variable]
-  if result == nil then result = self.variables[variable] end
-  if result == nil then result = self.constants[variable] end
-  if result == nil then result = self:makeListFor(variable) end
-  if result == nil then result = self:getVisitsFor(variable) end
+  
+  if result == nil then
+    result = self.variables[variable]
+  end
+  if result == nil then
+    result = self.constants[variable]
+  end
+  if result == nil then
+    result = self:makeListFor(variable)
+  end
+  if result == nil then
+    local visits = self:getVisitsFor(variable)
+    result = visits > 0 and visits or nil
+  end
+
   return result
 end
 
 function Story:getVisitsFor(pathString)
   local path = self:pathFromString(pathString, self.currentPath)
   local visitsCount = self:visitsFor(path)
-  return visitsCount > 0 and visitsCount or nil
+  return visitsCount
 end
 
 
@@ -774,6 +798,12 @@ end
 -- Tags
 
 function Story:tagsFor(knot, stitch)
+  if knot and knot:find('%.') then
+    local path = self:pathFromString(knot)
+    knot = path.knot
+    stitch = path.stitch
+  end
+
   local items = self:itemsFor(knot, stitch)
   local tags = { }
 
@@ -791,11 +821,12 @@ end
 
 function Story:saveState()
   local state = {
+    version = self.version,
     temp = self.temp,
     seeds = self.seeds,
     variables = self.variables,
     visits = self.visits,
-    currentPath = self.currentPath,
+    path = self.currentPath,
     paragraphs = self.paragraphs,
     choices = self.choices,
     output = self.output
@@ -815,7 +846,7 @@ function Story:loadState(state)
   self.currentPath = state.path
   self.paragraphs = state.paragraphs
   self.choices = state.choices
-  self.output = output
+  self.output = state.output
 end
 
 

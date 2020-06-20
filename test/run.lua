@@ -3,7 +3,7 @@
 
 require('busted.runner')()
 
-if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+if os.getenv('LOCAL_LUA_DEBUGGER_VSCODE') == '1' then
   require("lldebugger").start()
 end
 
@@ -12,21 +12,28 @@ local narrator = require('narrator')
 local lume = require('narrator.libs.lume')
 
 local folderSeparator = package.config:sub(1, 1)
+local testsFolder = 'test' .. folderSeparator
 
---- Make path fot ink
--- @param case string: an Ink test case
--- @return string: a path
-local function inkPath(case)  
-  local path = 'test' .. folderSeparator .. case .. '.ink'
-  return path
+--- Make path for a .lua file
+-- @param case string: an runtime test case
+-- @return string: a .lua path
+local function luaPath(case)
+  return testsFolder .. case .. '.lua'
 end
 
---- Make path fot txt
+--- Make path for an .ink file
+-- @param case string: an Ink test case
+-- @return string: an .ink path
+local function inkPath(case)
+  return testsFolder .. case .. '.ink'
+end
+
+--- Make path for a .txt file
 -- @param case string: an Ink test case
 -- @param answers table: a sequence of answers (numbers)
--- @return string: a path
+-- @return string: a .txt path
 local function txtPath(case, answers)
-  local path = 'test' .. folderSeparator .. case
+  local path = testsFolder .. case
   if answers and #answers > 0 then
     path = path .. folderSeparator .. table.concat(answers, "-")
   end
@@ -139,13 +146,13 @@ end
 --- Test an Ink case
 -- @param case string: an Ink test case
 local function testInkCase(case)
-  describe('Test Ink case \'' .. case .. '\'.', function()
+  describe('Test an Ink case \'' .. case .. '\'.', function()
     local path = inkPath(case)
     local book = narrator.parseFile(path)
 
     local results = getPossibleResults(case)
     for _, result in ipairs(results) do
-      describe('Sequence [' .. table.concat(result.sequence, "-") .. '].', function()
+      describe('Sequence is [' .. table.concat(result.sequence, "-") .. '].', function()
         local txtPath = txtPath(case, #results > 1 and result.sequence or nil)
         local file = io.open(txtPath, 'r')
 
@@ -173,7 +180,10 @@ end
 --- Test a runtime case
 -- @param case string: a runtime test case
 local function testLuaCase(case)
-  
+  describe('Test a runtime case \'' .. case .. '\'.', function()
+    local luaPath = luaPath(case)
+    loadfile(luaPath)(narrator, describe, it, assert)
+  end)
 end
 
 --- Test runtime cases
