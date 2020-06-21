@@ -57,13 +57,6 @@ while story:canContinue() do
 end
 ```
 
-## Roadmap
-
-- The Defold extension
-- More documented and commented code
-- Performance optimization and refactoring
-- Remain features support
-
 ## Supported features
 
 - [x] Comments: singleline, multiline, todo's
@@ -82,17 +75,7 @@ end
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
 
-## Unsupported features
-
-- [ ] Tunnels
-- [ ] Threads
-- [ ] Knots and stitches can take parameters and return values
-- [ ] Storing divert targets in variables
-- [ ] Assigning string evaluations with alternatives and conditions to variables
-- [ ] Choice's title can contain inline conditions and alternatives
-- [ ] Choice can have few conditions like ```* { a } { b } ```. *Solution*: use ```* { a && b } ``` instead.
-- [ ] Game queries ```TURNS()``` and ```TURNS_SINCE()```
-- [ ] Defining your own numerical values in a list.
+A list with known limitations and features to implement is available in the [roadmap](ROADMAP.md).
 
 ## Dependencies
 
