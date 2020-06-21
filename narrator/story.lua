@@ -11,6 +11,9 @@ local Object = require(libPath .. '.libs.classic')
 
 local Story = Object:extend()
 
+--
+-- Initialization
+
 function Story:new(book)
   self.tree = book.tree
   self.constants = book.constants
@@ -25,7 +28,7 @@ function Story:new(book)
 
   self.functions = self:inkFunctions()
   self.observers = { }
-  self.globalTags = self:tagsFor(nil, nil)
+  self.globalTags = self:getTags()
 
   self.temp = { }
   self.seeds = { }
@@ -37,28 +40,41 @@ function Story:new(book)
   self.isOver = false
 end
 
+--
+-- Public
+
+--- Start a story.
+-- Generate the first chunk of paragraphs and choices.
 function Story:begin()
   if #self.paragraphs == 0 and #self.choices == 0 and not self.isOver then
     self:readPath({ })
   end
 end
 
+--- Does the story have paragraphs to output or not.
+-- @return bool: can continue or not
 function Story:canContinue()
   return #self.paragraphs > 0
 end
 
+--- Get all the current paragraphs or pull them step by step.
+-- @param steps number: count of paragraphs to get. 
+-- @return table: an array of paragraphs
 function Story:continue(steps)
+  local lines = { }
+
   if not self:canContinue() then
-    return nil
+    return lines
   end
 
   local steps = steps or 0
-  steps = steps > 0 and steps or #self.paragraphs
+  local singleMode = steps == 1
 
-  local lines = { }
+  steps = steps > 0 and steps or #self.paragraphs
+  steps = steps > #self.paragraphs and #self.paragraphs or steps
+
   for index = 1, steps do
     local paragraph = self.paragraphs[index]
-    -- TODO: Read raw text with tails and trim them in one place only.
     paragraph.text = paragraph.text:gsub('^%s*(.-)%s*$', '%1')
     table.insert(lines, paragraph)
     table.insert(self.output, paragraph)
@@ -67,24 +83,38 @@ function Story:continue(steps)
     table.remove(self.paragraphs, 1)
   end
 
-  return lines
+  return singleMode and lines[1] or lines
 end
 
+--- Does the story have choices to output or not.
+-- Also returns false if there are available paragraphs to continue.
+-- @return bool: has choices or not
 function Story:canChoose()
   return self.choices ~= nil and #self.choices > 0 and not self:canContinue()
 end
 
+--- Returns an array of available choice titles. 
+-- Also returns an empty array if there are available paragraphs to continue.
+-- @return table: an array of choice titles
 function Story:getChoices()
+  local choices = { }
+
   if self:canContinue() then
-    return nil
+    return choices
+  end
+  
+  for _, choice in ipairs(self.choices) do
+    table.insert(choices, choice.title)
   end
 
-  return self.choices
+  return choices
 end
 
+--- Make a choice to continue the story.
+-- @param index number: an index of the choice
 function Story:choose(index)
   if self:canContinue() then
-    return nil
+    return
   end
   
   local choiceIsAvailable = index > 0 and index <= #self.choices
@@ -102,30 +132,23 @@ function Story:choose(index)
 
   self:visit(choice.path)
   if choice.divert ~= nil then
-    self:readDivert(choice.divert)
+    self:jumpTo(choice.divert)
   else
     self:readPath(choice.path)
   end
 end
 
-function Story:itemsFor(knot, stitch)
-  local rootNode = self.tree
-  local knotNode = knot == nil and rootNode._ or rootNode[knot]
-  assert(knotNode or lume.isarray(rootNode), 'The knot \'' .. (knot or '_') .. '\' not found')
-  local stitchNode = stitch == nil and knotNode._ or knotNode[stitch]
-  assert(stitchNode or lume.isarray(knotNode), 'The stitch \'' .. (knot or '_') .. '.' .. (stitch or '_') .. '\' not found')
-  return stitchNode or knotNode or rootNode
-end
+--- Jumps to the path
+-- @param pathString string: a path string like 'knot.stitch.label'
+function Story:jumpTo(pathString)
+  assert(pathString, 'The pathString can\'t be nil')
 
-function Story:readDivert(divert)
-  assert(divert, 'The reading divert can\'t be nil')
-
-  if divert == 'END' or divert == 'DONE' then
+  if pathString == 'END' or pathString == 'DONE' then
     self.isOver = true
     return
   end
 
-  local path = self:pathFromString(divert, self.currentPath)
+  local path = self:pathFromString(pathString, self.currentPath)
 
   if path.label ~= nil then
     path.chain = self:pathChainForLabel(path)
@@ -134,6 +157,86 @@ function Story:readDivert(divert)
   self:readPath(path)
 end
 
+--- Returns the number of visits to the path.
+-- @param pathString string: a path string like 'knot.stitch.label'
+function Story:getVisits(pathString, context)
+  local path = self:pathFromString(pathString, context)
+  local visitsCount = self:getVisitsForPath(path)
+  return visitsCount
+end
+
+--- Get tags for the path
+-- @param pathString string: a path string with knot or stitch
+-- @return table: an array of tags
+function Story:getTags(pathString)
+  local path = self:pathFromString(pathString)
+  local items = self:itemsFor(path.knot, path.stitch)
+  local tags = { }
+
+  for _, item in ipairs(items) do
+    if type(item) == 'table' and lume.count(item) > 1 or item.tags == nil then break end
+    local itemTags = type(item.tags) == 'string' and { item.tags } or item.tags
+    tags = lume.concat(tags, itemTags)
+  end
+
+  return tags
+end
+
+--- Returns a table with the story state that can be saved and restored later.
+-- Use it to save the game.
+-- @return table: a story's state
+function Story:saveState()
+  local state = {
+    version = self.version,
+    temp = self.temp,
+    seeds = self.seeds,
+    variables = self.variables,
+    visits = self.visits,
+    path = self.currentPath,
+    paragraphs = self.paragraphs,
+    choices = self.choices,
+    output = self.output
+  }
+  return state
+end
+
+--- Restores a story's state from the saved before state.
+-- Use it to load the game.
+-- @param state table: a saved before state
+function Story:loadState(state)
+  if self.version ~= state.version then
+    state = self.migrate(state, state.version, self.version)
+  end
+
+  self.temp = state.temp
+  self.seeds = state.seeds
+  self.variables = state.variables
+  self.visits = state.visits
+  self.currentPath = state.path
+  self.paragraphs = state.paragraphs
+  self.choices = state.choices
+  self.output = state.output
+end
+
+--- Assigns an observer function to the variable's changes.
+-- @param variable string: a name of the Ink variable
+-- @param observer function: an observer function
+function Story:observe(variable, observer)
+  self.observers[variable] = observer
+end
+
+
+--- Binds a function to external calling from the Ink.
+-- The function can returns the value or not.
+-- @param funcName string: a name of the function used in the Ink content
+-- @param handler function: a name of the function used in the Ink content
+function Story:bind(funcName, handler)
+  self.functions[funcName] = handler
+end
+
+
+--
+-- Private
 
 function Story:pathChainForLabel(path)
   local label = path.label
@@ -202,6 +305,15 @@ function Story:readPath(path)
 
   local items = self:itemsFor(path.knot, path.stitch)
   self:readItems(items, path)
+end
+
+function Story:itemsFor(knot, stitch)
+  local rootNode = self.tree
+  local knotNode = knot == nil and rootNode._ or rootNode[knot]
+  assert(knotNode or lume.isarray(rootNode), 'The knot \'' .. (knot or '_') .. '\' not found')
+  local stitchNode = stitch == nil and knotNode._ or knotNode[stitch]
+  assert(stitchNode or lume.isarray(knotNode), 'The stitch \'' .. (knot or '_') .. '.' .. (stitch or '_') .. '\' not found')
+  return stitchNode or knotNode or rootNode
 end
 
 function Story:readItems(items, path, depth, mode)
@@ -383,7 +495,7 @@ function Story:readText(item)
   end
 
   if item.divert ~= nil then
-    self:readDivert(item.divert)
+    self:jumpTo(item.divert)
     return enums.readMode.quit
   end
 end
@@ -398,7 +510,7 @@ function Story:readAlts(item, path, depth, mode)
   end
 
   self:visit(path)
-  local visits = self:visitsFor(path)
+  local visits = self:getVisitsForPath(path)
   local index = 0
 
   if item.shuffle then
@@ -436,7 +548,7 @@ function Story:readChoice(item, path)
     -- Works correctly only when a fallback is the last choice
     if #self.choices == 0 then
       if item.divert ~= nil then
-        self:readDivert(item.divert)
+        self:jumpTo(item.divert)
       else
         self:readPath(path)
       end
@@ -454,7 +566,7 @@ function Story:readChoice(item, path)
     path = path
   }
 
-  if item.sticky or self:visitsFor(path) == 0 then
+  if item.sticky or self:getVisitsForPath(path) == 0 then
     table.insert(self.choices, #self.choices + 1, choice)
   end
 end
@@ -649,17 +761,11 @@ function Story:getValueFor(variable)
     result = self:makeListFor(variable)
   end
   if result == nil then
-    local visits = self:getVisitsFor(variable)
+    local visits = self:getVisits(variable, self.currentPath)
     result = visits > 0 and visits or nil
   end
 
   return result
-end
-
-function Story:getVisitsFor(pathString)
-  local path = self:pathFromString(pathString, self.currentPath)
-  local visitsCount = self:visitsFor(path)
-  return visitsCount
 end
 
 
@@ -738,7 +844,7 @@ function Story:visit(path)
   self.temp = pathIsChanged and { } or self.temp
 end
 
-function Story:visitsFor(path)
+function Story:getVisitsForPath(path)
   if path == nil then return 0 end
   local knot, stitch, label = path.knot or '_', path.stitch, path.label
   if stitch == nil and label ~= nil then stitch = '_' end
@@ -756,108 +862,96 @@ function Story:visitsFor(path)
 end
 
 function Story:pathFromString(pathString, context)
+  local pathString = pathString or ''
+  local contextKnot = context and context.knot
+  local contextStitch = context and context.stitch
+  
+  contextKnot = contextKnot or '_'
+  contextStitch = contextStitch or '_'
+
+  -- Try to parse 'part1.part2.part3'
   local part1, part2, part3 = pathString:match('([%w_]+)%.([%w_]+)%.([%w_]+)')
-  if part1 == nil then
+  
+  if not part1 then
+    -- Try to parse 'part1.part2'
     part1, part2 = pathString:match('([%w_]+)%.([%w_]+)')
-    part1 = part1 or pathString
   end
 
-  if part3 ~= nil or context == nil then 
-    return { knot = part1, stitch = part2, label = part3 }
+  if not part1 then
+    -- Try to parse 'part1'
+    part1 = #pathString > 0 and pathString or nil
   end
 
-  local path = { knot = context.knot, stitch = context.stitch }
-  local rootNode = self.tree[path.knot or '_']
-  local knotNode = part1 ~= nil and self.tree[part1] or nil
+  local path = { }
+  
+  if not part1 then
+    -- Path is empty
+    return path
+  end
 
-  if part2 ~= nil then
-    if knotNode ~= nil then
+  if part3 then
+    -- Path is 'part1.part2.part3'
+    path.knot = part1
+    path.stitch = part2
+    path.label = part3
+    return path
+  end
+  
+  if part2 then
+    -- Path is 'part1.part2'
+
+    if self.tree[part1] and self.tree[part1][part2] then
+      -- Knot 'part1' and stitch 'part2' exist so return part1.part2
       path.knot = part1
-      if knotNode[part2] ~= nil then path.stitch = part2
-      else path.label = part2 end
-    elseif rootNode ~= nil and rootNode[part1] ~= nil then
-      path.stitch = part1
-      path.label = part2
-    else
-      path.label = part2
+      path.stitch = part2
+      return path
     end
-  elseif part1 ~= nil then
-    if knotNode ~= nil then
-      path.knot = part1
-      path.stitch = nil
-    elseif rootNode ~= nil and rootNode[part1] ~= nil then
+    
+    if self.tree[contextKnot][part1] then
+      -- Stitch 'part1' exists so return contextKnot.part1.part2
+      path.knot = contextKnot
       path.stitch = part1
-    else
-      path.label = part1
+      path.label = part2
+      return path
+    end
+    
+    if self.tree[part1] then
+      -- Knot 'part1' exists so seems it's a label with a root stitch
+      path.knot = part1
+      path.stitch = '_'     
+      path.label = part2
+      return path
+    end
+
+    if self.tree._[part1] then
+      -- Root stitch 'part1' exists so return _.part1.part2
+      path.knot = '_'
+      path.stitch = part1
+      path.label = part2
+      return path
     end
   end
   
+  if part1 then
+    -- Path is 'part1'
+    if self.tree[contextKnot][part1] then
+      -- Stitch 'part1' exists so return contextKnot.part1
+      path.knot = contextKnot
+      path.stitch = part1
+      return path
+    elseif self.tree[part1] then
+      -- Knot 'part1' exists so return part1
+      path.knot = part1
+      return path
+    else
+      -- Seems it's a label
+      path.knot = contextKnot
+      path.stitch = contextStitch
+      path.label = part1
+    end    
+  end
+
   return path
-end
-
--- Tags
-
-function Story:tagsFor(knot, stitch)
-  if knot and knot:find('%.') then
-    local path = self:pathFromString(knot)
-    knot = path.knot
-    stitch = path.stitch
-  end
-
-  local items = self:itemsFor(knot, stitch)
-  local tags = { }
-
-  for _, item in ipairs(items) do
-    if type(item) == 'table' and lume.count(item) > 1 or item.tags == nil then break end
-    local itemTags = type(item.tags) == 'string' and { item.tags } or item.tags
-    tags = lume.concat(tags, itemTags)
-  end
-
-  return tags
-end
-
-
--- States
-
-function Story:saveState()
-  local state = {
-    version = self.version,
-    temp = self.temp,
-    seeds = self.seeds,
-    variables = self.variables,
-    visits = self.visits,
-    path = self.currentPath,
-    paragraphs = self.paragraphs,
-    choices = self.choices,
-    output = self.output
-  }
-  return state
-end
-
-function Story:loadState(state)
-  if self.version ~= state.version then
-    state = self.migrate(state, state.version, self.version)
-  end
-
-  self.temp = state.temp
-  self.seeds = state.seeds
-  self.variables = state.variables
-  self.visits = state.visits
-  self.currentPath = state.path
-  self.paragraphs = state.paragraphs
-  self.choices = state.choices
-  self.output = state.output
-end
-
-
--- Reactive
-
-function Story:observe(variable, observer)
-  self.observers[variable] = observer
-end
-
-function Story:bind(name, func)
-  self.functions[name] = func
 end
 
 

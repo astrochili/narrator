@@ -48,7 +48,7 @@ it('Loading.', function()
   assert.are.same(story.currentPath, expectedPath)
   assert.equal(story.variables['x'], 2)
   assert.equal(story.temp['y'], 3)
-  assert.equal(story:visitsFor('hello'), 1)
+  assert.equal(story:getVisits('hello'), 1)
   assert.equal(#story.output, 2)
 
   local paragraphs = story:continue()

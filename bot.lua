@@ -45,7 +45,7 @@ function Bot.play(story, instructor, params)
     output('')
     for i, choice in ipairs(choices) do
       local prefix = (i == answer and '>' or i) .. ') '
-      local text = prefix .. choice.title
+      local text = prefix .. choice
       output(text)
     end
     output('')

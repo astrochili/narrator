@@ -23,17 +23,20 @@ local paragraphs = story:continue()
 it('Global tags.', function()  
   local expected = { 'global tag 1', 'global tag 2', 'global tag 3' }
   assert.are.same(expected, story.globalTags)
+  
+  local globalTags = story:getTags()
+  assert.are.same(expected, globalTags)
 end)
 
 it('Knot tags.', function()
   local expected = { 'knot tag' }
-  local knotTags = story:tagsFor('knot')
+  local knotTags = story:getTags('knot')
   assert.are.same(expected, knotTags)
 end)
 
 it('Stitch tags.', function()
   local expected = { 'stitch tag' }
-  local stitchTags = story:tagsFor('knot.stitch')
+  local stitchTags = story:getTags('knot.stitch')
   assert.are.same(expected, stitchTags)
 end)
 

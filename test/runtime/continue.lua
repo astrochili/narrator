@@ -14,9 +14,9 @@ local story = narrator.initStory(book)
 
 story:begin()
 
-it('Get a paragraph.', function()
-  local paragraphs = story:continue(1)
-  assert.equal(#paragraphs, 1)
+it('Get one paragraph.', function()
+  local paragraph = story:continue(1)
+  assert.equal(paragraph.text, 'Line 1')
 end)
 
 it('Get two paragraphs.', function()

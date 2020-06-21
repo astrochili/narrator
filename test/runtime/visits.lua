@@ -8,7 +8,7 @@ local content = [[
   = stitch
   + Go to label -> label
   - (label) Some text
-  + (choice) Go to root -> _
+  + (choice) Go to root -> _._
 ]]
 
 local book = narrator.parseBook(content)
@@ -18,11 +18,11 @@ story:begin()
 
 local function visits()
   local visits = {
-    root = story:getVisitsFor('_._'),
-    knot = story:getVisitsFor('knot'),
-    stitch = story:getVisitsFor('knot.stitch'),
-    label = story:getVisitsFor('knot.stitch.label'),
-    choice = story:getVisitsFor('knot.stitch.choice')
+    root = story:getVisits(''),
+    knot = story:getVisits('knot'),
+    stitch = story:getVisits('knot.stitch'),
+    label = story:getVisits('knot.stitch.label'),
+    choice = story:getVisits('knot.stitch.choice')
   }
   return visits
 end
