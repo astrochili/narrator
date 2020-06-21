@@ -57,15 +57,52 @@ while story:canContinue() do
 end
 ```
 
+## Roadmap
+
+- The Defold extension
+- More documented and commented code
+- Performance optimization and refactoring
+- Remain features support
+
+## Supported features
+
+- [x] Comments: singleline, multiline, todo's
+- [x] Tags: global tags, knot tags, stitch tags, paragraph tags
+- [x] Paths and sections: inclusions, knots, stitches, labels
+- [x] Choices: suppressing and mixing, labels, conditions, sticky and fallback choices
+- [x] Branching: divertions, glues, gathers, nesting
+- [x] Alternatives: sequences, cycles, once-only, shuffles, empty steps, nesting
+- [x] Multiline alternatives: all the same + shuffle options
+- [x] Conditions: logical operations, string queries, if and else statements, nesting
+- [x] Multiline conditions: all the same + elseif statements, switches, nesting
+- [x] Variables: assignments, constants, global variables, temporary variables, visits, lists
+- [x] Lists: logical operations, multivalued lists, multi-list lists, all the queries, work with numbers
+- [x] Game queries: all the queries without ```TURNS()``` and ```TURNS_SINCE()```
+- [x] State: saving and loading
+- [x] Integration: external functions, variables observing, jumping
+- [x] Migration: the ability to implement the migration of player's saves after the book update
+
+## Unsupported features
+
+- [ ] Tunnels
+- [ ] Threads
+- [ ] Knots and stitches can take parameters and return values
+- [ ] Storing divert targets in variables
+- [ ] Assigning string evaluations with alternatives and conditions to variables
+- [ ] Choice's title can contain inline conditions and alternatives
+- [ ] Choice can have few conditions like ```* { a } { b } ```. *Solution*: use ```* { a && b } ``` instead.
+- [ ] Game queries ```TURNS()``` and ```TURNS_SINCE()```
+- [ ] Defining your own numerical values in a list.
+
 ## Dependencies
 
-Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/). Functions ```parseFile()``` and ```parseBook()``` won't work without ```lpeg```.
+Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/). Functions ```parseFile()``` and ```parseBook()``` don't work without ```lpeg```.
 
 ```
 $ luarocks install lpeg
 ```
 
-You really don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play.
+You really don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game.
 
 ## Documentation
 
@@ -353,17 +390,3 @@ $ busted tests/run.lua
 
 By the way, there are some configs for [VSCode](https://code.visualstudio.com/). For example, a task named ```Busted``` runs tests.
 
-## Roadmap
-- The Defold extension
-- More documented and commented code
-- Performance optimization and refactoring
-- Remain features support
-
-## Supported features
-
-- [x] Comments: singleline, multiline, todo's
-- [x] Tags: global tags, knot tags, stitch tags, paragraph tags
-- [x] Paths and sections: inclusions, knots, stitches, labels
-- [x] Choices: suppressing and mixing, conditions, sticky choices, fallback choices
-- [ ] Branching: diverts, glue, gathers
-- [ ] 
