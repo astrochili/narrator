@@ -109,10 +109,10 @@ function Narrator.parseFile(path, params)
   local content = readFile(path)
   local book = parser.parse(content)
   
-  for _, include in ipairs(book.includes) do
+  for _, inclusion in ipairs(book.inclusions) do
     local folderPath = path:match('(.*' .. folderSeparator .. ')')
-    local includePath = folderPath .. clearPath(include) .. '.ink'
-    local chapter = Narrator.parseFile(includePath)
+    local inclusionPath = folderPath .. clearPath(inclusion) .. '.ink'
+    local chapter = Narrator.parseFile(inclusionPath)
     merge(book, chapter)
   end  
 
@@ -127,16 +127,16 @@ end
 -- Use parsing in development, but prefer already parsed and stored books in production
 -- Required: lpeg
 -- @param content string: root Ink content
--- @param includes table: an array of strings with Ink content inclusions
+-- @param inclusions table: an array of strings with Ink content inclusions
 -- @return table: a book
-function Narrator.parseBook(content, includes)
-  local includes = includes or { }
+function Narrator.parseBook(content, inclusions)
+  local inclusions = inclusions or { }
   assert(parser, "Can't parse anything without a parser.")
   
   local book = parser.parse(content)
   
-  for _, include in ipairs(includes) do
-    local chapter = parser.parse(include)
+  for _, inclusion in ipairs(inclusions) do
+    local chapter = parser.parse(inclusion)
     merge(book, chapter)
   end  
 

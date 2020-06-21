@@ -86,8 +86,8 @@ local book = narrator.parseFile('stories.game')
 local book = narrator.parseFile('stories.game', { save = true })
 ```
 
-### narrator.parseBook(content, includes)
-Parses the string with Ink content and returns a book instance. The ```includes``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
+### narrator.parseBook(content, inclusions)
+Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
 String content parsing is useful when you should manage files by your engine environment (Defold, LÖVE, etc.) and you can pass to ```narrator``` the content of these files only.
 
@@ -358,3 +358,12 @@ By the way, there are some configs for [VSCode](https://code.visualstudio.com/).
 - More documented and commented code
 - Performance optimization and refactoring
 - Remain features support
+
+## Supported features
+
+- [x] Comments: singleline, multiline, todo's
+- [x] Tags: global tags, knot tags, stitch tags, paragraph tags
+- [x] Paths and sections: inclusions, knots, stitches, labels
+- [x] Choices: suppressing and mixing, conditions, sticky choices, fallback choices
+- [ ] Branching: diverts, glue, gathers
+- [ ] 

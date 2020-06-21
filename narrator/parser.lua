@@ -109,13 +109,13 @@ function Parser.parse(content)
     -- Global declarations
 
     global =
-      Ct(V'include' * itemType('include')) +
+      Ct(V'inclusion' * itemType('inclusion')) +
       Ct(V'list' * itemType('list')) +
       Ct(V'constant' * itemType('constant')) +
       Ct(V'variable' * itemType('variable'))
     ,
 
-    include = 'INCLUDE ' * sp * Cg(sentenceBefore(nl + comment), 'filename'),
+    inclusion = 'INCLUDE ' * sp * Cg(sentenceBefore(nl + comment), 'filename'),
     list = 'LIST ' * sp * V'assignmentPair',
     constant = 'CONST ' * sp * V'assignmentPair',
     variable = 'VAR ' * sp * V'assignmentPair',
@@ -253,7 +253,7 @@ function Constructor.constructBook(items)
   }
 
   construction.book = {
-    includes = { },
+    inclusions = { },
     lists = { },
     constants = { },
     variables = { },
@@ -291,9 +291,9 @@ function Constructor:addNode(items, isRestricted)
       end
     end
 
-    if item.type == 'include' then
+    if item.type == 'inclusion' then
       -- filename
-      Constructor.addInclude(self, item.filename)
+      Constructor.addInclusion(self, item.filename)
     elseif item.type == 'list' then
       -- name, value
       Constructor.addList(self, item.name, item.value)
@@ -325,8 +325,8 @@ function Constructor:addNode(items, isRestricted)
   end
 end
 
-function Constructor:addInclude(filename)
-  table.insert(self.book.includes, filename)
+function Constructor:addInclusion(filename)
+  table.insert(self.book.inclusions, filename)
 end
 
 function Constructor:addList(name, value)

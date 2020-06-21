@@ -13,7 +13,7 @@ local runtime = {
 }
 
 local units = {
-  'includes',
+  'inclusions',
   'comments',
   'knots',
   'stitches',
