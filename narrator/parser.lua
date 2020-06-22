@@ -403,7 +403,7 @@ function Constructor:addSwitch(expression, cases)
     end
   end
 
-  Constructor.addItem(self, level, item)
+  Constructor.addItem(self, nil, item)
 end
 
 function Constructor:addSequence(sequence, shuffle, alts)
@@ -421,7 +421,7 @@ function Constructor:addSequence(sequence, shuffle, alts)
     table.insert(item.alts, altNode)
   end
 
-  Constructor.addItem(self, level, item)
+  Constructor.addItem(self, nil, item)
 end
 
 function Constructor:addAssignment(level, name, value, temp)

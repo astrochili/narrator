@@ -11,7 +11,6 @@ Narrator allows to convert raw Ink scripts to the book (a lua table) and play it
 
 ## Quick example
 ```lua
--- Dependencies
 local narrator = require('narrator')
 
 -- Parse a book from the Ink file.
@@ -50,7 +49,7 @@ while story:canContinue() do
   end
 
   -- Read the choice from the player input
-  answer = tonumber(io.read())
+  local answer = tonumber(io.read())
 
   -- Send answer to the story to generate new paragraphs
   story:choose(answer)
@@ -82,9 +81,9 @@ The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations
 ## Installation
 
 ### Defold
-Set the latest Defold [release archive](https://github.com/astrochili/narrator/releases) as external library in the Defold project configuration. It already includes the cpp sources of ```lpeg```.
+Will available soon.
 
-Then you can require the module as in the common case.
+~~Add the latest Defold [release archive](https://github.com/astrochili/narrator/releases) as external library in the Defold project configuration. It already includes lpeg.~~
 
 ### Common case
 Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module. Depends on your Lua environment you can omit ```.init```.

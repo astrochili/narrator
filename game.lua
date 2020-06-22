@@ -53,7 +53,7 @@ while story:canContinue() do
   end
 
   -- Read the choice from the player input
-  answer = tonumber(io.read())
+  local answer = tonumber(io.read())
   print('')
 
   -- Send an answer to the story to generate new paragraphs
