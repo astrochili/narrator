@@ -1,4 +1,5 @@
 # Narrator
+## Overview
 The [Ink](https://www.inklestudios.com/ink/) language parser and runtime implementation in Lua.
 
 Ink is a powerful narrative scripting language. You can find more information about how to write Ink scripts [here](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md). There is also [Inky](https://github.com/inkle/inky) editor with useful features to test and debug Ink scripts.
@@ -9,7 +10,6 @@ Narrator allows to convert raw Ink scripts to the book (a lua table) and play it
 - A story is a runtime state of the book reading like a game process.
 
 ## Quick example
-
 ```lua
 -- Dependencies
 local narrator = require('narrator')
@@ -75,27 +75,37 @@ end
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
 
-A list with known limitations and features to implement is available in the [roadmap](ROADMAP.md).
+## Roadmap
 
-## Dependencies
+The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations and unsupported features.
 
-Parser uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/). Functions ```parseFile()``` and ```parseBook()``` don't work without ```lpeg```.
+## Installation
+
+### Defold
+Set the latest Defold [release archive](https://github.com/astrochili/narrator/releases) as external library in the Defold project configuration. It already includes the cpp sources of ```lpeg```.
+
+Then you can require the module as in the common case.
+
+### Common case
+Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module. Depends on your Lua environment you can omit ```.init```.
+
+```lua
+local narrator = require('narrator.init')
+```
+
+Narrator uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/) as dependency for functions ```parseFile()``` and ```parseBook()```. You can install it with [luarocks](https://luarocks.org/).
 
 ```
 $ luarocks install lpeg
 ```
 
-You really don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game.
+In fact, you don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game. Use parsing in development only, prefer already parsed and stored books in production.
 
 ## Documentation
-
 ### narrator.parseFile(path, params)
 Parses the Ink file at path with all the inclusions and returns a book instance. Path notations ```'stories/game.ink'```, ```'stories/game'``` and ```'stories.game'``` are valid.
 
-You can save a parsed book to the lua file with the same path by passing ```{ save = true }``` as ```params``` table. The ```params``` table is optional and equal to ```{ save = false }``` by default.
-
-- Parsing required ```lpeg``` so use it in development only, prefer already parsed and stored books in production.
-- Reading and saving files required ```io``` so use ```narrator.parseBook()``` if you can't work with files by this way.
+You can save a parsed book to the lua file with the same path by passing ```{ save = true }``` as ```params``` table. By default the ```params``` table is ```{ save = false }```.
 
 ```lua
 -- Parse a Ink file at path 'stories/game.ink'
@@ -105,13 +115,12 @@ local book = narrator.parseFile('stories.game')
 -- and save a book at path 'stories/game.lua'
 local book = narrator.parseFile('stories.game', { save = true })
 ```
+Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parseBook()```.
 
 ### narrator.parseBook(content, inclusions)
 Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
 String content parsing is useful when you should manage files by your engine environment (Defold, LÖVE, etc.) and you can pass to ```narrator``` the content of these files only.
-
-- Parsing required ```lpeg``` so use it in development only, prefer already parsed and stored books in production.
 
 ```lua
 local content = 'Content of a root Ink file'
@@ -216,10 +225,10 @@ Returns the number of visits to the path. The ```pathString``` param is a string
 
 ```lua
 -- Get the number of visits to the maze's red room
-local mazeTags = story:getVisits('adventure.maze.red_room')
+local redRoomVisits = story:getVisits('adventure.maze.red_room')
 
 -- Get the number of adventures visited.
-local mazeTags = story:getVisits('adventure')
+local adventureVisits = story:getVisits('adventure')
 ```
 
 ### story:getTags(pathString)
