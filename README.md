@@ -81,14 +81,14 @@ The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations
 ## Installation
 
 ### Defold
-*Will available soon.*
 
-~~Add the latest Defold [release archive](https://github.com/astrochili/narrator/releases) as external library in the Defold project configuration. It already includes lpeg.~~
+Add the link to the latest [zip-archive for Defold](https://github.com/astrochili/narrator/releases) as a [library dependency](http://www.defold.com/manuals/libraries/) in the Defold project configuration.
+
+Narrator aready has [defold-lpeg](https://github.com/astrochili/defold-lpeg) as a library dependency.
 
 ### Common case
-*Will available soon.*
 
-~~Download the latest [release archive](https://github.com/astrochili/narrator/releases)~~ and require the ```narrator``` module. Depends on your Lua environment you can omit ```.init```.
+Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module. Depending on your Lua environment, you may omit ```.init```.
 
 ```lua
 local narrator = require('narrator.init')
@@ -113,7 +113,7 @@ You can save a parsed book to the lua file with the same path by passing ```{ sa
 local book = narrator.parseFile('stories.game')
 
 -- Parse a Ink file at path 'stories/game.ink'
--- and save a book at path 'stories/game.lua'
+-- and save the book at path 'stories/game.lua'
 local book = narrator.parseFile('stories.game', { save = true })
 ```
 Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parseBook()```.
@@ -369,7 +369,19 @@ story.migrate = migrate
 story:loadState(savedState)
 ```
 
-## Tests
+## Contribution
+
+### Development
+
+There are some useful extensions and configs for [VSCode](https://code.visualstudio.com/) that I use in development of Narrator.
+
+- [Local Lua Debugger](https://github.com/tomblind/local-lua-debugger-vscode) by [tomblind](https://github.com/tomblind/).
+- [Lua Language Server](https://github.com/sumneko/lua-language-server) by [sunmeko](https://github.com/sumneko).
+- A task named ```Busted``` runs tests with ```tests/run.lua```.
+- A lunch configuration named ```Busted``` runs the debugger with ```tests/run.lua```.
+- A lunch configuration named ```Debug``` runs the debugger with ```debug.lua```.
+
+### Testing
 
 To run tests you need to install [busted](https://github.com/Olivine-Labs/busted).
 ```
@@ -380,6 +392,3 @@ After that you can run tests from the terminal:
 ```
 $ busted tests/run.lua
 ```
-
-By the way, there are some configs for [VSCode](https://code.visualstudio.com/). For example, a task named ```Busted``` runs tests.
-
