@@ -1,5 +1,7 @@
 # Narrator
+
 ## Overview
+
 The [Ink](https://www.inklestudios.com/ink/) language parser and runtime implementation in Lua.
 
 Ink is a powerful narrative scripting language. You can find more information about how to write Ink scripts [here](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md). There is also [Inky](https://github.com/inkle/inky) editor with useful features to test and debug Ink scripts.
@@ -10,8 +12,9 @@ Narrator allows to convert raw Ink scripts to the book (a lua table) and play it
 - A story is a runtime state of the book reading like a game process.
 
 ## Quick example
+
 ```lua
-local narrator = require('narrator')
+local narrator = require('narrator.narrator')
 
 -- Parse a book from the Ink file.
 local book = narrator.parseFile('stories.game')
@@ -82,11 +85,15 @@ The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations
 
 ### Defold
 
-Add the link to the latest [release zip-archive](https://github.com/astrochili/narrator/releases) as a [library dependency](http://www.defold.com/manuals/libraries/) in the Defold project configuration. Then you can require it as described in the [Common case](#common-case) section.
+Add links to the zip-archives of the latest versions of [narrator](https://github.com/astrochili/narrator/releases) and [defold-lpeg](https://github.com/astrochili/defold-lpeg) to your Defold project as [dependencies](http://www.defold.com/manuals/libraries/).
 
-Narrator aready has [defold-lpeg](https://github.com/astrochili/defold-lpeg) as a library dependency.
+```
+https://github.com/astrochili/narrator/archive/1.0.zip
+https://github.com/astrochili/defold-lpeg/archive/1.0.zip
+```
 
-Then you can require it by this way:
+Then you can require the ```narrator``` module.
+
 ```lua
 local narrator = require('narrator.narrator')
 ```
@@ -99,16 +106,18 @@ Download the latest [release archive](https://github.com/astrochili/narrator/rel
 local narrator = require('narrator.narrator')
 ```
 
-Narrator uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/) as dependency for functions ```parseFile()``` and ```parseBook()```. You can install it with [luarocks](https://luarocks.org/).
+Narrator requires [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/) as dependency to parse Ink content. You can install it with [luarocks](https://luarocks.org/).
 
-```
+```shell
 $ luarocks install lpeg
 ```
 
 In fact, you don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game. Use parsing in development only, prefer already parsed and stored books in production.
 
 ## Documentation
+
 ### narrator.parseFile(path, params)
+
 Parses the Ink file at path with all the inclusions and returns a book instance. Path notations ```'stories/game.ink'```, ```'stories/game'``` and ```'stories.game'``` are valid.
 
 You can save a parsed book to the lua file with the same path by passing ```{ save = true }``` as ```params``` table. By default the ```params``` table is ```{ save = false }```.
@@ -124,6 +133,7 @@ local book = narrator.parseFile('stories.game', { save = true })
 Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parseBook()```.
 
 ### narrator.parseBook(content, inclusions)
+
 Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
 String content parsing is useful when you should manage files by your engine environment (Defold, LÖVE, etc.) and you can pass to ```narrator``` the content of these files only.
@@ -143,6 +153,7 @@ local book = narrator.parseBook(content, inclusions)
 ```
 
 ### narrator.initStory(book)
+
 Inits a story instance from the book. This is aclual to use in production. For example, just load a book with ```require()``` and pass it to this function.
 
 ```lua
@@ -154,9 +165,11 @@ local story = narrator.initStory(book)
 ```
 
 ### story:begin()
+
 Begins the story. Generates the first chunk of paragraphs and choices.
 
 ### story:canContinue()
+
 Returns a boolean, does the story have paragraphs to output or not.
 
 ```lua
@@ -166,6 +179,7 @@ end
 ```
 
 ### story:continue(steps)
+
 Get the next paragraphs. You can specify the number of paragraphs that you want to pull by the ```steps``` param.
 - Pass nothing if you want to get all the currently available paragraphs. ```0``` also works.
 - Pass ```1``` if you want to get one next paragraph without wrapping to array.
@@ -182,6 +196,7 @@ local paragraph = story:continue(1)
 ```
 
 ### story:canChoose()
+
 Returns a boolean, does the story have choices to output or not. Also returns ```false``` if there are available paragraphs to continue.
 
 ```lua
@@ -191,6 +206,7 @@ end
 ```
 
 ### story:getChoices()
+
 Returns an array of available choice titles. Returns an empty array if there are available paragraphs to continue.
 
 ```lua
@@ -202,6 +218,7 @@ Returns an array of available choice titles. Returns an empty array if there are
 ```
 
 ### story:choose(index)
+
 Make a choice to continue the story. Pass the ```index``` of the choice that you was received with ```getChoices()``` before. Will do nothing if ```canContinue()``` returns ```false```.
 
 ```lua
@@ -216,6 +233,7 @@ Make a choice to continue the story. Pass the ```index``` of the choice that you
 ```
 
 ### story:jumpTo(pathString)
+
 Jumps to the path. The ```pathString``` param is a string like ```'knot.stitch.label'```.
 
 ```lua
@@ -227,6 +245,7 @@ Jumps to the path. The ```pathString``` param is a string like ```'knot.stitch.l
 ```
 
 ### story.getVisits(pathString)
+
 Returns the number of visits to the path. The ```pathString``` param is a string like ```'knot.stitch.label'```.
 
 ```lua
@@ -238,6 +257,7 @@ local adventureVisits = story:getVisits('adventure')
 ```
 
 ### story:getTags(pathString)
+
 Returns tags for the path. The ```pathString``` param is a string like ```'knot.stitch'```. This function is useful when you want to get tags before continue the story and pull paragraphs. Read more about it [here](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#knot-tags).
 
 ```lua
@@ -246,6 +266,7 @@ local mazeTags = story:getTags('adventure.maze')
 ```
 
 ### story:saveState()
+
 Raturns a table with the story state that can be saved and restored later. Use it to save the game.
 
 ```lua
@@ -257,6 +278,7 @@ manager.save(state)
 ```
 
 ### story:loadState(state)
+
 Restores a story's state from the saved before state. Use it to load the game.
 
 ```lua
@@ -269,6 +291,7 @@ story:loadState(state)
 ```
 
 ### story:observe(variable, observer)
+
 Assigns an observer function to the variable's changes.
 
 ```lua
@@ -281,6 +304,7 @@ story:observe('x', xDidChange)
 ```
 
 ### story:bind(funcName, handler)
+
 Binds a function to external calling from the Ink. The function can returns the value or not.
 
 ```lua
@@ -300,6 +324,7 @@ story:bind('sum', sum)
 ```
 
 ### story.globalTags
+
 An array with book's global tags. Tags are strings of course.
 
 ```lua
@@ -311,6 +336,7 @@ local globalTags = story:getTags()
 ``` 
 
 ### story.constants
+
 A table with book's constants. Just read them, constants changing is not a good idea.
 
 ```lua
@@ -319,6 +345,7 @@ local theme = story.constants['theme']
 ```
 
 ### story.variables
+
 A table with story's variables. You can read or change them by this way.
 
 ```lua
@@ -330,10 +357,10 @@ story.variables['mood'] = 'sunny'
 ```
 
 ### story.migrate
+
 A function that you can specify for migration from old to new versions of your books. This is useful, for example, when you don't want to corrupt player's save after the game update.
 
 This is the place where you can rename or change variables, visits, update the current path, etc. The default implementation returns the same state without any migration.
-
 
 ```lua
 -- Default implementation
@@ -389,12 +416,12 @@ There are some useful extensions and configs for [VSCode](https://code.visualstu
 ### Testing
 
 To run tests you need to install [busted](https://github.com/Olivine-Labs/busted).
-```
+```shell
 $ luarocks install busted
 ```
 
 After that you can run tests from the terminal:
-```
+```shell
 $ busted tests/run.lua
 ```
 
