@@ -2,7 +2,6 @@
 
 ## Overview
 
-- The Defold extension
 - More documented and commented code
 - Performance optimization and refactoring
 - Remain features support and solve known limitations
