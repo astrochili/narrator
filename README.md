@@ -1,3 +1,5 @@
+![Narrator](https://user-images.githubusercontent.com/4752473/85455900-141f8f80-b5a7-11ea-8cd7-b441d662b361.png)
+
 # Narrator
 
 ## Overview
@@ -85,7 +87,7 @@ The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations
 
 ### Defold
 
-Add links to the zip-archives of the latest versions of [narrator](https://github.com/astrochili/narrator/releases) and [defold-lpeg](https://github.com/astrochili/defold-lpeg) to your Defold project as [dependencies](http://www.defold.com/manuals/libraries/).
+Add links to the zip-archives of the latest versions of [narrator](https://github.com/astrochili/narrator/releases) and [defold-lpeg](https://github.com/astrochili/defold-lpeg/releases) to your Defold project as [dependencies](http://www.defold.com/manuals/libraries/).
 
 ```
 https://github.com/astrochili/narrator/archive/1.0.zip
