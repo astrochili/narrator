@@ -6,8 +6,9 @@ local lume = require(libPath .. '.libs.lume')
 local enums = require(libPath .. '.enums')
 
 -- Safe lpeg requiring
-if not pcall(require, 'lpeg') then return false end
-local lpeg = require('lpeg')
+local lpegName = 'lpeg'
+if not pcall(require, lpegName) then return false end
+local lpeg = require(lpegName)
 
 --
 -- LPeg
