@@ -81,12 +81,14 @@ The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations
 ## Installation
 
 ### Defold
-Will available soon.
+*Will available soon.*
 
 ~~Add the latest Defold [release archive](https://github.com/astrochili/narrator/releases) as external library in the Defold project configuration. It already includes lpeg.~~
 
 ### Common case
-Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module. Depends on your Lua environment you can omit ```.init```.
+*Will available soon.*
+
+~~Download the latest [release archive](https://github.com/astrochili/narrator/releases)~~ and require the ```narrator``` module. Depends on your Lua environment you can omit ```.init```.
 
 ```lua
 local narrator = require('narrator.init')
