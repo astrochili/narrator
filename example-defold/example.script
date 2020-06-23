@@ -1,9 +1,13 @@
 local narrator = require('narrator.narrator')
 
 function init(self)
-	-- Parse and save a book.
+	-- Parse and save a book with io module
 	local book = narrator.parseFile('example-defold.book', { save = true })
 
+	-- Or load and parse the Ink file from the custom resources
+	-- local content = sys.load_resource('/example-defold/book.ink')
+	-- local book = narrator.parseBook(content)
+	
 	-- Or parse a book from the string with Ink content
 	-- local book = narrator.parseBook('Hello world!')
 	
