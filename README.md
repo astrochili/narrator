@@ -86,6 +86,11 @@ Add the link to the latest [zip-archive for Defold](https://github.com/astrochil
 
 Narrator aready has [defold-lpeg](https://github.com/astrochili/defold-lpeg) as a library dependency.
 
+Then you can require it by this way:
+```lua
+local narrator = require('narrator.narrator')
+```
+
 ### Common case
 
 Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module.
@@ -392,3 +397,9 @@ After that you can run tests from the terminal:
 ```
 $ busted tests/run.lua
 ```
+
+## Third Party Libraries
+
+- [LPeg](http://www.inf.puc-rio.br/~roberto/lpeg/) by [Roberto Ierusalimschy](http://www.inf.puc-rio.br/~roberto/) (MIT Licence).
+- [classic](https://github.com/rxi/classic) by [rxi](https://github.com/rxi) (MIT Licence).
+- [lume](https://github.com/rxi/lume) by [rxi](https://github.com/rxi) (MIT Licence).
