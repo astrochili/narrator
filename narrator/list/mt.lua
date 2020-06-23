@@ -1,8 +1,7 @@
 --
 -- Dependencies
 
-local libPath = (...):gsub('.list.mt$', '')
-local lume = require(libPath .. '.libs.lume')
+local lume = require('narrator.libs.lume')
 
 --
 -- Metatable

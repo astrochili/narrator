@@ -1,11 +1,8 @@
 --
 -- A simple command-line game example
 
--- Environment
-package.path = _VERSION == 'Lua 5.3' and package.path or './?/init.lua;' .. package.path
-
 -- Dependencies
-local narrator = require('narrator')
+local narrator = require('narrator.narrator')
 
 -- Parse a book from the Ink file and save as module 'stories.game.lua'
 local book = narrator.parseFile('stories.game', { save = true })

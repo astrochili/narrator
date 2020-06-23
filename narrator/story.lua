@@ -1,10 +1,10 @@
 --
 -- Dependencies
 
-local libPath = (...):match('(.-).[^%.]+$')
-local enums = require(libPath .. '.enums')
-local lume = require(libPath .. '.libs.lume')
-local Object = require(libPath .. '.libs.classic')
+local enums = require('narrator.enums')
+local lume = require('narrator.libs.lume')
+local Object = require('narrator.libs.classic')
+local listMT = require('narrator.list.mt')
 
 --
 -- Story
@@ -20,7 +20,7 @@ function Story:new(book)
   self.variables = lume.clone(book.variables)
   self.lists = book.lists
   
-  self.listMT = require(libPath .. '.list.mt')
+  self.listMT = listMT
   self.listMT.lists = self.lists
 
   self.version = book.constants.version or 0
@@ -719,7 +719,7 @@ function Story:doExpression(expression)
 
   -- Attach the metatable to list tables
   if #lists > 0 then
-    code = code .. 'local mt = require(\'' .. libPath .. '.list.mt\')\n'
+    code = code .. 'local mt = require(\'narrator.list.mt\')\n'
     code = code .. 'mt.lists = ' .. lume.serialize(self.lists) .. '\n\n'
     for index, list in pairs(lists) do
       local name = '__list' .. index

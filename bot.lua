@@ -17,7 +17,7 @@ function Bot.play(story, instructor, params)
   local function output(text)
     if params.print then print(text) end
     table.insert(log, text)
-  end  
+  end
   
   story:begin()
   

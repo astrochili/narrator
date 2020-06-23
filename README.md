@@ -82,16 +82,16 @@ The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations
 
 ### Defold
 
-Add the link to the latest [zip-archive for Defold](https://github.com/astrochili/narrator/releases) as a [library dependency](http://www.defold.com/manuals/libraries/) in the Defold project configuration.
+Add the link to the latest [zip-archive for Defold](https://github.com/astrochili/narrator/releases) as a [library dependency](http://www.defold.com/manuals/libraries/) in the Defold project configuration. Then you can require it as described in the [Common case](#common-case) section.
 
 Narrator aready has [defold-lpeg](https://github.com/astrochili/defold-lpeg) as a library dependency.
 
 ### Common case
 
-Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module. Depending on your Lua environment, you may omit ```.init```.
+Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module.
 
 ```lua
-local narrator = require('narrator.init')
+local narrator = require('narrator.narrator')
 ```
 
 Narrator uses [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/) as dependency for functions ```parseFile()``` and ```parseBook()```. You can install it with [luarocks](https://luarocks.org/).

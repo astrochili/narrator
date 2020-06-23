@@ -1,11 +1,10 @@
 --
 -- Dependencies
 
-local libPath = (...):gsub('.init$', '')
-local lume = require(libPath .. '.libs.lume')
-local enums = require(libPath .. '.enums')
-local parser = require(libPath .. '.parser')
-local Story = require(libPath .. '.story')
+local lume = require('narrator.libs.lume')
+local enums = require('narrator.enums')
+local parser = require('narrator.parser')
+local Story = require('narrator.story')
 
 --
 -- Private

@@ -1,6 +1,9 @@
 --
 -- Testing with Busted library
 
+--
+-- Dependencies
+
 require('busted.runner')()
 
 if os.getenv('LOCAL_LUA_DEBUGGER_VSCODE') == '1' then
@@ -8,8 +11,11 @@ if os.getenv('LOCAL_LUA_DEBUGGER_VSCODE') == '1' then
 end
 
 local bot = require('bot')
-local narrator = require('narrator')
+local narrator = require('narrator.narrator')
 local lume = require('narrator.libs.lume')
+
+--
+-- Constants
 
 local folderSeparator = package.config:sub(1, 1)
 local testsFolder = 'test' .. folderSeparator

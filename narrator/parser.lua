@@ -1,9 +1,8 @@
 --
 -- Dependencies
 
-local libPath = (...):match('(.-).[^%.]+$')
-local lume = require(libPath .. '.libs.lume')
-local enums = require(libPath .. '.enums')
+local lume = require('narrator.libs.lume')
+local enums = require('narrator.enums')
 
 -- Safe lpeg requiring
 local lpegName = 'lpeg'

@@ -2,11 +2,8 @@
 -- Script for debugging in VSCode with
 -- Local Lua Debugger by Tom Blind (https://github.com/tomblind/local-lua-debugger-vscode)
 
--- Environment
-package.path = _VERSION == 'Lua 5.3' and package.path or './?/init.lua;' .. package.path
-
 -- Dependencies
-local narrator = require('narrator')
+local narrator = require('narrator.narrator')
 local bot = require('bot')
 
 -- Loading

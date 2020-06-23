@@ -4,5 +4,8 @@
         "loadstring",
         "describe",
         "it"
+    ],
+    "Lua.diagnostics.disable": [
+        "trailing-space"
     ]
 }
