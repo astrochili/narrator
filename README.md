@@ -79,7 +79,7 @@ end
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
 
-## Roadmap
+## Roadmap and known limitations
 
 The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations and unsupported features.
 
@@ -138,8 +138,6 @@ Reading and saving files required ```io``` so if you can't work with files by th
 
 Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
-String content parsing is useful when you should manage files by your engine environment (Defold, LÖVE, etc.) and you can pass to ```narrator``` the content of these files only.
-
 ```lua
 local content = 'Content of a root Ink file'
 local inclusions = {
@@ -153,6 +151,8 @@ local book = narrator.parseBook(content)
 -- Parse a string with Ink content and inclusions
 local book = narrator.parseBook(content, inclusions)
 ```
+
+Content parsing is useful when you should manage files by your engine environment and don't want to use ```io``` module. For example, in Defold, you may want to load ink files as custom resources with [sys.load_resource()](https://defold.com/ref/sys/#sys.load_resource:filename).
 
 ### narrator.initStory(book)
 
@@ -246,7 +246,7 @@ Jumps to the path. The ```pathString``` param is a string like ```'knot.stitch.l
   local mazeParagraphs = story:continue()
 ```
 
-### story.getVisits(pathString)
+### story:getVisits(pathString)
 
 Returns the number of visits to the path. The ```pathString``` param is a string like ```'knot.stitch.label'```.
 
