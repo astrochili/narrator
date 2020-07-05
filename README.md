@@ -61,7 +61,9 @@ while story:canContinue() do
 end
 ```
 
-## Supported features
+## Features
+
+### Supported
 
 - [x] Comments: singleline, multiline, todo's
 - [x] Tags: global tags, knot tags, stitch tags, paragraph tags
@@ -79,9 +81,17 @@ end
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
 
-## Roadmap and known limitations
+### Unsupported
 
-The separated [roadmap](ROADMAP.md) contains lists with plans, known limitations and unsupported features.
+- [ ] Tunnels
+- [ ] Threads
+- [ ] Divert targets as variable's type
+- [ ] Assigning string evaluations to variables
+- [ ] Knots and stitches as internal functions (take parameters and return values)
+
+### Roadmap
+
+The separated [roadmap](ROADMAP.md) contains the full list of planned tasks, ideas and [known limitations](ROADMAP.md#known-limitations).
 
 ## Installation
 
