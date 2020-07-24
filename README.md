@@ -100,8 +100,8 @@ The separated [roadmap](ROADMAP.md) contains the full list of planned tasks, ide
 Add links to the zip-archives of the latest versions of [narrator](https://github.com/astrochili/narrator/releases) and [defold-lpeg](https://github.com/astrochili/defold-lpeg/releases) to your Defold project as [dependencies](http://www.defold.com/manuals/libraries/).
 
 ```
-https://github.com/astrochili/narrator/archive/1.0.zip
-https://github.com/astrochili/defold-lpeg/archive/1.0.zip
+https://github.com/astrochili/narrator/archive/master.zip
+https://github.com/astrochili/defold-lpeg/archive/master.zip
 ```
 
 Then you can require the ```narrator``` module.
