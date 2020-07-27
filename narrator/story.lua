@@ -104,7 +104,11 @@ function Story:getChoices()
   end
   
   for _, choice in ipairs(self.choices) do
-    table.insert(choices, choice.title)
+    local model = {
+      text = choice.title,
+      tags = choice.tags
+    }
+    table.insert(choices, model)
   end
 
   return choices
@@ -126,8 +130,12 @@ function Story:choose(index)
   self.paragraphs = { }
   self.choices = { }
 
-  if choice.text ~= nil and #choice.text > 0 then
-    table.insert(self.paragraphs, { text = choice.text })
+  if choice.text and #choice.text > 0 then
+    local paragraph = {
+      text = choice.text,
+      tags = choice.tags
+    }
+    table.insert(self.paragraphs, paragraph)
   end
 
   self:visit(choice.path)
@@ -563,6 +571,7 @@ function Story:readChoice(item, path)
     title = title,
     text = item.text ~= nil and self:replaceExpressions(item.text) or title,
     divert = item.divert,
+    tags = item.tags,
     path = path
   }
 

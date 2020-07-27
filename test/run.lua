@@ -66,7 +66,7 @@ local function getPossibleResults(case)
       -- Transform a current sequence to branches for each available choice
       table.remove(sequences, seqIndex)
 
-      for index, choice in ipairs(choices) do
+      for index, _ in ipairs(choices) do
         local newSeq = lume.concat(curSeq, { index })
         table.insert(sequences, newSeq)
       end

@@ -103,7 +103,7 @@ local Narrator = { }
 -- @return a book
 function Narrator.parseFile(path, params)
   local params = params or { save = false }
-  assert(parser, "Can't parse anything without a parser.")
+  assert(parser, "Can't parse anything without lpeg, sorry.")
 
   local content = readFile(path)
   local book = parser.parse(content)

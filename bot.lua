@@ -26,7 +26,8 @@ function Bot.play(story, instructor, params)
     for _, paragraph in ipairs(paragraphs or { }) do
       local text = paragraph.text or ''
       if paragraph.tags then
-        text = text .. ' #' .. table.concat(paragraph.tags, ' #')
+        local hashtag = #text > 0 and ' #' or '#'
+        text = text .. hashtag .. table.concat(paragraph.tags, ' #')
       end
       output(text)
     end
@@ -45,7 +46,10 @@ function Bot.play(story, instructor, params)
     output('')
     for i, choice in ipairs(choices) do
       local prefix = (i == answer and '>' or i) .. ') '
-      local text = prefix .. choice
+      local text = prefix .. choice.text
+      if choice.tags then
+        text = text .. ' #' .. table.concat(choice.tags, ' #')
+      end
       output(text)
     end
     output('')

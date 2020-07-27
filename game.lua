@@ -46,7 +46,7 @@ while story:canContinue() do
   -- Get available choices and output them to the player
   local choices = story:getChoices()
   for i, choice in ipairs(choices) do
-    print(i .. ') ' .. choice)
+    print(i .. ') ' .. choice.text)
   end
 
   -- Read the choice from the player input

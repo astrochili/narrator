@@ -24,6 +24,7 @@ local units = {
   'text-glue',
     
   'choices-basic',
+  'choices-tags',  
   'choices-conditional',
   'choices-sticky',
   'choices-fallback',  

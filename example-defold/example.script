@@ -40,7 +40,7 @@ function init(self)
 		-- Get available choices and output them to the player
 		local choices = story:getChoices()
 		for i, choice in ipairs(choices) do
-			print(i .. ') ' .. choice)
+			print(i .. ') ' .. choice.text)
 		end
 
 		-- Send an answer to the story to generate new paragraphs

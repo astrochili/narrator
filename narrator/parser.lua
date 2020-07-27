@@ -12,8 +12,8 @@ local lpeg = require(lpegName)
 --
 -- LPeg
 
-local S, C, Ct, Cc, Cg = lpeg.S, lpeg.C, lpeg.Ct, lpeg.Cc, lpeg.Cg
-local Cb, Cf, Cmt, P, V = lpeg.Cb, lpeg.Cf, lpeg.Cmt, lpeg.P, lpeg.V
+local S, C, P, V = lpeg.S, lpeg.C, lpeg.P, lpeg.V
+local Cb, Ct, Cc, Cg = lpeg.Cb, lpeg.Ct, lpeg.Cc, lpeg.Cg
 lpeg.locale(lpeg)
 
 --
@@ -139,8 +139,8 @@ function Parser.parse(content)
     assignmentPair = Cg(sentenceBefore(nl + comment) / unwrapAssignment, 'name') * Cg(Cb('name') / 2, 'value'),
 
     choiceCondition = Cg(V'expression' + none, 'condition'),
-    choiceFallback = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * (divert + divertToNothing),
-    choiceNormal = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * Cg(V'text', 'text') * divert ^ -1,
+    choiceFallback = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * (divert + divertToNothing) * sp * V'tagsOptional',
+    choiceNormal = choiceLevel * sp * V'labelOptional' * sp * V'choiceCondition' * sp * Cg(V'text', 'text') * divert ^ -1 * sp * V'tagsOptional',
     choice = V'choiceFallback' + V'choiceNormal',
 
     -- Paragraph
@@ -319,8 +319,8 @@ function Constructor:addNode(items, isRestricted)
       -- level, label, parts, tags
       Constructor.addParagraph(self, item.level, item.label, item.parts, item.tags)
     elseif item.type == 'choice' then
-      -- level, sticky, label, condition, text, divert
-      Constructor.addChoice(self, item.level, item.sticky, item.label, item.condition, item.text, item.divert)
+      -- level, sticky, label, condition, text, divert, tags
+      Constructor.addChoice(self, item.level, item.sticky, item.label, item.condition, item.text, item.divert, item.tags)
     end
   end
 end
@@ -547,12 +547,13 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
   return items
 end
 
-function Constructor:addChoice(level, sticky, label, condition, sentence, divert)
+function Constructor:addChoice(level, sticky, label, condition, sentence, divert, tags)
   local item = {
     sticky = sticky or nil,
     condition = condition,
     label = label,
-    divert = divert
+    divert = divert,
+    tags = tags
   }
 
   if sentence == nil then

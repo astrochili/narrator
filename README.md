@@ -50,7 +50,7 @@ while story:canContinue() do
   -- Get available choices and output them to the player
   local choices = story:getChoices()
   for i, choice in ipairs(choices) do
-    print(i .. ') ' .. choice)
+    print(i .. ') ' .. choice.text)
   end
 
   -- Read the choice from the player input
@@ -68,7 +68,7 @@ end
 - [x] Comments: singleline, multiline, todo's
 - [x] Tags: global tags, knot tags, stitch tags, paragraph tags
 - [x] Paths and sections: inclusions, knots, stitches, labels
-- [x] Choices: suppressing and mixing, labels, conditions, sticky and fallback choices
+- [x] Choices: suppressing and mixing, labels, conditions, sticky and fallback choices, tags
 - [x] Branching: divertions, glues, gathers, nesting
 - [x] Alternatives: sequences, cycles, once-only, shuffles, empty steps, nesting
 - [x] Multiline alternatives: all the same + shuffle options
@@ -219,13 +219,17 @@ end
 
 ### story:getChoices()
 
-Returns an array of available choice titles. Returns an empty array if there are available paragraphs to continue.
+Returns an array of available choices. Returns an empty array if there are available paragraphs to continue.
+
+A choice is a table like ```{ text = 'Bye.', tags = { 'tag1', 'tag2' } }```. The most of choices doesn't have tags so ```tags``` can be ```nil```.
+
+Choice tags are not an official feature of Ink, but it's a Narrator feature. These tags also will appear in the answer paragraph as it works in Ink by default. But if you have a completely eaten choice like ```'[Answer] #tag'``` you will receive tags only in the choice.
 
 ```lua
   -- Get available choices and output them to the player
   local choices = story:getChoices()
   for i, choice in ipairs(choices) do
-    print(i .. ') ' .. choice)
+    print(i .. ') ' .. choice.text)
   end
 ```
 
