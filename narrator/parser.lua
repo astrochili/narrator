@@ -341,7 +341,7 @@ end
 
 function Constructor:addConstant(constant, value)
   local value = lume.deserialize(value)
-  self.book.constants[constant] = lume.deserialize(value)
+  self.book.constants[constant] = value
 end
 
 function Constructor:addKnot(knot)
