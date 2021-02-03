@@ -46,9 +46,11 @@ end
 --- Start a story.
 -- Generate the first chunk of paragraphs and choices.
 function Story:begin()
-  if #self.paragraphs == 0 and #self.choices == 0 and not self.isOver then
-    self:readPath({ })
+  if #self.paragraphs > 0 or #self.choices > 0 then
+    return
   end
+
+  self:jumpTo('_')
 end
 
 --- Does the story have paragraphs to output or not.
@@ -150,6 +152,8 @@ end
 -- @param pathString string: a path string like 'knot.stitch.label'
 function Story:jumpTo(pathString)
   assert(pathString, 'The pathString can\'t be nil')
+
+  self.choices = { }
 
   if pathString == 'END' or pathString == 'DONE' then
     self.isOver = true
