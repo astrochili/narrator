@@ -99,7 +99,7 @@ function Parser.parse(content)
 
     -- Root
 
-    root = V'items' + eof,
+    root = ws * V'items' + eof,
     items = Ct(V'item' ^ 0),
 
     item = balancedMultilineItem() + V'singlelineItem',
