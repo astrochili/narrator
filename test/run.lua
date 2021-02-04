@@ -110,7 +110,7 @@ end
 
 --- Create possible results for an Ink test case and save them to txt files
 -- @param case string: an Ink test case
--- @param override bool: override a txt file if it already exists.
+-- @param override boolean: override a txt file if it already exists.
 local function createTxtForInkCase(case, override)
   local override = override ~= nil and override or false
   local results = getPossibleResults(case)

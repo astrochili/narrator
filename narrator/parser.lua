@@ -239,7 +239,6 @@ function Parser.parse(content)
   local parsedItems = inkGrammar:match(content)
   local book = Constructor.constructBook(parsedItems)
   return book
-  
 end
 
 --
@@ -363,7 +362,6 @@ function Constructor:addKnot(knot)
 end
 
 function Constructor:addStitch(stitch)
-  
   -- If a root stitch is empty we need to add a divert to the first stitch in the ink file.
   if self.currentStitch == '_' then
     local rootStitchNode = self.book.tree[self.currentKnot]._

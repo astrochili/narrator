@@ -6,7 +6,7 @@ local Bot = { }
 --- Play a story by bot
 -- @param story Story: a story instance
 -- @param instructor function: function that will be return the answer index
--- @param params.print bool: print a game log to console or not, false by default
+-- @param params.print boolean: print a game log to console or not, false by default
 -- @return string: a log of the game
 function Bot.play(story, instructor, params)
   local params = params or { print = false }

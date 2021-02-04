@@ -54,7 +54,7 @@ function Story:begin()
 end
 
 --- Does the story have paragraphs to output or not.
--- @return bool: can continue or not
+-- @return boolean: can continue or not
 function Story:canContinue()
   return #self.paragraphs > 0
 end
@@ -90,7 +90,7 @@ end
 
 --- Does the story have choices to output or not.
 -- Also returns false if there are available paragraphs to continue.
--- @return bool: has choices or not
+-- @return boolean: has choices or not
 function Story:canChoose()
   return self.choices ~= nil and #self.choices > 0 and not self:canContinue()
 end
