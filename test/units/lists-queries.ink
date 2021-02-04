@@ -19,7 +19,7 @@ LIST Props = champagne_glass, newspaper
 
 VAR BallroomContents = (Alfred, Batman, newspaper) 
 VAR HallwayContents = (Robin, champagne_glass) 
-VAR roomState = HallwayContents
+VAR roomState = (Robin, champagne_glass)
 
 -> room
 == room
