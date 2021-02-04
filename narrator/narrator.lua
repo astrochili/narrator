@@ -43,7 +43,7 @@ end
 --- Save a book to lua module
 -- @param book table: a book
 -- @param path string: a path to save
--- @return bool: success
+-- @return boolean: success
 local function saveBook(book, path)
   local path = clearPath(path)  .. '.lua'
 
@@ -99,7 +99,7 @@ local Narrator = { }
 -- Required: lpeg, io
 -- @param path string: path to an Ink file
 -- @param params table: parameters { save }
--- @param params.save bool: save a parsed book to a lua file
+-- @param params.save boolean: save a parsed book to a lua file
 -- @return a book
 function Narrator.parseFile(path, params)
   local params = params or { save = false }

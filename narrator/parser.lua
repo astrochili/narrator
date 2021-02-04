@@ -239,7 +239,6 @@ function Parser.parse(content)
   local parsedItems = inkGrammar:match(content)
   local book = Constructor.constructBook(parsedItems)
   return book
-  
 end
 
 --
@@ -250,6 +249,7 @@ function Constructor.constructBook(items)
   local construction = {
     currentKnot = '_',
     currentStitch = '_',
+    variablesToCompute = { }
   }
 
   construction.book = {
@@ -271,6 +271,7 @@ function Constructor.constructBook(items)
 
   Constructor.addNode(construction, items)
   Constructor.clear(construction.book.tree)
+  Constructor.computeVariables(construction)
 
   return construction.book
 end
@@ -300,6 +301,9 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'constant' then
       -- name, value
       Constructor.addConstant(self, item.name, item.value)
+    elseif item.type == 'variable' then
+      -- name, value
+      Constructor.addVariable(self, item.name, item.value)
     elseif item.type == 'knot' then
       -- knot
       Constructor.addKnot(self, item.knot)
@@ -312,7 +316,7 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'sequence' then
       -- sequence, shuffle, alts
       Constructor.addSequence(self, item.sequence, item.shuffle, item.alts)
-    elseif item.type == 'variable' or item.type == 'assignment' then
+    elseif item.type == 'assignment' then
       -- level, name, value, temp
       Constructor.addAssignment(self, item.level, item.name, item.value, item.temp)
     elseif item.type == 'paragraph' then
@@ -344,6 +348,10 @@ function Constructor:addConstant(constant, value)
   self.book.constants[constant] = value
 end
 
+function Constructor:addVariable(variable, value)
+  self.variablesToCompute[variable] = value
+end
+
 function Constructor:addKnot(knot)
   self.currentKnot = knot
   self.currentStitch = '_'
@@ -354,7 +362,6 @@ function Constructor:addKnot(knot)
 end
 
 function Constructor:addStitch(stitch)
-  
   -- If a root stitch is empty we need to add a divert to the first stitch in the ink file.
   if self.currentStitch == '_' then
     local rootStitchNode = self.book.tree[self.currentKnot]._
@@ -593,6 +600,46 @@ function Constructor:addItem(level, item)
   
   local node = self.nodesChain[#self.nodesChain]
   table.insert(node, item)
+end
+
+function Constructor:computeVariable(variable, value)
+  local constant = self.book.constants[value]
+  if constant then
+    self.book.variables[variable] = constant
+    return
+  end
+
+  local listExpression = value:match('%(([%s%w%.,_]*)%)')
+  local itemExpressions = listExpression and lume.array(listExpression:gmatch('[%w_%.]+')) or { value }
+  local listVariable = listExpression and { } or nil
+
+  for _, itemExpression in ipairs(itemExpressions) do
+    local listPart, itemPart = itemExpression:match('([%w_]+)%.([%w_]+)')
+    itemPart = itemPart or itemExpression
+    
+    for listName, listItems in pairs(self.book.lists) do
+      local listIsValid = listPart == nil or listPart == listName
+      local itemIsFound = lume.find(listItems, itemPart)
+      
+      if listIsValid and itemIsFound then
+        listVariable = listVariable or { }
+        listVariable[listName] = listVariable[listName] or { }
+        listVariable[listName][itemPart] = true
+      end
+    end
+  end
+
+  if listVariable then
+    self.book.variables[variable] = listVariable
+  else
+    self.book.variables[variable] = lume.deserialize(value)
+  end
+end
+
+function Constructor:computeVariables()
+  for variable, value in pairs(self.variablesToCompute) do
+    Constructor.computeVariable(self, variable, value)
+  end
 end
 
 function Constructor.clear(tree)

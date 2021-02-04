@@ -6,6 +6,7 @@
         "it"
     ],
     "Lua.diagnostics.disable": [
-        "trailing-space"
+        "trailing-space",
+        "redefined-local"
     ]
 }
