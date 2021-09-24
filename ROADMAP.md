@@ -22,6 +22,7 @@
 - [ ] There is no query functions ```TURNS()``` and ```TURNS_SINCE()```
 - [ ] A list uses only standard numerical values ```1, 2, 3...```. Can't define your own numerical values like ```4, 7, 12...```.
 - [ ] A comment in the middle of the paragraph ```before /* comment */ and after``` splites it into two paragrphs ```before``` and ```and after```
+- [ ] Not possible to run a function after assignment operator without any assignments. *Use ```{ run() }``` instead*.
 
 ## Ideas
 
