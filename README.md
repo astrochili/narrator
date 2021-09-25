@@ -69,7 +69,7 @@ end
 - [x] Tags: global tags, knot tags, stitch tags, paragraph tags
 - [x] Paths and sections: inclusions, knots, stitches, labels
 - [x] Choices: suppressing and mixing, labels, conditions, sticky and fallback choices, tags
-- [x] Branching: divertions, glues, gathers, nesting
+- [x] Branching: diversions, glues, gathers, nesting
 - [x] Alternatives: sequences, cycles, once-only, shuffles, empty steps, nesting
 - [x] Multiline alternatives: all the same + shuffle options
 - [x] Conditions: logical operations, string queries, if and else statements, nesting
@@ -132,7 +132,7 @@ In fact, you don't need ```lpeg``` in the release, but you need it locally to pa
 
 Parses the Ink file at path with all the inclusions and returns a book instance. Path notations ```'stories/game.ink'```, ```'stories/game'``` and ```'stories.game'``` are valid.
 
-You can save a parsed book to the lua file with the same path by passing ```{ save = true }``` as ```params``` table. By default the ```params``` table is ```{ save = false }```.
+You can save a parsed book to the lua file with the same path by passing ```{ save = true }``` as ```params``` table. By default, the ```params``` table is ```{ save = false }```.
 
 ```lua
 -- Parse a Ink file at path 'stories/game.ink'
@@ -196,7 +196,7 @@ Get the next paragraphs. You can specify the number of paragraphs that you want 
 - Pass nothing if you want to get all the currently available paragraphs. ```0``` also works.
 - Pass ```1``` if you want to get one next paragraph without wrapping to array.
 
-A paragraph is a table like ```{ text = 'Hello.', tags = { 'tag1', 'tag2' } }```. The most of paragraphs doesn't have tags so ```tags``` can be ```nil```.
+A paragraph is a table like ```{ text = 'Hello.', tags = { 'tag1', 'tag2' } }```. Most of the paragraphs do not have tags so ```tags``` can be ```nil```.
 
 
 ```lua
@@ -221,7 +221,7 @@ end
 
 Returns an array of available choices. Returns an empty array if there are available paragraphs to continue.
 
-A choice is a table like ```{ text = 'Bye.', tags = { 'tag1', 'tag2' } }```. The most of choices doesn't have tags so ```tags``` can be ```nil```.
+A choice is a table like ```{ text = 'Bye.', tags = { 'tag1', 'tag2' } }```. Most of the choices do not have tags so ```tags``` can be ```nil```.
 
 Choice tags are not an official feature of Ink, but it's a Narrator feature. These tags also will appear in the answer paragraph as it works in Ink by default. But if you have a completely eaten choice like ```'[Answer] #tag'``` you will receive tags only in the choice.
 
