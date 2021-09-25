@@ -749,16 +749,25 @@ end
 -- Variables
 
 function Story:assignValueTo(variable, expression, temp)
-  if self.constants[variable] ~= nil then return end
-  
+  if self.constants[variable] ~= nil then
+    return
+  end
   local value = self:doExpression(expression)
+
+  if #variable == 0 then
+    return
+  end
   local storage = (temp or self.temp[variable] ~= nil) and self.temp or self.variables
   
-  if storage[variable] == value then return end
+  if storage[variable] == value then
+    return
+  end
   storage[variable] = value
 
   local observer = self.observers[variable]
-  if observer ~= nil then observer(value) end
+  if observer ~= nil then
+    observer(value)
+  end
 end
 
 function Story:getValueFor(variable)

@@ -1,7 +1,7 @@
 local narrator, describe, it, assert = ...
 
 local content = [[
-  { beep() }
+  ~ beep()
   { sum(1, 2) }
   { didSolvePuzzle("labirint") }
 ]]

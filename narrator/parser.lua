@@ -89,7 +89,7 @@ function Parser.parse(content)
     unwrapped = unwrapped:gsub('([%w_]*)%s*([%+%-])[%+%-]', '%1 = %1 %2 1')
     unwrapped = unwrapped:gsub('([%w_]*)%s*([%+%-])=%s*(.*)', '%1 = %1 %2 %3')
     local name, value = unwrapped:match('([%w_]*)%s*=%s*(.*)')
-    return name, value
+    return name or '', value or assignment
   end
 
   --
