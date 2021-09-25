@@ -1,4 +1,4 @@
-SEED = 2
+SEED = 81
 RANDOM(1, 100) = 81
 POW(2,4) = 16
 INT(1.45) = 1

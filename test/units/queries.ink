@@ -1,4 +1,4 @@
-SEED = 2 { SEED_RANDOM(2) }
+SEED = 81 { SEED_RANDOM(81) }
 RANDOM(1, 100) = { RANDOM(1, 100) }
 POW(2,4) = { POW(2, 4) }
 INT(1.45) = { INT(1.45) }

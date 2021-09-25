@@ -23,9 +23,9 @@ Could I win the hand?
 === 13
 At the table, I drew a card. Ace of Hearts.
 === 14
+At the table, I drew a card. King of Spades.
+=== 15
 At the table, I drew a card. 2 of Diamonds.
 'You lose this time!' crowed the croupier.
-=== 15
-At the table, I drew a card. King of Spades.
 === 16
 Okay. Ace of Hearts again.

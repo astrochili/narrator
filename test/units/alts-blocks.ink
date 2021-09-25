@@ -37,7 +37,7 @@ At the table, I drew a card. <>
 
 = shuffle
 === { counter }
-{ SEED_RANDOM(counter) }
+{ SEED_RANDOM(counter - 13) }
 At the table, I drew a card. <>
 { shuffle:
 	- 	Ace of Hearts.
@@ -50,7 +50,7 @@ At the table, I drew a card. <>
 
 = nested
 === { counter }
-{ SEED_RANDOM(counter) }
+{ SEED_RANDOM(counter - 16) }
 { true:
     { shuffle: 
     - Okay. Ace of Hearts again.
