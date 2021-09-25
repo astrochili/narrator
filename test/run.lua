@@ -202,9 +202,13 @@ end
 
 --- Override math.random functions to prevent different results beetween machines and pass test-cases.
 local function overrideRandom()
-  local test_seed = 0
+  local test_seed
   local original_random = math.random
-  math.randomseed = function(x) test_seed = x end
+
+  math.randomseed = function(x)
+    test_seed = x
+  end
+
   math.random = function(x, y)
     if test_seed then
       local result = math.max(x, math.min(test_seed, y))
@@ -219,11 +223,28 @@ end
 --
 -- Main
 
+local case = nil
 local cases = require('test.cases')
+local overrideCaseResults = false
+
 overrideRandom()
 
--- createTxtForInkCases(cases.units, true)
+if overrideCaseResults then
+  if case then
+    createTxtForInkCase(case, true)
+  else
+    createTxtForInkCases(cases, true)
+  end
+end
 
-testLuaCases(cases.runtime)
-testInkCases(cases.units)
-testInkCases(cases.stories)
+if case then
+  if case:find('runtime/', 1, 8) then
+    testLuaCase(case)
+  else
+    testInkCase(case)
+  end
+else
+  testLuaCases(cases.runtime)
+  testInkCases(cases.units)
+  testInkCases(cases.stories)
+end
