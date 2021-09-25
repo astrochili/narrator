@@ -96,6 +96,7 @@ function mt.__pow(lhs, rhs) -- ^ (intersection)
     end
   end
 
+  setmetatable(intersection, mt)
   return intersection
 end
 
