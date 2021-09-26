@@ -23,7 +23,7 @@ story:begin()
 print('--- Game started ---\n')
 
 while story:canContinue() do
-  
+
   -- Get current paragraphs to output
   local paragraphs = story:continue()
 
@@ -42,7 +42,7 @@ while story:canContinue() do
   -- If there is no choice, it seems the game is over
   if not story:canChoose() then break end
   print('')
-  
+
   -- Get available choices and output them to the player
   local choices = story:getChoices()
   for i, choice in ipairs(choices) do

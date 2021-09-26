@@ -110,6 +110,10 @@ Then you can require the ```narrator``` module.
 local narrator = require('narrator.narrator')
 ```
 
+### Love
+
+See [love demo](main.lua)
+
 ### Common case
 
 Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module.
