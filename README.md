@@ -95,22 +95,7 @@ The separated [roadmap](ROADMAP.md) contains the full list of planned tasks, ide
 
 ## Installation
 
-### Defold
-
-Add links to the zip-archives of the latest versions of [narrator](https://github.com/astrochili/narrator/releases) and [defold-lpeg](https://github.com/astrochili/defold-lpeg/releases) to your Defold project as [dependencies](http://www.defold.com/manuals/libraries/).
-
-```
-https://github.com/astrochili/narrator/archive/master.zip
-https://github.com/astrochili/defold-lpeg/archive/master.zip
-```
-
-Then you can require the ```narrator``` module.
-
-```lua
-local narrator = require('narrator.narrator')
-```
-
-### Common case
+### Common case (Löve, pure Lua, etc.)
 
 Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module.
 
@@ -125,6 +110,21 @@ $ luarocks install lpeg
 ```
 
 In fact, you don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game. Use parsing in development only, prefer already parsed and stored books in production.
+
+### Defold
+
+Add links to the zip-archives of the latest versions of [narrator](https://github.com/astrochili/narrator/releases) and [defold-lpeg](https://github.com/astrochili/defold-lpeg/releases) to your Defold project as [dependencies](http://www.defold.com/manuals/libraries/).
+
+```
+https://github.com/astrochili/narrator/archive/master.zip
+https://github.com/astrochili/defold-lpeg/archive/master.zip
+```
+
+Then you can require the ```narrator``` module.
+
+```lua
+local narrator = require('narrator.narrator')
+```
 
 ## Documentation
 
