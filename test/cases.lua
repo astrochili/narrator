@@ -29,9 +29,11 @@ local units = {
   'choices-sticky',
   'choices-fallback',  
 
+  'labels-choices',
+  'labels-nested',
+
   'branching',
   'nesting',
-  'labels',
   'loop',
   'vars',
   'constants',

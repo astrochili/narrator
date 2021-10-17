@@ -260,12 +260,13 @@ function Story:pathChainForLabel(path)
   local function findLabelChainInItems(items)
     for index, item in ipairs(items) do
 
-      if item.label == label then return { index }
+      if item.label == label then
+        return { index }
 
       elseif item.node ~= nil then
         local result = findLabelChainInItems(item.node)
         if result ~= nil then
-          table.insert(result, 0, index)
+          table.insert(result, 1, index)
           return result
         end
 
@@ -276,8 +277,8 @@ function Story:pathChainForLabel(path)
           for caseIndex, case in ipairs(cases) do
             local result = findLabelChainInItems(case)
             if result ~= nil then
-              table.insert(result, 0, 't' .. caseIndex)
-              table.insert(result, 0, index)
+              table.insert(result, 1, 't' .. caseIndex)
+              table.insert(result, 1, index)
               return result
             end
           end
@@ -286,8 +287,8 @@ function Story:pathChainForLabel(path)
         if type(item.failure) == 'table' then
           local result = findLabelChainInItems(item.failure)
           if result ~= nil then
-            table.insert(result, 0, 'f')
-            table.insert(result, 0, index)
+            table.insert(result, 1, 'f')
+            table.insert(result, 1, index)
             return result
           end
         end

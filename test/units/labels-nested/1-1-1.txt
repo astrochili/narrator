@@ -1,0 +1,14 @@
+
+>) Tell me about the mister
+2) Tell me about the missis
+
+His name is Dima.
+
+>) Tell me about Vika
+2) Finish conversation
+
+Her name is Vika.
+
+>) Finish conversation
+
+That's all.
