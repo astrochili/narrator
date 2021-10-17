@@ -109,7 +109,7 @@ function Narrator.parseFile(path, params)
   local book = parser.parse(content)
   
   for _, inclusion in ipairs(book.inclusions) do
-    local folderPath = path:match('(.*' .. folderSeparator .. ')')
+    local folderPath = clearPath(path):match('(.*' .. folderSeparator .. ')')
     local inclusionPath = folderPath .. clearPath(inclusion) .. '.ink'
     local chapter = Narrator.parseFile(inclusionPath)
     merge(book, chapter)
