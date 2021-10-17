@@ -233,7 +233,8 @@ if overrideCaseResults then
   if case then
     createTxtForInkCase(case, true)
   else
-    createTxtForInkCases(cases, true)
+    createTxtForInkCases(cases.units, true)
+    createTxtForInkCases(cases.stories, true)
   end
 end
 
