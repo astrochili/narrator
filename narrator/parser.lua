@@ -49,8 +49,9 @@ function Parser.parse(content)
   local id = (lpeg.alpha + '_') * (lpeg.alnum + '_') ^ 0
   local label = Cg('(' * sp * C(id) * sp * ')', 'label')
   local address = id * ('.' * id) ^ -2
-  local divert = Cg(divertSign * sp * C(address), 'divert')
+  local divert = Cg( Ct(divertSign * sp * Cg(address, "path") * sp * Cg(lpeg.Cmt(Cb("path"), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r~=nil end), "tunnel") * (sp * divertSign * nl)^-1), 'divert')
   local divertToNothing = divertSign * none
+  local exitTunnel = Cg(divertSign * divertSign, "exit")
   local tag = '#' * sp * V'text'
   local tags = Cg(Ct(tag * (sp * tag) ^ 0), 'tags')
 
@@ -158,11 +159,10 @@ function Parser.parse(content)
       Cg(V'inlineCondition', 'condition') + 
       Cg(V'inlineSequence', 'sequence') + 
       Cg(V'expression', 'expression') +
-      Cg(V'text' + ' ', 'text') * (divert ^ -1) + divert
+      Cg(V'text' + ' ', 'text') * (exitTunnel ^ -1) * (divert ^ -1) + exitTunnel + divert 
     ) - V'multilineItem') ^ 1),
 
-    text = sentenceBefore(nl + divert + comment + tag + S'{|}', true) - V'statement',
-
+    text = sentenceBefore(nl + exitTunnel + divert + comment + tag + S'{|}', true) - V'statement',
     -- Inline expressions, conditions, sequences
 
     expression = '{' * sp * sentenceBefore('}' + nl) * sp * '}',
@@ -280,7 +280,6 @@ function Constructor:addNode(items, isRestricted)
   local isRestricted = isRestricted ~= nil and isRestricted or false
 
   for _, item in ipairs(items) do
-
     if isRestricted then
       -- Are not allowed inside multiline blocks by Ink rules:
       -- a) nesting levels
@@ -366,7 +365,7 @@ function Constructor:addStitch(stitch)
   if self.currentStitch == '_' then
     local rootStitchNode = self.book.tree[self.currentKnot]._
     if #rootStitchNode == 0 then
-      local divertItem = { divert = stitch }
+      local divertItem = { divert = {path = stitch} }
       table.insert(rootStitchNode, divertItem)  
     end
   end
@@ -501,7 +500,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
       item = nil
 
     else -- Text, expression and divert may be
-
+      
       local isDivertOnly = part.divert ~= nil and part.text == nil
 
       if item == nil then
@@ -514,7 +513,8 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
         item.text = item.text .. '#' .. part.expression .. '#'
       end
 
-      if part.divert then
+      if part.divert or part.exit then
+        item.exit = part.exit and true or nil
         item.divert = part.divert
         item.text = #item.text > 0 and (item.text .. '<>') or nil
         table.insert(items, item)
@@ -539,12 +539,12 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
     -- Add a safe prefix and suffix for correct conditions gluing
     
     local firstItem = items[1]
-    if firstItem.text == nil and firstItem.divert == nil then
+    if firstItem.text == nil and firstItem.divert == nil and firstItem.exit == nil then
       table.insert(items, 1, { text = '' } )
     end
     
     local lastItem = items[#items]
-    if lastItem.text == nil and lastItem.divert == nil then
+    if lastItem.text == nil and lastItem.divert == nil and lastItem.exit == nil then
       table.insert(items, { text = '' } )
     elseif lastItem.text ~= nil and lastItem.divert == nil then
       lastItem.text = lastItem.text:gsub('(.-)%s*$', '%1')

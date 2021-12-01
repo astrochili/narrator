@@ -48,6 +48,8 @@ local units = {
   'lists-basic',
   'lists-operators',
   'lists-queries',
+
+  'tunnels',
 }
 
 local stories = {
