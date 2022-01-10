@@ -8,12 +8,10 @@
 
 ## Unsupported features
 
-- [ ] Tunnels
 - [ ] Threads
 - [ ] Divert targets as variable's type
 - [ ] Assigning string evaluations to variables
-- [ ] Knots and stitches as internal functions (take parameters and return values)
-
+- [ ] Internal functions
 
 ## Known limitations
 

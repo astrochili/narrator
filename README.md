@@ -70,6 +70,7 @@ end
 - [x] Paths and sections: inclusions, knots, stitches, labels
 - [x] Choices: suppressing and mixing, labels, conditions, sticky and fallback choices, tags
 - [x] Branching: diversions, glues, gathers, nesting
+- [x] Tunnels
 - [x] Alternatives: sequences, cycles, once-only, shuffles, empty steps, nesting
 - [x] Multiline alternatives: all the same + shuffle options
 - [x] Conditions: logical operations, string queries, if and else statements, nesting
@@ -83,11 +84,10 @@ end
 
 ### Unsupported
 
-- [ ] Tunnels
 - [ ] Threads
 - [ ] Divert targets as variable's type
 - [ ] Assigning string evaluations to variables
-- [ ] Knots and stitches as internal functions (take parameters and return values)
+- [ ] Internal functions
 
 ### Roadmap
 
