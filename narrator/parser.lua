@@ -14,6 +14,7 @@ local lpeg = require(lpegName)
 
 local S, C, P, V = lpeg.S, lpeg.C, lpeg.P, lpeg.V
 local Cb, Ct, Cc, Cg = lpeg.Cb, lpeg.Ct, lpeg.Cc, lpeg.Cg
+local Cmt = lpeg.Cmt
 lpeg.locale(lpeg)
 
 --
@@ -49,9 +50,13 @@ function Parser.parse(content)
   local id = (lpeg.alpha + '_') * (lpeg.alnum + '_') ^ 0
   local label = Cg('(' * sp * C(id) * sp * ')', 'label')
   local address = id * ('.' * id) ^ -2
-  local divert = Cg( Ct(divertSign * sp * Cg(address, "path") * sp * Cg(lpeg.Cmt(Cb("path"), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r~=nil end), "tunnel") * (sp * divertSign * nl)^-1), 'divert')
+  
+  -- TODO: Clean divert expression to divert and tunnel
+  -- this is too long right now
+  local divert = Cg( Ct(divertSign * sp * Cg(address, 'path') * sp * Cg(Cmt(Cb('path'), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r ~= nil end), 'tunnel') * (sp * divertSign * nl) ^ -1), 'divert')
+  
   local divertToNothing = divertSign * none
-  local exitTunnel = Cg(divertSign * divertSign, "exit")
+  local exitTunnel = Cg(divertSign * divertSign, 'exit')
   local tag = '#' * sp * V'text'
   local tags = Cg(Ct(tag * (sp * tag) ^ 0), 'tags')
 
@@ -365,7 +370,7 @@ function Constructor:addStitch(stitch)
   if self.currentStitch == '_' then
     local rootStitchNode = self.book.tree[self.currentKnot]._
     if #rootStitchNode == 0 then
-      local divertItem = { divert = {path = stitch} }
+      local divertItem = { divert = { path = stitch } }
       table.insert(rootStitchNode, divertItem)  
     end
   end

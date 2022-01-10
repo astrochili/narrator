@@ -36,10 +36,9 @@ function Story:new(book)
   self.paragraphs = { }
   self.output = { }
   self.visits = { }
+  self.tunnels = { }
   self.currentPath = nil
   self.isOver = false
-
-  self.stack = { }
 end
 
 --
@@ -143,10 +142,13 @@ function Story:choose(index)
   end
 
   self:visit(choice.path)
+
   if choice.divert ~= nil then
     if choice.divert.tunnel then
-      table.insert(self.stack, {path = choice.path})
+      local tunnel = { path = choice.path }
+      table.insert(self.tunnels, tunnel)
     end
+
     self:jumpTo(choice.divert.path)
   else
     self:readPath(choice.path)
@@ -361,9 +363,15 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   -- Iterate items
 
   for index = currentIndex or (deepIndex or 1), #items do
-    local pointer = {items = items, path = path, depth = depth, mode = mode, index = index + 1}
     local item = items[index]
     local skip = false
+    local pointer = {
+      items = items,
+      path = path,
+      depth = depth,
+      mode = mode,
+      index = index + 1
+    }
 
     local itemType = enums.item.text
     if type(item) == 'table' then
@@ -514,20 +522,24 @@ function Story:readText(item, pointer)
   end
 
   if item.exit ~= nil then
-    local state = assert(table.remove(self.stack), "Tunnel stack is empty.")
+    local state = assert(table.remove(self.tunnels), 'Tunnel stack is empty.')
+
     if state.items == nil then
       self:readPath(state.path)
     else
       self:readItems(state.items, state.path, state.depth, state.mode, state.index)
     end
+
     return enums.readMode.quit
   end
   
   if item.divert ~= nil then
     if item.divert.tunnel then
-      table.insert(self.stack, pointer)
+      table.insert(self.tunnels, pointer)
     end
+
     self:jumpTo(item.divert.path)
+
     return enums.readMode.quit
   end
 end
@@ -581,7 +593,7 @@ function Story:readChoice(item, path, pointer)
     if #self.choices == 0 then
       if item.divert ~= nil then
         if item.divert.tunnel then
-          table.insert(self.stack, pointer)
+          table.insert(self.tunnels, pointer)
         end
         self:jumpTo(item.divert.path)
       else
