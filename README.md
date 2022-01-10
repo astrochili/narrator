@@ -431,14 +431,15 @@ There are some useful extensions and configs for [VSCode](https://code.visualstu
 
 ### Testing
 
-To run tests you need to install [busted](https://github.com/Olivine-Labs/busted).
+To run tests you need to install [busted](https://github.com/Olivine-Labs/busted) and lpeg.
 ```shell
 $ luarocks install busted
+$ luarocks install lpeg
 ```
 
 After that you can run tests from the terminal:
 ```shell
-$ busted tests/run.lua
+$ busted test/run.lua
 ```
 
 ## Third Party Libraries
