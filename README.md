@@ -437,7 +437,7 @@ To run tests you need to install [busted](https://github.com/Olivine-Labs/busted
 $ luarocks install busted
 ```
 
-Don't forget also to install [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/) as described in [Common case](#common-case-löve-pure-lua-etc) installation section.
+Don't forget also to install `lpeg` as described in [Common case](#common-case-löve-pure-lua-etc) installation section.
 
 After that you can run tests from the terminal:
 ```shell
