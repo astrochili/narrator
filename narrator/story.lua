@@ -36,7 +36,6 @@ function Story:new(book)
   self.paragraphs = { }
   self.output = { }
   self.visits = { }
-  self.tunnels = { }
   self.currentPath = nil
   self.isOver = false
 end
@@ -144,11 +143,6 @@ function Story:choose(index)
   self:visit(choice.path)
 
   if choice.divert ~= nil then
-    if choice.divert.tunnel then
-      local tunnel = { path = choice.path }
-      table.insert(self.tunnels, tunnel)
-    end
-
     self:jumpTo(choice.divert.path)
   else
     self:readPath(choice.path)
@@ -365,14 +359,6 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   for index = currentIndex or (deepIndex or 1), #items do
     local item = items[index]
     local skip = false
-    local pointer = {
-      items = items,
-      path = path,
-      depth = depth,
-      mode = mode,
-      index = index + 1,
-      condition = #chain == 2
-    }
 
     local itemType = enums.item.text
     if type(item) == 'table' then
@@ -426,7 +412,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
     elseif itemType == enums.item.text then
       mode = enums.readMode.text
       local safeItem = type(item) == 'string' and { text = item } or item
-      mode = self:readText(safeItem, pointer) or mode
+      mode = self:readText(safeItem) or mode
     elseif itemType == enums.item.alts then
       mode = enums.readMode.text
       local deepPath = makeDeepPath({ index }, '~')
@@ -435,7 +421,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
       mode = enums.readMode.choices
       local deepPath = makeDeepPath({ index }, '>')
       deepPath.label = item.label or deepPath.label
-      mode = self:readChoice(item, deepPath, pointer) or mode
+      mode = self:readChoice(item, deepPath) or mode
       if index == #items and type(chain[#chain]) == 'number' then
         mode = enums.readMode.quit
       end
@@ -452,7 +438,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
       end
       if type(result) == 'string' then
         mode = enums.readMode.text
-        mode = self:readText({ text = result }, pointer) or mode
+        mode = self:readText({ text = result }) or mode
       elseif type(result) == 'table' then
         local deepPath = makeDeepPath({ index, chainValue })
         mode = self:readItems(result, deepPath, depth + 2, mode) or mode
@@ -489,7 +475,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   return mode
 end
 
-function Story:readText(item, pointer)
+function Story:readText(item)
   local text = item.text
   local tags = type(item.tags) == 'string' and { item.tags } or item.tags
 
@@ -521,26 +507,10 @@ function Story:readText(item, pointer)
       table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
     end
   end
-
-  if item.exit ~= nil then
-    local state = assert(table.remove(self.tunnels), 'Tunnel stack is empty.')
-
-    if state.items == nil then
-      self:readPath(state.path)
-    elseif not state.condition then
-      self:readItems(state.items, state.path, state.depth, state.mode, state.index)
-    end
-
-    return enums.readMode.quit
-  end
   
   if item.divert ~= nil then
-    if item.divert.tunnel then
-      table.insert(self.tunnels, pointer)
-    end
-
     self:jumpTo(item.divert.path)
-    return (item.divert.tunnel and pointer.condition) and pointer.mode or enums.readMode.quit
+    return item.divert.tunnel and enums.readMode.text or enums.readMode.quit
   end
 end
 
@@ -585,16 +555,13 @@ function Story:readAlts(item, path, depth, mode)
   return self:readItems(items, path, depth, mode)
 end
 
-function Story:readChoice(item, path, pointer)
+function Story:readChoice(item, path)
   local isFallback = item.choice == 0
 
   if isFallback then
     -- Works correctly only when a fallback is the last choice
     if #self.choices == 0 then
       if item.divert ~= nil then
-        if item.divert.tunnel then
-          table.insert(self.tunnels, pointer)
-        end
         self:jumpTo(item.divert.path)
       else
         self:readPath(path)

@@ -12,8 +12,7 @@ You wake as the sun rises.
 
 === sleep_here ===
 You lie down and try to close your eyes.
--> dream ->
-->->
+-> dream
 
 === dream ===
 You dream about the dream.
