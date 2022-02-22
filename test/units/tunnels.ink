@@ -1,6 +1,9 @@
 The dark grass is soft under your feet.
 {1:
 	-> sleep_here -> wake_here ->
+
+-else:
+	wtf
 }
 
 It is time to move on.
