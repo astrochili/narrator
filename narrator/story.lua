@@ -370,7 +370,8 @@ function Story:readItems(items, path, depth, mode, currentIndex)
       path = path,
       depth = depth,
       mode = mode,
-      index = index + 1
+      index = index + 1,
+      condition = #chain == 2
     }
 
     local itemType = enums.item.text
@@ -526,7 +527,7 @@ function Story:readText(item, pointer)
 
     if state.items == nil then
       self:readPath(state.path)
-    else
+    elseif not state.condition then
       self:readItems(state.items, state.path, state.depth, state.mode, state.index)
     end
 
@@ -539,8 +540,7 @@ function Story:readText(item, pointer)
     end
 
     self:jumpTo(item.divert.path)
-
-    return enums.readMode.quit
+    return (item.divert.tunnel and pointer.condition) and pointer.mode or enums.readMode.quit
   end
 end
 

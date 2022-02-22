@@ -1,7 +1,8 @@
 The dark grass is soft under your feet.
--> sleep_here -> wake_here -> day_time
+{1:
+	-> sleep_here -> wake_here ->
+}
 
-=== day_time ===
 It is time to move on.
 -> END
 
