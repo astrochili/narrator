@@ -52,8 +52,10 @@ function Parser.parse(content)
   local address = id * ('.' * id) ^ -2
   
   -- TODO: Clean divert expression to divert and tunnel
-  -- this is too long right now
-  local divert = Cg( Ct(divertSign * sp * Cg(address, 'path') * sp * Cg(Cmt(Cb('path'), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r ~= nil end), 'tunnel') * (sp * divertSign * nl) ^ -1), 'divert')
+  local divert = divertSign * sp * Cg(address, 'path') -- base search for divert symbol and path to follow
+  local checkTunnel = Cg(Cmt(Cb('path'), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r ~= nil end),'tunnel') -- a weird way to to check tunnel
+  local optTunnelSign = (sp * divertSign * #nl ) ^ -1 -- tunnel sign in end of string, keep newline not consumed
+  divert = Cg(Ct(divert * sp * checkTunnel * optTunnelSign), 'divert')
   
   local divertToNothing = divertSign * none
   local exitTunnel = Cg(divertSign * divertSign, 'exit')
