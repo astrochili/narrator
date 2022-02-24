@@ -1,7 +1,11 @@
 The dark grass is soft under your feet.
--> sleep_here -> wake_here -> day_time
+{1:
+	-> sleep_here -> wake_here ->
 
-=== day_time ===
+-else:
+	wtf
+}
+
 It is time to move on.
 -> END
 
@@ -11,8 +15,7 @@ You wake as the sun rises.
 
 === sleep_here ===
 You lie down and try to close your eyes.
--> dream ->
-->->
+-> dream
 
 === dream ===
 You dream about the dream.
