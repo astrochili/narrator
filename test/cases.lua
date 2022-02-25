@@ -50,6 +50,7 @@ local units = {
   'lists-queries',
 
   'tunnels',
+  'escape',
 }
 
 local stories = {

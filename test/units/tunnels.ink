@@ -6,7 +6,8 @@ The dark grass is soft under your feet.
 	wtf
 }
 
-It is time to move on.
+->move_on-> 
+
 -> END
 
 === wake_here ===
@@ -20,3 +21,6 @@ You lie down and try to close your eyes.
 === dream ===
 You dream about the dream.
 ->->
+
+=== move_on
+It is time to move on. ->->
