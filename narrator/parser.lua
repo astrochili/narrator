@@ -598,7 +598,7 @@ function Constructor:addChoice(level, sticky, label, condition, sentence, divert
     end
     
     item.text = Constructor.unEscape(text)
-    item.choice = choice
+    item.choice = Constructor.unEscape(choice)
   end
 
   Constructor.addItem(self, level, item)
