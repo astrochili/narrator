@@ -649,6 +649,7 @@ function Story:doExpression(expression)
   expression = expression:gsub('%s*%&%&%s*', ' and ')
   expression = expression:gsub('%s+has%s+', ' ? ')
   expression = expression:gsub('%s+hasnt%s+', ' !? ')
+  expression = expression:gsub('!%s*%w', ' not ')
   
   -- Replace functions results
   expression = expression:gsub('[%a_][%w_]*%b()', function(match)
