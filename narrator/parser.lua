@@ -169,7 +169,9 @@ function Parser.parse(content)
       Cg(V'text' + ' ', 'text') * (exitTunnel ^ -1) * (divert ^ -1) + exitTunnel + divert 
     ) - V'multilineItem') ^ 1),
 
-    text = sentenceBefore(nl + exitTunnel + divert + comment + tag + S'{|}', true) - V'statement',
+    specialCheckEscape = Cmt(S("{|}"), function(s,i,a) if string.sub(s, i-2, i-2) == '\\' then return end return i end),
+    
+    text = sentenceBefore(nl + exitTunnel + divert + comment + tag + V'specialCheckEscape', true) - V'statement',
     -- Inline expressions, conditions, sequences
 
     expression = '{' * sp * sentenceBefore('}' + nl) * sp * '}',
@@ -250,6 +252,13 @@ end
 
 --
 -- A book construction
+
+function Constructor.unEscape(text)
+  local s = string.gsub(text, "\\|", "|")
+  s = string.gsub(s, "\\{", "{")
+  s = string.gsub(s, "\\}", "}")
+  return s
+end
 
 function Constructor.constructBook(items)
   
@@ -516,6 +525,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
 
       if part.text then
         item.text = item.text .. part.text:gsub('%s+', ' ')
+        item.text = Constructor.unEscape(item.text)
       elseif part.expression then
         item.text = item.text .. '#' .. part.expression .. '#'
       end
@@ -587,8 +597,8 @@ function Constructor:addChoice(level, sticky, label, condition, sentence, divert
       text = text:gsub('^%s*(.-)%s*$', '%1')
     end
     
-    item.text = text
-    item.choice = choice
+    item.text = Constructor.unEscape(text)
+    item.choice = Constructor.unEscape(choice)
   end
 
   Constructor.addItem(self, level, item)
