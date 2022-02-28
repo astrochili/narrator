@@ -19,6 +19,7 @@ function Story:new(book)
   self.constants = book.constants
   self.variables = lume.clone(book.variables)
   self.lists = book.lists
+  self.params = book.params
   
   self.listMT = listMT
   self.listMT.lists = self.lists
@@ -151,7 +152,7 @@ end
 
 --- Jumps to the path
 -- @param pathString string: a path string like 'knot.stitch.label'
-function Story:jumpTo(pathString)
+function Story:jumpTo(pathString, params)
   assert(pathString, 'The pathString can\'t be nil')
 
   self.choices = { }
@@ -167,7 +168,7 @@ function Story:jumpTo(pathString)
     path.chain = self:pathChainForLabel(path)
   end
 
-  self:readPath(path)
+  self:readPath(path, params)
 end
 
 --- Returns the number of visits to the path.
@@ -304,7 +305,7 @@ function Story:pathChainForLabel(path)
   return chain
 end
 
-function Story:readPath(path)
+function Story:readPath(path, params)
   assert(path, 'The reading path can\'t be nil')
 
   if self.isOver then
@@ -315,6 +316,12 @@ function Story:readPath(path)
   -- Items with labels will increment visits counter by themself in readItems().
   if not path.label then
     self:visit(path)
+  end
+
+  if params then
+    for name, value in pairs(params) do
+      self:assignValueTo(name, value, true)
+    end
   end
 
   local items = self:itemsFor(path.knot, path.stitch)
@@ -359,6 +366,11 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   for index = currentIndex or (deepIndex or 1), #items do
     local item = items[index]
     local skip = false
+
+    if item.returnVal then
+      self.returnVal = tostring(item.returnVal)
+      return
+    end
 
     local itemType = enums.item.text
     if type(item) == 'table' then
@@ -676,6 +688,17 @@ function Story:doExpression(expression)
       local list = item and { [functionName] = { [item] = true } } or { }
       lists[#lists + 1] = list
       return '__list' .. #lists
+    else
+      self.returnVal = nil
+      local fparams = { }
+      if params then
+        for i, value in ipairs(params) do
+          fparams[self.params[functionName][i]] = tostring(value)
+        end
+      end
+      self:jumpTo(functionName, fparams)
+      self.currentPath = nil
+      return self.returnVal
     end
     
     return 'nil'

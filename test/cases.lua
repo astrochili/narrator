@@ -51,6 +51,7 @@ local units = {
 
   'tunnels',
   'escape',
+  'functions'
 }
 
 local stories = {
