@@ -205,6 +205,7 @@ function Story:saveState()
     temp = self.temp,
     seeds = self.seeds,
     variables = self.variables,
+    params = self.params,
     visits = self.visits,
     path = self.currentPath,
     paragraphs = self.paragraphs,
@@ -225,6 +226,7 @@ function Story:loadState(state)
   self.temp = state.temp
   self.seeds = state.seeds
   self.variables = state.variables
+  self.params = state.params
   self.visits = state.visits
   self.currentPath = state.path
   self.paragraphs = state.paragraphs
@@ -691,13 +693,14 @@ function Story:doExpression(expression)
     else
       self.returnVal = nil
       local fparams = { }
+      local path = self.currentPath
       if params then
         for i, value in ipairs(params) do
           fparams[self.params[functionName][i]] = tostring(value)
         end
       end
       self:jumpTo(functionName, fparams)
-      self.currentPath = nil
+      self.currentPath = path
       return self.returnVal
     end
     
