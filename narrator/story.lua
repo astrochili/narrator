@@ -217,7 +217,8 @@ function Story:saveState()
     path = self.currentPath,
     paragraphs = self.paragraphs,
     choices = self.choices,
-    output = self.output
+    output = self.output,
+    tunnels = self.tunnels
   }
   return state
 end
@@ -233,12 +234,13 @@ function Story:loadState(state)
   self.temp = state.temp
   self.seeds = state.seeds
   self.variables = state.variables
-  self.params = state.params
+  self.params = state.params or { }
   self.visits = state.visits
   self.currentPath = state.path
   self.paragraphs = state.paragraphs
   self.choices = state.choices
   self.output = state.output
+  self.tunnels = state.tunnels or { }
 end
 
 --- Assigns an observer function to the variable's changes.
