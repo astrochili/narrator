@@ -39,6 +39,8 @@ function Story:new(book)
   self.visits = { }
   self.currentPath = nil
   self.isOver = false
+
+  self.tunnels = { }
 end
 
 --
@@ -123,6 +125,11 @@ function Story:choose(index)
   if self:canContinue() then
     return
   end
+
+  if #self.tunnels > 0 then
+    self.tunnels[#self.tunnels].restore = true 
+    -- we are moving to another context, so the last one should be restored on exit from tunnel
+  end
   
   local choiceIsAvailable = index > 0 and index <= #self.choices
   assert(choiceIsAvailable, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
@@ -168,7 +175,7 @@ function Story:jumpTo(pathString, params)
     path.chain = self:pathChainForLabel(path)
   end
 
-  self:readPath(path, params)
+  return self:readPath(path, params)
 end
 
 --- Returns the number of visits to the path.
@@ -327,7 +334,7 @@ function Story:readPath(path, params)
   end
 
   local items = self:itemsFor(path.knot, path.stitch)
-  self:readItems(items, path)
+  return self:readItems(items, path)
 end
 
 function Story:itemsFor(knot, stitch)
@@ -366,12 +373,14 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   -- Iterate items
 
   for index = currentIndex or (deepIndex or 1), #items do
+    local context = {items = items, path = path, depth = depth, mode = mode, index = index + 1}
+    
     local item = items[index]
     local skip = false
 
     if item.returnVal then
       self.returnVal = tostring(item.returnVal)
-      return
+      return enums.readMode.quit
     end
 
     local itemType = enums.item.text
@@ -426,7 +435,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
     elseif itemType == enums.item.text then
       mode = enums.readMode.text
       local safeItem = type(item) == 'string' and { text = item } or item
-      mode = self:readText(safeItem) or mode
+      mode = self:readText(safeItem, context) or mode
     elseif itemType == enums.item.alts then
       mode = enums.readMode.text
       local deepPath = makeDeepPath({ index }, '~')
@@ -452,7 +461,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
       end
       if type(result) == 'string' then
         mode = enums.readMode.text
-        mode = self:readText({ text = result }) or mode
+        mode = self:readText({ text = result }, context) or mode
       elseif type(result) == 'table' then
         local deepPath = makeDeepPath({ index, chainValue })
         mode = self:readItems(result, deepPath, depth + 2, mode) or mode
@@ -489,7 +498,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   return mode
 end
 
-function Story:readText(item)
+function Story:readText(item, context)
   local text = item.text
   local tags = type(item.tags) == 'string' and { item.tags } or item.tags
 
@@ -523,8 +532,26 @@ function Story:readText(item)
   end
   
   if item.divert ~= nil then
-    self:jumpTo(item.divert.path)
-    return item.divert.tunnel and enums.readMode.text or enums.readMode.quit
+    if item.divert.tunnel then
+      table.insert(self.tunnels, context)
+    end
+    local mode = self:jumpTo(item.divert.path)
+
+    if item.divert.tunnel then
+      return (mode == enums.readMode.quit and #self.choices == 0) and enums.readMode.text or mode
+    end
+
+    return enums.readMode.quit
+  end
+
+  if item.exit then
+    local ctx = assert(table.remove(self.tunnels), "Tunnel stack is empty.")
+    if ctx.restore then
+      local mode = self:readItems(ctx.items, ctx.path, ctx.depth, ctx.mode, ctx.index)
+      return enums.readMode.quit --mode
+    end
+
+    return enums.readMode.text
   end
 end
 
