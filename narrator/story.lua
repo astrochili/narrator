@@ -151,6 +151,10 @@ function Story:choose(index)
   self:visit(choice.path)
 
   if choice.divert ~= nil then
+    if choice.divert.tunnel then
+      local context = { path = choice.path, restore = true }
+      table.insert(self.tunnels, context)
+    end
     self:jumpTo(choice.divert.path)
   else
     self:readPath(choice.path)
@@ -549,6 +553,12 @@ function Story:readText(item, context)
   if item.exit then
     local ctx = assert(table.remove(self.tunnels), "Tunnel stack is empty.")
     if ctx.restore then
+      
+      if ctx.items == nil then
+        self:readPath(ctx.path)
+        return enums.readMode.quit
+      end
+      
       local mode = self:readItems(ctx.items, ctx.path, ctx.depth, ctx.mode, ctx.index)
       return enums.readMode.quit --mode
     end
