@@ -19,6 +19,7 @@ function Story:new(book)
   self.constants = book.constants
   self.variables = lume.clone(book.variables)
   self.lists = book.lists
+  self.params = book.params
   
   self.listMT = listMT
   self.listMT.lists = self.lists
@@ -38,6 +39,8 @@ function Story:new(book)
   self.visits = { }
   self.currentPath = nil
   self.isOver = false
+
+  self.tunnels = { }
 end
 
 --
@@ -122,6 +125,11 @@ function Story:choose(index)
   if self:canContinue() then
     return
   end
+
+  if #self.tunnels > 0 then
+    self.tunnels[#self.tunnels].restore = true 
+    -- we are moving to another context, so the last one should be restored on exit from tunnel
+  end
   
   local choiceIsAvailable = index > 0 and index <= #self.choices
   assert(choiceIsAvailable, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
@@ -151,7 +159,7 @@ end
 
 --- Jumps to the path
 -- @param pathString string: a path string like 'knot.stitch.label'
-function Story:jumpTo(pathString)
+function Story:jumpTo(pathString, params)
   assert(pathString, 'The pathString can\'t be nil')
 
   self.choices = { }
@@ -167,7 +175,7 @@ function Story:jumpTo(pathString)
     path.chain = self:pathChainForLabel(path)
   end
 
-  self:readPath(path)
+  return self:readPath(path, params)
 end
 
 --- Returns the number of visits to the path.
@@ -204,11 +212,13 @@ function Story:saveState()
     temp = self.temp,
     seeds = self.seeds,
     variables = self.variables,
+    params = self.params,
     visits = self.visits,
     path = self.currentPath,
     paragraphs = self.paragraphs,
     choices = self.choices,
-    output = self.output
+    output = self.output,
+    tunnels = self.tunnels
   }
   return state
 end
@@ -224,11 +234,13 @@ function Story:loadState(state)
   self.temp = state.temp
   self.seeds = state.seeds
   self.variables = state.variables
+  self.params = state.params or { }
   self.visits = state.visits
   self.currentPath = state.path
   self.paragraphs = state.paragraphs
   self.choices = state.choices
   self.output = state.output
+  self.tunnels = state.tunnels or { }
 end
 
 --- Assigns an observer function to the variable's changes.
@@ -304,7 +316,7 @@ function Story:pathChainForLabel(path)
   return chain
 end
 
-function Story:readPath(path)
+function Story:readPath(path, params)
   assert(path, 'The reading path can\'t be nil')
 
   if self.isOver then
@@ -317,8 +329,14 @@ function Story:readPath(path)
     self:visit(path)
   end
 
+  if params then
+    for name, value in pairs(params) do
+      self:assignValueTo(name, value, true)
+    end
+  end
+
   local items = self:itemsFor(path.knot, path.stitch)
-  self:readItems(items, path)
+  return self:readItems(items, path)
 end
 
 function Story:itemsFor(knot, stitch)
@@ -357,8 +375,15 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   -- Iterate items
 
   for index = currentIndex or (deepIndex or 1), #items do
+    local context = {items = items, path = path, depth = depth, mode = mode, index = index + 1}
+    
     local item = items[index]
     local skip = false
+
+    if item.returnVal then
+      self.returnVal = tostring(item.returnVal)
+      return enums.readMode.quit
+    end
 
     local itemType = enums.item.text
     if type(item) == 'table' then
@@ -412,7 +437,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
     elseif itemType == enums.item.text then
       mode = enums.readMode.text
       local safeItem = type(item) == 'string' and { text = item } or item
-      mode = self:readText(safeItem) or mode
+      mode = self:readText(safeItem, context) or mode
     elseif itemType == enums.item.alts then
       mode = enums.readMode.text
       local deepPath = makeDeepPath({ index }, '~')
@@ -438,7 +463,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
       end
       if type(result) == 'string' then
         mode = enums.readMode.text
-        mode = self:readText({ text = result }) or mode
+        mode = self:readText({ text = result }, context) or mode
       elseif type(result) == 'table' then
         local deepPath = makeDeepPath({ index, chainValue })
         mode = self:readItems(result, deepPath, depth + 2, mode) or mode
@@ -475,7 +500,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   return mode
 end
 
-function Story:readText(item)
+function Story:readText(item, context)
   local text = item.text
   local tags = type(item.tags) == 'string' and { item.tags } or item.tags
 
@@ -509,8 +534,26 @@ function Story:readText(item)
   end
   
   if item.divert ~= nil then
-    self:jumpTo(item.divert.path)
-    return item.divert.tunnel and enums.readMode.text or enums.readMode.quit
+    if item.divert.tunnel then
+      table.insert(self.tunnels, context)
+    end
+    local mode = self:jumpTo(item.divert.path)
+
+    if item.divert.tunnel then
+      return (mode == enums.readMode.quit and #self.choices == 0) and enums.readMode.text or mode
+    end
+
+    return enums.readMode.quit
+  end
+
+  if item.exit then
+    local ctx = assert(table.remove(self.tunnels), "Tunnel stack is empty.")
+    if ctx.restore then
+      local mode = self:readItems(ctx.items, ctx.path, ctx.depth, ctx.mode, ctx.index)
+      return enums.readMode.quit --mode
+    end
+
+    return enums.readMode.text
   end
 end
 
@@ -676,6 +719,18 @@ function Story:doExpression(expression)
       local list = item and { [functionName] = { [item] = true } } or { }
       lists[#lists + 1] = list
       return '__list' .. #lists
+    else
+      self.returnVal = nil
+      local fparams = { }
+      local path = self.currentPath
+      if params then
+        for i, value in ipairs(params) do
+          fparams[self.params[functionName][i]] = tostring(value)
+        end
+      end
+      self:jumpTo(functionName, fparams)
+      self.currentPath = path
+      return self.returnVal
     end
     
     return 'nil'

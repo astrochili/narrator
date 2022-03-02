@@ -27,7 +27,8 @@ local units = {
   'choices-tags',  
   'choices-conditional',
   'choices-sticky',
-  'choices-fallback',  
+  'choices-fallback',
+  'choices-tunnel',
 
   'labels-choices',
   'labels-nested',
@@ -51,6 +52,7 @@ local units = {
 
   'tunnels',
   'escape',
+  'functions'
 }
 
 local stories = {

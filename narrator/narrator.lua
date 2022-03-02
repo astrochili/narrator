@@ -85,6 +85,7 @@ local function merge(book, chapter)
   book.constants = lume.merge(book.constants or { }, chapter.constants or { })
   book.lists = lume.merge(book.lists or { }, chapter.lists or { })
   book.variables = lume.merge(book.variables or { }, chapter.variables or { })
+  book.params = lume.merge(book.params or { }, chapter.params or { })
   
   return book
 end

@@ -131,7 +131,9 @@ function Parser.parse(content)
     -- Statements
 
     statement = 
+      Ct(V'returnFromFunc' * itemType('return')) +
       Ct(V'assignment' * itemType('assignment')) + 
+      Ct(V'func' * itemType('func')) +
       Ct(V'knot' * itemType('knot')) +
       Ct(V'stitch' * itemType('stitch')) +
       Ct(V'choice' * itemType('choice')) +
@@ -141,6 +143,13 @@ function Parser.parse(content)
     sectionName = C(id) * sp * P'=' ^ 0,
     knot = P'==' * (P'=' ^ 0) * sp * Cg(V'sectionName', 'knot'),
     stitch = '=' * sp * Cg(V'sectionName', 'stitch'),
+
+    funcParam = sp * C(id) * sp * S','^0,
+    funcParams = P'(' * Cg(Ct(V'funcParam'^0), 'params') * P')',
+    functionName = P'function' * sp * Cg(id, 'name') * sp * V'funcParams' * sp * P'=' ^ 0,
+    func =  P'==' * (P'=' ^ 0) * sp * Cg(Ct(V'functionName'), 'func'),
+
+    returnFromFunc = sp * '~' * sp * P('return') * sp * Cg((P(1) - nl)^0, 'value') * nl,
 
     assignment = gatherLevel * sp * '~' * sp * V'assignmentTemp' * sp * V'assignmentPair',
     assignmentTemp = Cg('temp' * Cc(true) + Cc(false), 'temp'),
@@ -273,6 +282,7 @@ function Constructor.constructBook(items)
     lists = { },
     constants = { },
     variables = { },
+    params = { },
     tree = { _ = { _ = { } } }
   }
 
@@ -319,6 +329,9 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'variable' then
       -- name, value
       Constructor.addVariable(self, item.name, item.value)
+    elseif item.type == 'func' then
+      -- function
+      Constructor.addFunction(self, item.func.name, item.func.params)
     elseif item.type == 'knot' then
       -- knot
       Constructor.addKnot(self, item.knot)
@@ -334,6 +347,8 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'assignment' then
       -- level, name, value, temp
       Constructor.addAssignment(self, item.level, item.name, item.value, item.temp)
+    elseif item.type == 'return' then
+      Constructor.addReturn(self, item.value)
     elseif item.type == 'paragraph' then
       -- level, label, parts, tags
       Constructor.addParagraph(self, item.level, item.label, item.parts, item.tags)
@@ -365,6 +380,13 @@ end
 
 function Constructor:addVariable(variable, value)
   self.variablesToCompute[variable] = value
+end
+
+function Constructor:addFunction(fname, params)
+  local node = { }
+  self.book.tree[fname] = { ['_'] = node }
+  self.book.params[fname] = params
+  self.nodesChain = { node }
 end
 
 function Constructor:addKnot(knot)
@@ -442,6 +464,14 @@ function Constructor:addSequence(sequence, shuffle, alts)
     table.remove(self.nodesChain)
     table.insert(item.alts, altNode)
   end
+
+  Constructor.addItem(self, nil, item)
+end
+
+function Constructor:addReturn(value)
+  local item = {
+    returnVal = value
+  }
 
   Constructor.addItem(self, nil, item)
 end

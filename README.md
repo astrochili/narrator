@@ -81,13 +81,13 @@ end
 - [x] State: saving and loading
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
+- [x] Internal functions
 
 ### Unsupported
 
 - [ ] Threads
 - [ ] Divert targets as variable's type
 - [ ] Assigning string evaluations to variables
-- [ ] Internal functions
 
 ### Roadmap
 

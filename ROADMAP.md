@@ -11,7 +11,6 @@
 - [ ] Threads
 - [ ] Divert targets as variable's type
 - [ ] Assigning string evaluations to variables
-- [ ] Internal functions
 
 ## Known limitations
 
