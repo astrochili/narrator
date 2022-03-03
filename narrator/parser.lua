@@ -54,7 +54,7 @@ function Parser.parse(content)
   -- TODO: Clean divert expression to divert and tunnel
   local divert = divertSign * sp * Cg(address, 'path') -- base search for divert symbol and path to follow
   local checkTunnel = Cg(Cmt(Cb('path'), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r ~= nil end),'tunnel') -- a weird way to to check tunnel
-  local optTunnelSign = (sp * divertSign * sp * #nl ) ^ -1 -- tunnel sign in end of string, keep newline not consumed
+  local optTunnelSign = (sp * divertSign * sp * (#nl + #S'#') ) ^ -1 -- tunnel sign in end of string, keep newline not consumed
   divert = Cg(Ct(divert * sp * checkTunnel * optTunnelSign), 'divert')
   
   local divertToNothing = divertSign * none
@@ -111,9 +111,12 @@ function Parser.parse(content)
     items = Ct(V'item' ^ 0),
 
     item = balancedMultilineItem() + V'singlelineItem',
-    singlelineItem = sp * (V'global' + V'statement' + V'paragraph') * ws,
+    singlelineItem = sp * (V'global' + V'statement' + V'paragraph' + V'gatherPoint') * ws,
     multilineItem = ('{' * sp * (V'sequence' + V'switch') * sp * multilineEnd) - V'inlineCondition',
 
+    -- Gather points
+    gatherPoint = Ct(gatherLevel * sp * nl * itemType('gather')),
+    
     -- Global declarations
 
     global =
@@ -352,6 +355,8 @@ function Constructor:addNode(items, isRestricted)
     elseif item.type == 'paragraph' then
       -- level, label, parts, tags
       Constructor.addParagraph(self, item.level, item.label, item.parts, item.tags)
+    elseif item.type == 'gather' then
+      Constructor.addParagraph(self, item.level, "", nil, item.tags)
     elseif item.type == 'choice' then
       -- level, sticky, label, condition, text, divert, tags
       Constructor.addChoice(self, item.level, item.sticky, item.label, item.condition, item.text, item.divert, item.tags)
