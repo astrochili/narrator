@@ -35,6 +35,7 @@ local units = {
 
   'branching',
   'nesting',
+  'gather',
   'loop',
   'vars',
   'constants',
