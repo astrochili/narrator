@@ -20,7 +20,7 @@ it's own
 ~return a + b
 
 === function foo() ===
-~return 1
+~return true
 
 === function boo() ===
 ~return

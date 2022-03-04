@@ -697,7 +697,7 @@ function Story:doExpression(expression)
 
   local code = ''
   local lists = { }
-  local isInkFunction = false
+  local stackString
   
   -- Replace operators
   expression = expression:gsub('!=', '~=')
@@ -733,7 +733,6 @@ function Story:doExpression(expression)
       lists[#lists + 1] = list
       return '__list' .. #lists
     else
-      isInkFunction = true
       self.returnVal = nil
       local fparams = { }
       local path = self.currentPath
@@ -748,23 +747,18 @@ function Story:doExpression(expression)
       self.currentPath = path
 
       local s = table.remove(self.stack)
-      local text = ''
-      for _, paragraph in ipairs(s) do
-        text = text .. paragraph.text
+      if #s > 0 then
+        stackString = ''
+        for _, paragraph in ipairs(s) do
+          stackString = stackString .. paragraph.text
+        end
       end
-      self.returnVal = self.returnVal and self:doExpression(self.returnVal)
-      return #s > 0 and text .. (self.returnVal or '') or (self.returnVal or 'nil')
+      
+      return self.returnVal
     end
     
     return 'nil'
   end)
-
-  if isInkFunction then
-    if expression ~= 'nil' then
-      return expression
-    end
-    return
-  end
 
   -- Replace lists
   expression = expression:gsub('%(([%s%w%.,_]*)%)', function(match)
@@ -830,7 +824,8 @@ function Story:doExpression(expression)
   end
   
   code = code .. 'return ' .. expression
-  return lume.dostring(code)
+  local result = lume.dostring(code)
+  return stackString and (stackString .. tostring(result or '')) or result
 end
 
 
