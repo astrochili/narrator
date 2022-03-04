@@ -1,3 +1,2 @@
-first param: 2
-second param: 3
+function has it's own stack
 sum: 5

@@ -41,6 +41,7 @@ function Story:new(book)
   self.isOver = false
 
   self.tunnels = { }
+  self.stack = { }
 end
 
 --
@@ -507,33 +508,34 @@ end
 function Story:readText(item, context)
   local text = item.text
   local tags = type(item.tags) == 'string' and { item.tags } or item.tags
+  local paragraphs = #self.stack == 0 and self.paragraphs or self.stack[#self.stack]
 
   if text ~= nil or tags ~= nil then
     local paragraph = { text = text or '<>', tags = tags }
-    local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == '<>' 
+    local gluedByPrev = #paragraphs > 0 and paragraphs[#paragraphs].text:sub(-2) == '<>' 
     local gluedByThis = text ~= nil and text:sub(1, 2) == '<>'
     
     paragraph.text = self:replaceExpressions(paragraph.text)
     paragraph.text = paragraph.text:gsub('%s+', ' ')
 
     if gluedByPrev then
-      local prevParagraph = self.paragraphs[#self.paragraphs]
+      local prevParagraph = paragraphs[#paragraphs]
       prevParagraph.text = prevParagraph.text:sub(1, #prevParagraph.text - 2)
-      self.paragraphs[#self.paragraphs] = prevParagraph
+      paragraphs[#paragraphs] = prevParagraph
     end
 
     if gluedByThis then
       paragraph.text = paragraph.text:sub(3)
     end
 
-    if gluedByPrev or (gluedByThis and #self.paragraphs > 0) then
-      local prevParagraph = self.paragraphs[#self.paragraphs]
+    if gluedByPrev or (gluedByThis and #paragraphs > 0) then
+      local prevParagraph = paragraphs[#paragraphs]
       prevParagraph.text = (prevParagraph.text .. paragraph.text):gsub('%s+', ' ')
       prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
       prevParagraph.tags = #prevParagraph.tags > 0 and prevParagraph.tags or nil
-      self.paragraphs[#self.paragraphs] = prevParagraph
+      paragraphs[#paragraphs] = prevParagraph
     else
-      table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
+      table.insert(paragraphs, #paragraphs + 1, paragraph)
     end
   end
   
@@ -695,6 +697,7 @@ function Story:doExpression(expression)
 
   local code = ''
   local lists = { }
+  local isInkFunction = false
   
   -- Replace operators
   expression = expression:gsub('!=', '~=')
@@ -730,6 +733,7 @@ function Story:doExpression(expression)
       lists[#lists + 1] = list
       return '__list' .. #lists
     else
+      isInkFunction = true
       self.returnVal = nil
       local fparams = { }
       local path = self.currentPath
@@ -738,13 +742,29 @@ function Story:doExpression(expression)
           fparams[self.params[functionName][i]] = tostring(value)
         end
       end
+      
+      table.insert(self.stack, { })
       self:jumpTo(functionName, fparams)
       self.currentPath = path
-      return self.returnVal
+
+      local s = table.remove(self.stack)
+      local text = ''
+      for _, paragraph in ipairs(s) do
+        text = text .. paragraph.text
+      end
+      self.returnVal = self.returnVal and self:doExpression(self.returnVal)
+      return #s > 0 and text .. (self.returnVal or '') or (self.returnVal or 'nil')
     end
     
     return 'nil'
   end)
+
+  if isInkFunction then
+    if expression ~= 'nil' then
+      return expression
+    end
+    return
+  end
 
   -- Replace lists
   expression = expression:gsub('%(([%s%w%.,_]*)%)', function(match)
