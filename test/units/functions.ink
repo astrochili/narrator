@@ -6,17 +6,13 @@ something wrong 1
 	something wrong 2
 }
 
-function has {inline()} stack
-
 sum: {test(2, 3)}
 
 -> END
 
-=== function inline() ===
-it's own
-~ return 
-
 === function test(a, b) ===
+first param is {a}
+second param is {b}
 ~return a + b
 
 === function foo() ===
