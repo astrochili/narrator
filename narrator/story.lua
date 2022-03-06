@@ -41,6 +41,7 @@ function Story:new(book)
   self.isOver = false
 
   self.tunnels = { }
+  self.stack = { }
 end
 
 --
@@ -507,33 +508,39 @@ end
 function Story:readText(item, context)
   local text = item.text
   local tags = type(item.tags) == 'string' and { item.tags } or item.tags
+  local paragraphs = #self.stack == 0 and self.paragraphs or self.stack[#self.stack]
 
   if text ~= nil or tags ~= nil then
     local paragraph = { text = text or '<>', tags = tags }
-    local gluedByPrev = #self.paragraphs > 0 and self.paragraphs[#self.paragraphs].text:sub(-2) == '<>' 
-    local gluedByThis = text ~= nil and text:sub(1, 2) == '<>'
-    
-    paragraph.text = self:replaceExpressions(paragraph.text)
+    local stack
+    paragraph.text, stack = self:replaceExpressions(paragraph.text)
     paragraph.text = paragraph.text:gsub('%s+', ' ')
 
-    if gluedByPrev then
-      local prevParagraph = self.paragraphs[#self.paragraphs]
-      prevParagraph.text = prevParagraph.text:sub(1, #prevParagraph.text - 2)
-      self.paragraphs[#self.paragraphs] = prevParagraph
-    end
+    table.insert(stack, paragraph)
+    for _, paragraph in ipairs(stack) do
 
-    if gluedByThis then
-      paragraph.text = paragraph.text:sub(3)
-    end
+      local gluedByPrev = #paragraphs > 0 and paragraphs[#paragraphs].text:sub(-2) == '<>' 
+      local gluedByThis = text ~= nil and text:sub(1, 2) == '<>'
 
-    if gluedByPrev or (gluedByThis and #self.paragraphs > 0) then
-      local prevParagraph = self.paragraphs[#self.paragraphs]
-      prevParagraph.text = (prevParagraph.text .. paragraph.text):gsub('%s+', ' ')
-      prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
-      prevParagraph.tags = #prevParagraph.tags > 0 and prevParagraph.tags or nil
-      self.paragraphs[#self.paragraphs] = prevParagraph
-    else
-      table.insert(self.paragraphs, #self.paragraphs + 1, paragraph)
+      if gluedByPrev then
+        local prevParagraph = paragraphs[#paragraphs]
+        prevParagraph.text = prevParagraph.text:sub(1, #prevParagraph.text - 2)
+        paragraphs[#paragraphs] = prevParagraph
+      end
+
+      if gluedByThis then
+        paragraph.text = paragraph.text:sub(3)
+      end
+
+      if gluedByPrev or (gluedByThis and #paragraphs > 0) then
+        local prevParagraph = paragraphs[#paragraphs]
+        prevParagraph.text = (prevParagraph.text .. paragraph.text):gsub('%s+', ' ')
+        prevParagraph.tags = lume.concat(prevParagraph.tags, paragraph.tags)
+        prevParagraph.tags = #prevParagraph.tags > 0 and prevParagraph.tags or nil
+        paragraphs[#paragraphs] = prevParagraph
+      else
+        table.insert(paragraphs, #paragraphs + 1, paragraph)
+      end
     end
   end
   
@@ -643,11 +650,13 @@ end
 -- Expressions
 
 function Story:replaceExpressions(text)
-  return text:gsub('%b##', function(match)
+  local stack = { }
+  local replaced = text:gsub('%b##', function(match)
     if #match == 2 then
       return '#'
     else
-      local result = self:doExpression(match:sub(2, #match - 1))
+      local result
+      result, stack = self:doExpression(match:sub(2, #match - 1))
 
       if type(result) == 'table' then
         result = self.listMT.__tostring(result)
@@ -665,6 +674,8 @@ function Story:replaceExpressions(text)
       return result
     end
   end)
+
+  return replaced, stack
 end
 
 function Story:checkSwitch(conditions)
@@ -681,7 +692,10 @@ function Story:checkCondition(condition)
     return true
   end
 
-  local result = self:doExpression(condition)
+  local result, stack = self:doExpression(condition)
+  for _, paragraph in ipairs(stack) do
+    table.insert(self.paragraphs, paragraph)
+  end
 
   if type(result) == 'table' and not next(result) then
     result = nil
@@ -695,6 +709,7 @@ function Story:doExpression(expression)
 
   local code = ''
   local lists = { }
+  local stack = { }
   
   -- Replace operators
   expression = expression:gsub('!=', '~=')
@@ -738,8 +753,15 @@ function Story:doExpression(expression)
           fparams[self.params[functionName][i]] = tostring(value)
         end
       end
+      
+      table.insert(self.stack, { })
       self:jumpTo(functionName, fparams)
       self.currentPath = path
+
+      for _, paragraph in ipairs(table.remove(self.stack)) do
+        table.insert(stack, paragraph)
+      end
+      
       return self.returnVal
     end
     
@@ -810,7 +832,7 @@ function Story:doExpression(expression)
   end
   
   code = code .. 'return ' .. expression
-  return lume.dostring(code)
+  return lume.dostring(code), stack
 end
 
 

@@ -152,7 +152,7 @@ function Parser.parse(content)
     functionName = P'function' * sp * Cg(id, 'name') * sp * V'funcParams' * sp * P'=' ^ 0,
     func =  P'==' * (P'=' ^ 0) * sp * Cg(Ct(V'functionName'), 'func'),
 
-    returnFromFunc = sp * '~' * sp * P('return') * sp * Cg((P(1) - nl)^0, 'value') * nl,
+    returnFromFunc = sp * '~' * sp * P('return') * sp * Cg((P(1) - nl)^0, 'value') * nl ^ 0,
 
     assignment = gatherLevel * sp * '~' * sp * V'assignmentTemp' * sp * V'assignmentPair',
     assignmentTemp = Cg('temp' * Cc(true) + Cc(false), 'temp'),

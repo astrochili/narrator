@@ -1,3 +1,3 @@
-first param: 2
-second param: 3
+first param is 2
+second param is 3
 sum: 5

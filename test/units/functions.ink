@@ -8,12 +8,11 @@ something wrong 1
 
 sum: {test(2, 3)}
 
-
 -> END
 
 === function test(a, b) ===
-first param: {a} 
-second param: {b} 
+first param is {a}
+second param is {b}
 ~return a + b
 
 === function foo() ===
