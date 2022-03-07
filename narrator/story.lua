@@ -153,7 +153,7 @@ function Story:choose(index)
 
   if choice.divert ~= nil then
     if choice.divert.tunnel then
-      local context = { path = choice.path, restore = true }
+      local context = { path = choice.path, restore = true, previous = self.currentPath }
       table.insert(self.tunnels, context)
     end
     self:jumpTo(choice.divert.path)
@@ -380,7 +380,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
   -- Iterate items
 
   for index = currentIndex or (deepIndex or 1), #items do
-    local context = {items = items, path = path, depth = depth, mode = mode, index = index + 1}
+    local context = {items = items, path = path, depth = depth, mode = mode, index = index + 1, previous = self.currentPath}
     
     local item = items[index]
     local skip = false
@@ -559,6 +559,7 @@ function Story:readText(item, context)
 
   if item.exit then
     local ctx = assert(table.remove(self.tunnels), "Tunnel stack is empty.")
+    self.currentPath = ctx.previous
     if ctx.restore then
       
       if ctx.items == nil then

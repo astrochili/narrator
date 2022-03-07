@@ -8,6 +8,9 @@ The dark grass is soft under your feet.
 
 ->move_on-> 
 
+->end
+- (end)
+
 -> END
 
 === wake_here ===
