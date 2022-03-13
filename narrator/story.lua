@@ -276,6 +276,10 @@ function Story:pathChainForLabel(path)
   -- TODO: This works but... isn't good.
 
   local function findLabelChainInItems(items)
+    if type(items) ~= 'table' then
+      return nil
+    end 
+    
     for index, item in ipairs(items) do
 
       if item.label == label then
