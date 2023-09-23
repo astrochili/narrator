@@ -22,9 +22,9 @@ local units = {
   'text-lines',
   'text-tags',
   'text-glue',
-    
+
   'choices-basic',
-  'choices-tags',  
+  'choices-tags',
   'choices-conditional',
   'choices-sticky',
   'choices-fallback',
@@ -46,7 +46,7 @@ local units = {
   'alts-inline',
   'conditions-switch',
   'alts-blocks',
-  
+
   'lists-basic',
   'lists-operators',
   'lists-queries',

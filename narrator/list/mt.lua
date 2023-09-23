@@ -72,7 +72,7 @@ function mt.__mod(lhs, rhs) -- % (contain)
     if lhs[listName] == nil then return false end
     for itemName, itemValue in pairs(listItems) do
       if (lhs[listName][itemName] or false) ~= itemValue then return false end
-    end  
+    end
   end
 
   return true
@@ -84,7 +84,7 @@ function mt.__pow(lhs, rhs) -- ^ (intersection)
   end
 
   local intersection = { }
-  
+
   for listName, listItems in pairs(lhs) do
     for itemName, itemValue in pairs(listItems) do
       local left = lhs[listName][itemName]
@@ -117,11 +117,11 @@ function mt.__eq(lhs, rhs) -- ==
     error('Attempt to compare the list with ' .. type(rhs))
   end
 
-  local function keysCount(object) 
+  local function keysCount(object)
     local count = 0
     for _, _ in pairs(object) do
       count = count + 1
-    end  
+    end
     return count
   end
 
@@ -139,7 +139,7 @@ function mt.__eq(lhs, rhs) -- ==
 
     local leftItemsCount = keysCount(leftItems)
     local rightItemsCount = keysCount(rightItems)
-  
+
     if leftItemsCount ~= rightItemsCount then
       return false
     end
@@ -154,7 +154,7 @@ function mt.__lt(lhs, rhs) -- <
   end
 
   -- LEFT < RIGHT means "the smallest value in RIGHT is bigger than the largest values in LEFT"
-  
+
   local minLeft = mt.minValueOf(lhs, true)
   local maxRight = mt.maxValueOf(rhs, true)
 
@@ -200,7 +200,7 @@ function mt.__subList(lhs, rhs)
     if lhs[listName] ~= nil then
       for itemName, _ in pairs(listItems) do
         lhs[listName][itemName] = nil
-      end  
+      end
     end
   end
 
@@ -309,7 +309,7 @@ function mt.randomValueOf(list)
     local itemsKeys = { }
     for key, _ in pairs(listItems) do
       table.insert(itemsKeys, key)
-    end    
+    end
     table.sort(itemsKeys)
 
     for i = 1, #itemsKeys do
@@ -328,7 +328,7 @@ end
 
 function mt.firstRawValueOf(list)
   local result = 0
-  
+
   for listName, listItems in pairs(list) do
     for itemName, itemValue in pairs(listItems) do
       if itemValue == true then

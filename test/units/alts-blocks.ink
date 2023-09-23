@@ -5,12 +5,12 @@ VAR counter = 1
 === { counter }
 At the table, I drew a card. <>
 { stopping:
-    -  
+    -
     I entered the casino.
 	-  Okay. <>
     I entered the casino again.
 	-  { counter }. <>
-    
+
     Once more, I went inside.
 }
 ~ counter++
@@ -52,7 +52,7 @@ At the table, I drew a card. <>
 === { counter }
 { SEED_RANDOM(counter - 16) }
 { true:
-    { shuffle: 
+    { shuffle:
     - Okay. Ace of Hearts again.
     - Okay. Ace of Hearts?!
     }

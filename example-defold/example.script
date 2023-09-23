@@ -7,13 +7,13 @@ function init(self)
 	-- Or load and parse the Ink file from the custom resources
 	-- local content = sys.load_resource('/example-defold/book.ink')
 	-- local book = narrator.parseBook(content)
-	
+
 	-- Or parse a book from the string with Ink content
 	-- local book = narrator.parseBook('Hello world!')
-	
+
 	-- Or load a book from the saved lua module
 	-- local book = require('example-defold.book')
-	
+
 	-- Init a story
 	local story = narrator.initStory(book)
 

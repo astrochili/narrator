@@ -1,9 +1,9 @@
-- I looked at Monsieur Fogg   
-* ... and I could contain myself no longer.   
+- I looked at Monsieur Fogg
+* ... and I could contain myself no longer.
     'What is the purpose of our journey, Monsieur?'
     'A wager,' he replied.
     * * 'A wager!'[] I returned.
-            He nodded. 
+            He nodded.
             * * * 'But surely that is foolishness!'
             * * * 'A most serious matter then!'
             - - - He nodded again.
@@ -14,6 +14,6 @@
             * * * I asked nothing further of him then[.], and after a final, polite cough, he offered nothing more to me. <>
     * * 'Ah[.'],' I replied, uncertain what I thought.
     - - After that, <>
-* ... but I said nothing[] and <> 
+* ... but I said nothing[] and <>
 - we passed the day in silence.
 - -> END

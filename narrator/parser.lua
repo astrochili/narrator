@@ -42,7 +42,7 @@ function Parser.parse(content)
   local divertSign = P'->'
   local gatherMark = sp * C('-' - divertSign)
   local gatherLevel = Cg(Ct(gatherMark ^ 1) / getLength + none, 'level')
-  
+
   local stickyMarks = Cg(Ct((sp * C('+')) ^ 1) / getLength, 'level') * Cg(Cc(true), 'sticky')
   local choiceMarks = Cg(Ct((sp * C('*')) ^ 1) / getLength, 'level') * Cg(Cc(false), 'sticky')
   local choiceLevel = stickyMarks + choiceMarks
@@ -50,13 +50,13 @@ function Parser.parse(content)
   local id = (lpeg.alpha + '_') * (lpeg.alnum + '_') ^ 0
   local label = Cg('(' * sp * C(id) * sp * ')', 'label')
   local address = id * ('.' * id) ^ -2
-  
+
   -- TODO: Clean divert expression to divert and tunnel
   local divert = divertSign * sp * Cg(address, 'path') -- base search for divert symbol and path to follow
   local checkTunnel = Cg(Cmt(Cb('path'), function(s, i, a) local r = lpeg.match (sp * divertSign, s, i) return i, r ~= nil end),'tunnel') -- a weird way to to check tunnel
   local optTunnelSign = (sp * divertSign * sp * (#nl + #S'#') ) ^ -1 -- tunnel sign in end of string, keep newline not consumed
   divert = Cg(Ct(divert * sp * checkTunnel * optTunnelSign), 'divert')
-  
+
   local divertToNothing = divertSign * none
   local exitTunnel = Cg(divertSign * divertSign, 'exit')
   local tag = '#' * sp * V'text'
@@ -116,7 +116,7 @@ function Parser.parse(content)
 
     -- Gather points
     gatherPoint = Ct(gatherLevel * sp * nl * itemType('gather')),
-    
+
     -- Global declarations
 
     global =
@@ -133,16 +133,16 @@ function Parser.parse(content)
 
     -- Statements
 
-    statement = 
+    statement =
       Ct(V'returnFromFunc' * itemType('return')) +
-      Ct(V'assignment' * itemType('assignment')) + 
+      Ct(V'assignment' * itemType('assignment')) +
       Ct(V'func' * itemType('func')) +
       Ct(V'knot' * itemType('knot')) +
       Ct(V'stitch' * itemType('stitch')) +
       Ct(V'choice' * itemType('choice')) +
       comment + todo
     ,
-    
+
     sectionName = C(id) * sp * P'=' ^ 0,
     knot = P'==' * (P'=' ^ 0) * sp * Cg(V'sectionName', 'knot'),
     stitch = '=' * sp * Cg(V'sectionName', 'stitch'),
@@ -169,20 +169,20 @@ function Parser.parse(content)
     paragraphLabel = label * sp * Cg(V'textOptional', 'parts') * sp * V'tagsOptional',
     paragraphText = V'labelOptional' * sp * Cg(V'textComplex', 'parts') * sp * V'tagsOptional',
     paragraphTags = V'labelOptional' * sp * Cg(V'textOptional', 'parts') * sp * tags,
-    
+
     labelOptional = label + none,
     textOptional = V'textComplex' + none,
     tagsOptional = tags + none,
 
     textComplex = Ct((Ct(
-      Cg(V'inlineCondition', 'condition') + 
-      Cg(V'inlineSequence', 'sequence') + 
+      Cg(V'inlineCondition', 'condition') +
+      Cg(V'inlineSequence', 'sequence') +
       Cg(V'expression', 'expression') +
-      Cg(V'text' + ' ', 'text') * (exitTunnel ^ -1) * (divert ^ -1) + exitTunnel + divert 
+      Cg(V'text' + ' ', 'text') * (exitTunnel ^ -1) * (divert ^ -1) + exitTunnel + divert
     ) - V'multilineItem') ^ 1),
 
     specialCheckEscape = Cmt(S("{|}"), function(s,i,a) if string.sub(s, i-2, i-2) == '\\' then return end return i end),
-    
+
     text = sentenceBefore(nl + exitTunnel + divert + comment + tag + V'specialCheckEscape', true) - V'statement',
     -- Inline expressions, conditions, sequences
 
@@ -191,7 +191,7 @@ function Parser.parse(content)
     inlineCondition = '{' * sp * Ct(V'inlineIfElse' + V'inlineIf') * sp * '}',
     inlineIf = Cg(sentenceBefore(S':}' + nl), 'condition') * sp * ':' * sp * Cg(V'textComplex', 'success'),
     inlineIfElse = (V'inlineIf') * sp * '|' * sp * Cg(V'textComplex', 'failure'),
-    
+
     inlineAltEmpty = Ct(Ct(Cg(sp * Cc'', 'text') * sp * divert ^ -1)),
     inlineAlt = V'textComplex' + V'inlineAltEmpty',
     inlineAlts = Ct(((sp * V'inlineAlt' * sp * '|') ^ 1) * sp * V'inlineAlt'),
@@ -208,7 +208,7 @@ function Parser.parse(content)
 
     switchComparative = Cg(V'switchCondition', 'expression') * ws * Cg(Ct((sp * V'switchCase') ^ 1), 'cases'),
     switchConditional = Cg(Ct(V'switchCasesHeaded' + V'switchCasesOnly'), 'cases'),
-    
+
     switchCasesHeaded = V'switchIf' * ((sp * V'switchCase') ^ 0),
     switchCasesOnly = ws * ((sp * V'switchCase') ^ 1),
 
@@ -218,7 +218,7 @@ function Parser.parse(content)
     switchItems = (V'restrictedItem' - V'switchCase') ^ 1,
 
     -- Multiline sequences
-    
+
     sequence = Ct((V'sequenceParams' * sp * nl * sp * V'sequenceAlts') * itemType('sequence')),
 
     sequenceParams = (
@@ -246,7 +246,7 @@ function Parser.parse(content)
       V'choice' * itemType('choice') +
       V'assignment' * itemType('assignment')
     ) + comment + todo,
-    
+
     restrictedParagraph = Ct((
       Cg(V'textComplex', 'parts') * sp * V'tagsOptional' +
       Cg(V'textOptional', 'parts') * sp * tags
@@ -273,7 +273,7 @@ function Constructor.unEscape(text)
 end
 
 function Constructor.constructBook(items)
-  
+
   local construction = {
     currentKnot = '_',
     currentStitch = '_',
@@ -293,7 +293,7 @@ function Constructor.constructBook(items)
     engine = enums.engineVersion,
     tree = 1
   }
-  
+
   construction.nodesChain = {
     construction.book.tree[construction.currentKnot][construction.currentStitch]
   }
@@ -312,7 +312,7 @@ function Constructor:addNode(items, isRestricted)
     if isRestricted then
       -- Are not allowed inside multiline blocks by Ink rules:
       -- a) nesting levels
-      -- b) choices without diverts 
+      -- b) choices without diverts
 
       item.level = nil
       if item.type == 'choice' and item.divert == nil then
@@ -409,7 +409,7 @@ function Constructor:addStitch(stitch)
     local rootStitchNode = self.book.tree[self.currentKnot]._
     if #rootStitchNode == 0 then
       local divertItem = { divert = { path = stitch } }
-      table.insert(rootStitchNode, divertItem)  
+      table.insert(rootStitchNode, divertItem)
     end
   end
 
@@ -494,7 +494,7 @@ end
 function Constructor:addParagraph(level, label, parts, tags)
   local items = Constructor.convertParagraphPartsToItems(parts, true)
   items = items or { }
-  
+
   -- If the paragraph has a label or tags we need to place them as the first text item.
   if label ~= nil or tags ~= nil then
     local firstItem
@@ -521,7 +521,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
   local isRoot = isRoot ~= nil and isRoot or false
   local items = { }
   local item
-  
+
   for index, part in ipairs(parts) do
 
     if part.condition then -- Inline condition part
@@ -536,13 +536,13 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
       item = nil
 
     elseif part.sequence then -- Inline sequence part
-      
+
       item = {
         sequence = part.sequence.sequence,
         shuffle = part.sequence.shuffle and true or nil,
         alts = { }
       }
-      
+
       for _, alt in ipairs(part.sequence.alts) do
         table.insert(item.alts, Constructor.convertParagraphPartsToItems(alt))
       end
@@ -551,7 +551,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
       item = nil
 
     else -- Text, expression and divert may be
-      
+
       local isDivertOnly = part.divert ~= nil and part.text == nil
 
       if item == nil then
@@ -580,7 +580,7 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
             item.text = item.text .. '<>'
           end
           table.insert(items, item)
-          item = nil  
+          item = nil
         end
       end
 
@@ -589,12 +589,12 @@ function Constructor.convertParagraphPartsToItems(parts, isRoot)
 
   if isRoot then
     -- Add a safe prefix and suffix for correct conditions gluing
-    
+
     local firstItem = items[1]
     if firstItem.text == nil and firstItem.divert == nil and firstItem.exit == nil then
       table.insert(items, 1, { text = '' } )
     end
-    
+
     local lastItem = items[#items]
     if lastItem.text == nil and lastItem.divert == nil and lastItem.exit == nil then
       table.insert(items, { text = '' } )
@@ -631,7 +631,7 @@ function Constructor:addChoice(level, sticky, label, condition, sentence, divert
     else
       text = text:gsub('^%s*(.-)%s*$', '%1')
     end
-    
+
     item.text = Constructor.unEscape(text)
     item.choice = Constructor.unEscape(choice)
   end
@@ -649,7 +649,7 @@ function Constructor:addItem(level, item)
   while #self.nodesChain > level do
     table.remove(self.nodesChain)
   end
-  
+
   local node = self.nodesChain[#self.nodesChain]
   table.insert(node, item)
 end
@@ -668,11 +668,11 @@ function Constructor:computeVariable(variable, value)
   for _, itemExpression in ipairs(itemExpressions) do
     local listPart, itemPart = itemExpression:match('([%w_]+)%.([%w_]+)')
     itemPart = itemPart or itemExpression
-    
+
     for listName, listItems in pairs(self.book.lists) do
       local listIsValid = listPart == nil or listPart == listName
       local itemIsFound = lume.find(listItems, itemPart)
-      
+
       if listIsValid and itemIsFound then
         listVariable = listVariable or { }
         listVariable[listName] = listVariable[listName] or { }
@@ -704,12 +704,12 @@ end
 
 function Constructor.clearNode(node)
   for index, item in ipairs(node) do
-    
+
     -- Simplify text only items
     if item.text ~= nil and lume.count(item) == 1 then
       node[index] = item.text
     end
-    
+
     if item.node ~= nil then
       -- Clear choice nodes
       if #item.node == 0 then
@@ -717,7 +717,7 @@ function Constructor.clearNode(node)
       else
         Constructor.clearNode(item.node)
       end
-      
+
     end
 
     if item.success ~= nil then
@@ -742,7 +742,7 @@ function Constructor.clearNode(node)
         Constructor.clearNode(item.success)
         if #item.success == 1 and type(item.success[1]) == 'string' then
           item.success = item.success[1]
-        end   
+        end
       end
 
       -- Clear failure nodes
@@ -750,7 +750,7 @@ function Constructor.clearNode(node)
         Constructor.clearNode(item.failure)
         if #item.failure == 1 and type(item.failure[1]) == 'string' then
           item.failure = item.failure[1]
-        end     
+        end
       end
     end
 

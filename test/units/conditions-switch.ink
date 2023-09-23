@@ -4,8 +4,8 @@ VAR x = 0
 -> simple
 
 == simple
-{not foo:    
-   Hello!     
+{not foo:
+   Hello!
    }
 { foo :
 True! -> choice
@@ -44,10 +44,10 @@ I love you. { true:
 } Something.
 
 == tags
-{ 
+{
 - not foo:
     text { true : x = { x } } #success
-- else: 
+- else:
     -> not_a_label
 }
 ~ foo = not foo
@@ -69,9 +69,9 @@ I love you. { true:
 
 == switch
 { x:
-- 0: 	zero 
-- 1: 	one 
-- 2: 	two 
+- 0: 	zero
+- 1: 	one
+- 2: 	two
 - else: lots -> END
 }
 ~ x++

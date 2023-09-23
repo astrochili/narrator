@@ -1,1 +1,1 @@
-   Hello,   world! I am a       string.    
+   Hello,   world! I am a       string.

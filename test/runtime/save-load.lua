@@ -43,7 +43,7 @@ it('Loading.', function()
   local story = narrator.initStory(book)
   story:begin()
   story:loadState(savedState)
-  
+
   local expectedPath = { knot = 'knot', stitch = 'stitch' }
   assert.are.same(story.currentPath, expectedPath)
   assert.equal(story.variables['x'], 2)

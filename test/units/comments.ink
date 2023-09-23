@@ -1,4 +1,4 @@
-"What do you make of this?" she asked. 
+"What do you make of this?" she asked.
 
 // A simple comment
 

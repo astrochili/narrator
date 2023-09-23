@@ -32,7 +32,7 @@ local places = { 'root', 'knot', 'stitch', 'label' }
 for cycle = 1, 3 do
   describe('Visits with cycle ' .. cycle .. '.', function()
     story:continue()
-    
+
     for placeIndex = 1, #places do
       local place = places[placeIndex]
 
@@ -41,13 +41,13 @@ for cycle = 1, 3 do
 
         local place = place
         local divert = story.choices[1].divert
-        
+
         local expectedRoot = cycle
         local expectedKnot = placeIndex > 1 and cycle or cycle - 1
         local expectedStitch = placeIndex > 2 and cycle or cycle - 1
         local expectedLabel = placeIndex > 3 and cycle or cycle - 1
         local expectedChoice = placeIndex > 4 and cycle or cycle - 1
-        
+
         local visits = visits()
 
         assert.equal(visits.root, expectedRoot)

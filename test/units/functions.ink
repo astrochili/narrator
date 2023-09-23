@@ -2,7 +2,7 @@
 something wrong 1
 
 -(continue)
-{boo(): 
+{boo():
 	something wrong 2
 }
 

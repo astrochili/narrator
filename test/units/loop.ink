@@ -6,12 +6,12 @@
 	*	'Are there dogs?'
 		'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
 	// We require the player to ask at least one question
-	*	{loop} [Enough talking] 
+	*	{loop} [Enough talking]
 		-> done
-- (loop) 
+- (loop)
 	// loop a few times before the guard gets bored
 	{ -> opts | -> opts | }
 	He scratches his head.
-	'Well, can't stand around talking all day,' he declares. 
+	'Well, can't stand around talking all day,' he declares.
 - (done)
-	You thank the guard, and move away. 
+	You thank the guard, and move away.

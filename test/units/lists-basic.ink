@@ -1,12 +1,12 @@
-LIST daysOfTheWeek = Monday, Tuesday, Wednesday, Thursday, Friday 
+LIST daysOfTheWeek = Monday, Tuesday, Wednesday, Thursday, Friday
 VAR today = Monday
 VAR tomorrow = Tuesday
 
 LIST heatedWaterStates = cold, boiling, recently_boiled
-VAR kettleState = cold 
-VAR potState = cold 
+VAR kettleState = cold
+VAR potState = cold
 
-LIST colours = red, green, blue, purple 
+LIST colours = red, green, blue, purple
 LIST moods = mad, happy, blue
 VAR status = colours.blue
 
@@ -14,7 +14,7 @@ LIST volumeLevel = off, quiet, medium, loud, deafening
 VAR lecturersVolume = quiet
 VAR murmurersVolume = quiet
 
-LIST Numbers = one, two, three 
+LIST Numbers = one, two, three
 VAR cats = one
 
 ~ cats = Numbers(2) // score will be "two"

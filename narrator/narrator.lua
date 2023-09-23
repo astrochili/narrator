@@ -52,15 +52,15 @@ local function saveBook(book, path)
   data = data:gsub('[\"[%w_]+\"]', function(match) return
     match:sub(3, #match - 2)
   end)
-  
+
   local file = io.open(path, 'w')
   if file == nil then
     return false
   end
-  
+
   file:write('return ' .. data)
   file:close()
-  
+
   return true
 end
 
@@ -86,7 +86,7 @@ local function merge(book, chapter)
   book.lists = lume.merge(book.lists or { }, chapter.lists or { })
   book.variables = lume.merge(book.variables or { }, chapter.variables or { })
   book.params = lume.merge(book.params or { }, chapter.params or { })
-  
+
   return book
 end
 
@@ -108,13 +108,13 @@ function Narrator.parseFile(path, params)
 
   local content = readFile(path)
   local book = parser.parse(content)
-  
+
   for _, inclusion in ipairs(book.inclusions) do
     local folderPath = clearPath(path):match('(.*' .. folderSeparator .. ')')
     local inclusionPath = folderPath .. clearPath(inclusion) .. '.ink'
     local chapter = Narrator.parseFile(inclusionPath)
     merge(book, chapter)
-  end  
+  end
 
   if params.save then
     saveBook(book, path)
@@ -132,13 +132,13 @@ end
 function Narrator.parseBook(content, inclusions)
   local inclusions = inclusions or { }
   assert(parser, "Can't parse anything without a parser.")
-  
+
   local book = parser.parse(content)
-  
+
   for _, inclusion in ipairs(inclusions) do
     local chapter = parser.parse(inclusion)
     merge(book, chapter)
-  end  
+  end
 
   return book
 end

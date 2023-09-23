@@ -1,5 +1,5 @@
 {
-    "configurations": [     
+    "configurations": [
         {
             "name": "Debug",
             "type": "lua-local",

@@ -8,7 +8,7 @@
       -> vika
 * * [Finish conversation]
       -> stop_dialog
-    
+
 * [Tell me about the missis]
 - - (vika)
   Her name is Vika.

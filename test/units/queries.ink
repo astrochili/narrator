@@ -7,7 +7,7 @@ FLOAT(3) = { FLOAT(3) }
 
 * { CHOICE_COUNT() == 0 } [Choice 1]
 
-{ "Yes, please." == "Yes, please." : True! | False! } 
-{ "Yes, please." != "Yes, please." : True! | False! } 
-{ "Yes, please" ? "ease" : True! | False! } 
-{ "Yes, please" !? "ease" : True! | False! } 
+{ "Yes, please." == "Yes, please." : True! | False! }
+{ "Yes, please." != "Yes, please." : True! | False! }
+{ "Yes, please" ? "ease" : True! | False! }
+{ "Yes, please" !? "ease" : True! | False! }

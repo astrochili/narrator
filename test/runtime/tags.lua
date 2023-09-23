@@ -1,7 +1,7 @@
 local narrator, describe, it, assert = ...
 
 local content = [[
-  # global tag 1 
+  # global tag 1
   # global tag 2 # global tag 3
   Root line -> knot
   === knot ===
@@ -20,10 +20,10 @@ story:begin()
 
 local paragraphs = story:continue()
 
-it('Global tags.', function()  
+it('Global tags.', function()
   local expected = { 'global tag 1', 'global tag 2', 'global tag 3' }
   assert.are.same(expected, story.globalTags)
-  
+
   local globalTags = story:getTags()
   assert.are.same(expected, globalTags)
 end)
@@ -45,7 +45,7 @@ it('Paragraph tags.', function()
 
   local expected = { 'global tag 1', 'global tag 2', 'global tag 3', 'knot tag', 'line 1 tag' }
   assert.are.same(expected, paragraphs[1].tags)
-  
+
   local expected = { 'line 2 tag' }
   assert.are.same(expected, paragraphs[2].tags)
 end)

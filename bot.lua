@@ -13,14 +13,14 @@ function Bot.play(story, instructor, params)
 
   local log = { }
   local step = 1
-  
+
   local function output(text)
     if params.print then print(text) end
     table.insert(log, text)
   end
-  
+
   story:begin()
-  
+
   while story:canContinue() or story:canChoose() do
     local paragraphs = story:continue()
     for _, paragraph in ipairs(paragraphs or { }) do
@@ -31,7 +31,7 @@ function Bot.play(story, instructor, params)
       end
       output(text)
     end
-    
+
     if not story:canChoose() then break end
 
     local choices = story:getChoices()
@@ -53,7 +53,7 @@ function Bot.play(story, instructor, params)
       output(text)
     end
     output('')
-  
+
     story:choose(answer)
   end
 

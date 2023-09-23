@@ -7,14 +7,14 @@ local enums = {
   engineVersion = 1,
 
   -- Story item type
-  item = { 
+  item = {
     text = 1,
     alts = 2,
     choice = 3,
     condition = 4,
     variable = 5
   },
-  
+
   -- Alternatives sequence type
   sequence = {
     cycle = 1,
@@ -23,7 +23,7 @@ local enums = {
   },
 
   -- Runtime reading mode
-  readMode = { 
+  readMode = {
     text = 1,
     choices = 2,
     gathers = 3,

@@ -1,4 +1,4 @@
-LIST DoctorsInSurgery = Adams, Bernard, (Cartwright), Denver, Eamonn 
+LIST DoctorsInSurgery = Adams, Bernard, (Cartwright), Denver, Eamonn
 
 Cartwright == { DoctorsInSurgery }
 
@@ -14,10 +14,10 @@ Adams == { DoctorsInSurgery }
 ~ DoctorsInSurgery += Eamonn
 Adams, Eamonn == { DoctorsInSurgery }
 
-~ DoctorsInSurgery -= Eamonn 
+~ DoctorsInSurgery -= Eamonn
 Adams == { DoctorsInSurgery }
 
-~ DoctorsInSurgery += (Eamonn, Denver) 
+~ DoctorsInSurgery += (Eamonn, Denver)
 Adams, Eamonn, Denver == { DoctorsInSurgery }
 
 ~ DoctorsInSurgery -= (Adams, Eamonn, Denver)
@@ -48,7 +48,7 @@ It's to late. { DoctorsInSurgery: The surgery is open today. | Everyone has gone
 ~ DoctorsInSurgery += Eamonn
 
 { DoctorsInSurgery != (Adams, Bernard):
-	At least Adams and Bernard aren't arguing. 
+	At least Adams and Bernard aren't arguing.
 }
 
 { DoctorsInSurgery has Eamonn:
@@ -58,7 +58,7 @@ It's to late. { DoctorsInSurgery: The surgery is open today. | Everyone has gone
 { DoctorsInSurgery !? (Adams, Bernard) : Yeap, Adams and Bernard are outside. | Nope, Adams and Bernard are here. }
 
 All the doctors ({LIST_COUNT(LIST_ALL(DoctorsInSurgery))}): { LIST_ALL(DoctorsInSurgery) }
-All the doctors again: { LIST_ALL(Adams) } 
+All the doctors again: { LIST_ALL(Adams) }
 
 VAR myList = ()
 ~ myList = DoctorsInSurgery()

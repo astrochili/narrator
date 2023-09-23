@@ -4,7 +4,7 @@ We boarded the train, but where?
 	-> the_orient_express.in_the_guards_van
 
 === the_orient_express ===
-= in_first_class 
+= in_first_class
 	I settled my master.
 	*	[Move to third class]
 		-> in_third_class

@@ -53,7 +53,7 @@ end
 local function getPossibleResults(case)
   local path = inkPath(case)
   local book = narrator.parseFile(path)
-  
+
   local results = { }
   local sequences = { { } }
   local seqIndex
@@ -61,7 +61,7 @@ local function getPossibleResults(case)
   local function instructor(choices, step)
     local curSeq = sequences[seqIndex]
     local answer = curSeq[step]
-    
+
     if not answer then
       -- Transform a current sequence to branches for each available choice
       table.remove(sequences, seqIndex)
@@ -102,7 +102,7 @@ local function getPossibleResults(case)
       if sequence.isFinished then
         table.remove(sequences, index)
       end
-    end    
+    end
   end
 
   return results
@@ -114,7 +114,7 @@ end
 local function createTxtForInkCase(case, override)
   local override = override ~= nil and override or false
   local results = getPossibleResults(case)
-  
+
   for _, result in ipairs(results) do
     local txtPath = txtPath(case, #results > 1 and result.sequence or nil)
     local file = io.open(txtPath, 'r')
@@ -133,7 +133,7 @@ local function createTxtForInkCase(case, override)
 
       file = io.open(txtPath, 'w')
       assert(file, 'Has no access to the file at path  \'' .. txtPath .. '\'.')
-      
+
       file:write(result.log)
       file:close()
     end
@@ -167,7 +167,7 @@ local function testInkCase(case)
 
           local expected = file:read('*all')
           file:close()
-  
+
           assert.are.same(expected, result.log)
         end)
       end)

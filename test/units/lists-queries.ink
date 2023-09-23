@@ -14,11 +14,11 @@ VAR actualValues =  ( greed, nepotism, delusions_of_godhood )
 {LIST_COUNT(desiredValues ^ actualValues) == 1: Correction, the new president has only one desirable quality. {desiredValues ^ actualValues == nepotism: It's the scary one.}}
 
 ...
-LIST Characters = Alfred, Batman, Robin 
-LIST Props = champagne_glass, newspaper 
+LIST Characters = Alfred, Batman, Robin
+LIST Props = champagne_glass, newspaper
 
-VAR BallroomContents = (Alfred, Batman, newspaper) 
-VAR HallwayContents = (Robin, champagne_glass) 
+VAR BallroomContents = (Alfred, Batman, newspaper)
+VAR HallwayContents = (Robin, champagne_glass)
 VAR roomState = (Robin, champagne_glass)
 
 -> room
@@ -34,13 +34,13 @@ VAR roomState = (Robin, champagne_glass)
 }
 
 == letters
-LIST Letters = a,b,c 
-LIST Numbers = one, two, three 
+LIST Letters = a,b,c
+LIST Numbers = one, two, three
 VAR mixedList = (a, three, c)
 
 ...
 {LIST_ALL(mixedList)}       // a, one, b, two, c, three
-{LIST_COUNT(mixedList)}     // 3 
+{LIST_COUNT(mixedList)}     // 3
 {LIST_MIN(mixedList)}       // a
 {LIST_MAX(mixedList)}       // c
 {mixedList ? (a,b) }        // 0 (false)

@@ -20,7 +20,7 @@ function Story:new(book)
   self.variables = lume.clone(book.variables)
   self.lists = book.lists
   self.params = book.params
-  
+
   self.listMT = listMT
   self.listMT.lists = self.lists
 
@@ -64,7 +64,7 @@ function Story:canContinue()
 end
 
 --- Get all the current paragraphs or pull them step by step.
--- @param steps number: count of paragraphs to get. 
+-- @param steps number: count of paragraphs to get.
 -- @return table: an array of paragraphs
 function Story:continue(steps)
   local lines = { }
@@ -99,7 +99,7 @@ function Story:canChoose()
   return self.choices ~= nil and #self.choices > 0 and not self:canContinue()
 end
 
---- Returns an array of available choice titles. 
+--- Returns an array of available choice titles.
 -- Also returns an empty array if there are available paragraphs to continue.
 -- @return table: an array of choice titles
 function Story:getChoices()
@@ -108,7 +108,7 @@ function Story:getChoices()
   if self:canContinue() then
     return choices
   end
-  
+
   for _, choice in ipairs(self.choices) do
     local model = {
       text = choice.title,
@@ -128,16 +128,16 @@ function Story:choose(index)
   end
 
   if #self.tunnels > 0 then
-    self.tunnels[#self.tunnels].restore = true 
+    self.tunnels[#self.tunnels].restore = true
     -- we are moving to another context, so the last one should be restored on exit from tunnel
   end
-  
+
   local choiceIsAvailable = index > 0 and index <= #self.choices
   assert(choiceIsAvailable, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
 
   local choice = self.choices[index]
   assert(choice, 'Choice index ' .. index .. ' out of bounds 1-' .. #self.choices)
-  
+
   self.paragraphs = { }
   self.choices = { }
 
@@ -278,8 +278,8 @@ function Story:pathChainForLabel(path)
   local function findLabelChainInItems(items)
     if type(items) ~= 'table' then
       return nil
-    end 
-    
+    end
+
     for index, item in ipairs(items) do
 
       if item.label == label then
@@ -385,7 +385,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
 
   for index = currentIndex or (deepIndex or 1), #items do
     local context = {items = items, path = path, depth = depth, mode = mode, index = index + 1, previous = self.currentPath}
-    
+
     local item = items[index]
     local skip = false
 
@@ -409,7 +409,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
         -- Go deep to the choice node
         mode = enums.readMode.gathers
         mode = self:readItems(item.node, path, depth + 1) or mode
-        
+
       elseif itemType == enums.item.condition then
         -- Go deep to the condition node
         local chainValue = chain[depth + 2]
@@ -439,7 +439,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
     elseif mode == enums.readMode.gathers and itemType == enums.item.choice then
       skip = true
     end
-    
+
     -- Read the item
     if skip then
       -- skip
@@ -461,7 +461,7 @@ function Story:readItems(items, path, depth, mode, currentIndex)
       end
     elseif itemType == enums.item.condition then
       local result, chainValue
-      if type(item.condition) == 'string' then  
+      if type(item.condition) == 'string' then
         local success = self:checkCondition(item.condition)
         result = success and item.success or (item.failure or { })
         chainValue = success and 't' or 'f'
@@ -523,7 +523,7 @@ function Story:readText(item, context)
     table.insert(stack, paragraph)
     for _, paragraph in ipairs(stack) do
 
-      local gluedByPrev = #paragraphs > 0 and paragraphs[#paragraphs].text:sub(-2) == '<>' 
+      local gluedByPrev = #paragraphs > 0 and paragraphs[#paragraphs].text:sub(-2) == '<>'
       local gluedByThis = text ~= nil and text:sub(1, 2) == '<>'
 
       if gluedByPrev then
@@ -547,7 +547,7 @@ function Story:readText(item, context)
       end
     end
   end
-  
+
   if item.divert ~= nil then
     if item.divert.tunnel then
       table.insert(self.tunnels, context)
@@ -565,12 +565,12 @@ function Story:readText(item, context)
     local ctx = assert(table.remove(self.tunnels), "Tunnel stack is empty.")
     self.currentPath = ctx.previous
     if ctx.restore then
-      
+
       if ctx.items == nil then
         self:readPath(ctx.path)
         return enums.readMode.quit
       end
-      
+
       local mode = self:readItems(ctx.items, ctx.path, ctx.depth, ctx.mode, ctx.index)
       return enums.readMode.quit --mode
     end
@@ -705,7 +705,7 @@ function Story:checkCondition(condition)
   if type(result) == 'table' and not next(result) then
     result = nil
   end
-  
+
   return result ~= nil and result ~= false
 end
 
@@ -715,15 +715,15 @@ function Story:doExpression(expression)
   local code = ''
   local lists = { }
   local stack = { }
-  
+
   -- Replace operators
   expression = expression:gsub('!=', '~=')
-  expression = expression:gsub('%s*||%s*', ' or ')  
+  expression = expression:gsub('%s*||%s*', ' or ')
   expression = expression:gsub('%s*%&%&%s*', ' and ')
   expression = expression:gsub('%s+has%s+', ' ? ')
   expression = expression:gsub('%s+hasnt%s+', ' !? ')
   expression = expression:gsub('!%s*%w', ' not ')
-  
+
   -- Replace functions results
   expression = expression:gsub('[%a_][%w_]*%b()', function(match)
     local functionName = match:match('([%a_][%w_]*)%(')
@@ -758,7 +758,7 @@ function Story:doExpression(expression)
           fparams[self.params[functionName][i]] = tostring(value)
         end
       end
-      
+
       table.insert(self.stack, { })
       self:jumpTo(functionName, fparams)
       self.currentPath = path
@@ -766,10 +766,10 @@ function Story:doExpression(expression)
       for _, paragraph in ipairs(table.remove(self.stack)) do
         table.insert(stack, paragraph)
       end
-      
+
       return self.returnVal
     end
-    
+
     return 'nil'
   end)
 
@@ -783,7 +783,7 @@ function Story:doExpression(expression)
       return 'nil'
     end
   end)
-  
+
   -- Store strings to the bag before to replace variables
   -- otherwise it can replace strings inside quotes to nils.
   -- Info: Ink doesn't interpret single quotes '' as string expression value
@@ -835,7 +835,7 @@ function Story:doExpression(expression)
       code = code .. 'setmetatable(' .. name .. ', mt)\n\n'
     end
   end
-  
+
   code = code .. 'return ' .. expression
   return lume.dostring(code), stack
 end
@@ -853,7 +853,7 @@ function Story:assignValueTo(variable, expression, temp)
     return
   end
   local storage = (temp or self.temp[variable] ~= nil) and self.temp or self.variables
-  
+
   if storage[variable] == value then
     return
   end
@@ -867,7 +867,7 @@ end
 
 function Story:getValueFor(variable)
   local result = self.temp[variable]
-  
+
   if result == nil then
     result = self.variables[variable]
   end
@@ -895,10 +895,10 @@ function Story:makeListFor(expression)
   end
 
   local items = lume.array(expression:gmatch('[%w_%.]+'))
-  
+
   for _, item in ipairs(items) do
     local listName, itemName = self:getListNameFor(item)
-    if listName ~= nil and itemName ~= nil then 
+    if listName ~= nil and itemName ~= nil then
       result[listName] = result[listName] or { }
       result[listName][itemName] = true
     end
@@ -940,7 +940,7 @@ function Story:visit(path)
       visits._root = visits._root + 1
       self.visits[knot] = visits
     end
-  
+
     local knot, stitch = path.knot or '_', path.stitch or '_'
     local visits = self.visits[knot][stitch] or { _root = 0 }
     visits._root = visits._root + 1
@@ -949,7 +949,7 @@ function Story:visit(path)
 
   if path.label ~= nil then
     local knot, stitch, label = path.knot or '_', path.stitch or '_', path.label
-    self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } } 
+    self.visits[knot] = self.visits[knot] or { _root = 1, _ = { _root = 1 } }
     self.visits[knot][stitch] = self.visits[knot][stitch] or { _root = 1 }
     local visits = self.visits[knot][stitch][label] or 0
     visits = visits + 1
@@ -982,13 +982,13 @@ function Story:pathFromString(pathString, context)
   local pathString = pathString or ''
   local contextKnot = context and context.knot
   local contextStitch = context and context.stitch
-  
+
   contextKnot = contextKnot or '_'
   contextStitch = contextStitch or '_'
 
   -- Try to parse 'part1.part2.part3'
   local part1, part2, part3 = pathString:match('([%w_]+)%.([%w_]+)%.([%w_]+)')
-  
+
   if not part1 then
     -- Try to parse 'part1.part2'
     part1, part2 = pathString:match('([%w_]+)%.([%w_]+)')
@@ -1000,7 +1000,7 @@ function Story:pathFromString(pathString, context)
   end
 
   local path = { }
-  
+
   if not part1 then
     -- Path is empty
     return path
@@ -1013,7 +1013,7 @@ function Story:pathFromString(pathString, context)
     path.label = part3
     return path
   end
-  
+
   if part2 then
     -- Path is 'part1.part2'
 
@@ -1023,7 +1023,7 @@ function Story:pathFromString(pathString, context)
       path.stitch = part2
       return path
     end
-    
+
     if self.tree[contextKnot][part1] then
       -- Stitch 'part1' exists so return contextKnot.part1.part2
       path.knot = contextKnot
@@ -1031,11 +1031,11 @@ function Story:pathFromString(pathString, context)
       path.label = part2
       return path
     end
-    
+
     if self.tree[part1] then
       -- Knot 'part1' exists so seems it's a label with a root stitch
       path.knot = part1
-      path.stitch = '_'     
+      path.stitch = '_'
       path.label = part2
       return path
     end
@@ -1048,7 +1048,7 @@ function Story:pathFromString(pathString, context)
       return path
     end
   end
-  
+
   if part1 then
     -- Path is 'part1'
     if self.tree[contextKnot][part1] then
@@ -1065,7 +1065,7 @@ function Story:pathFromString(pathString, context)
       path.knot = contextKnot
       path.stitch = contextStitch
       path.label = part1
-    end    
+    end
   end
 
   return path
@@ -1088,7 +1088,7 @@ function Story:inkFunctions()
     FLOAT = function(x) return x end,
 
     -- TURNS = function() return nil end -- TODO
-    -- TURNS_SINCE = function(path) return nil end -- TODO  
+    -- TURNS_SINCE = function(path) return nil end -- TODO
 
     LIST_VALUE = function(list) return self.listMT.firstRawValueOf(list) end,
     LIST_COUNT = function(list) return self.listMT.__len(list) end,
