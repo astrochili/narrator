@@ -1,7 +1,14 @@
 ![logo](https://user-images.githubusercontent.com/4752473/85455900-141f8f80-b5a7-11ea-8cd7-b441d662b361.png)
-[![astronachos](https://raw.githubusercontent.com/astronachos/astronachos.github.io/master/static/badges/astronachos.svg)](https://astronachos.com) [![twitter](https://raw.githubusercontent.com/astronachos/astronachos.github.io/master/static/badges/twitter.svg)](https://twitter.com/astronachos) [![telegram](https://raw.githubusercontent.com/astronachos/astronachos.github.io/master/static/badges/telegram.svg)](https://t.me/astronachos) [![buymeacoffee](https://raw.githubusercontent.com/astronachos/astronachos.github.io/master/static/badges/buymeacoffee.svg)](https://www.buymeacoffee.com/astrochili) [![tinkoff](https://raw.githubusercontent.com/astronachos/astronachos.github.io/master/static/badges/tinkoff.svg)](https://www.tinkoff.ru/cf/4B9FjHDHA5a)
 
 # Narrator
+
+[![Release](https://img.shields.io/github/v/release/astrochili/narrator.svg?include_prereleases=&sort=semver&color=blue)](https://github.com/astrochili/narrator/releases)
+[![License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/astrochili/narrator/blob/master/LICENSE)
+[![Website](https://img.shields.io/badge/website-gray.svg?&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE4IDE2Ij48Y2lyY2xlIGN4PSIzLjY2IiBjeT0iMTQuNzUiIHI9IjEuMjUiIGZpbGw9InVybCgjYSkiLz48Y2lyY2xlIGN4PSI4LjY2IiBjeT0iMTQuNzUiIHI9IjEuMjUiIGZpbGw9InVybCgjYikiLz48Y2lyY2xlIGN4PSIxMy42NSIgY3k9IjE0Ljc1IiByPSIxLjI1IiBmaWxsPSJ1cmwoI2MpIi8+PHBhdGggZmlsbD0idXJsKCNkKSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNNy42MyAxLjQ4Yy41LS43IDEuNTUtLjcgMi4wNSAwbDYuMjIgOC44MWMuNTguODMtLjAxIDEuOTctMS4wMyAxLjk3SDIuNDRhMS4yNSAxLjI1IDAgMCAxLTEuMDItMS45N2w2LjIxLTguODFaIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiLz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIyLjQxIiB4Mj0iMi40MSIgeTE9IjEzLjUiIHkyPSIxNiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiNGRDhENDIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGOTU0MUYiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iYiIgeDE9IjcuNDEiIHgyPSI3LjQxIiB5MT0iMTMuNSIgeTI9IjE2IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZEOEQ0MiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0Y5NTQxRiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJjIiB4MT0iMTIuNCIgeDI9IjEyLjQiIHkxPSIxMy41IiB5Mj0iMTYiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBzdG9wLWNvbG9yPSIjRkQ4RDQyIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjk1NDFGIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImQiIHgxPSIuMDMiIHgyPSIuMDMiIHkxPSIuMDMiIHkyPSIxMi4yNiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiNGRkU2NUUiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGRkM4MzAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48L3N2Zz4=)](https://astronachos.com/)
+[![Mastodon](https://img.shields.io/badge/mastodon-gray?&logo=mastodon)](https://mastodon.gamedev.place/@astronachos)
+[![Twitter](https://img.shields.io/badge/twitter-gray?&logo=twitter)](https://twitter.com/astronachos)
+[![Telegram](https://img.shields.io/badge/telegram-gray?&logo=telegram)](https://t.me/astronachos)
+[![Buy me a coffee](https://img.shields.io/badge/buy_me_a_coffee-gray?&logo=buy%20me%20a%20coffee)](https://buymeacoffee.com/astrochili)
 
 ## Overview
 
@@ -29,7 +36,7 @@ local story = narrator.initStory(book)
 story:begin()
 
 while story:canContinue() do
-  
+
   -- Get current paragraphs to output
   local paragraphs = story:continue()
 
@@ -47,7 +54,7 @@ while story:canContinue() do
 
   -- If there is no choice it seems like the game is over
   if not story:canChoose() then break end
-  
+
   -- Get available choices and output them to the player
   local choices = story:getChoices()
   for i, choice in ipairs(choices) do
@@ -350,7 +357,7 @@ local globalTags = story.globalTags
 
 -- A hacky way to get the same global tags
 local globalTags = story:getTags()
-``` 
+```
 
 ### story.constants
 
@@ -402,7 +409,7 @@ local function migrate(state, oldVersion, newVersion)
     local oldMood = state.variables['mood']
 
     -- If it exists then migrate ...
-    if oldMood then 
+    if oldMood then
       -- ... migrate the old number value to the new string value
       state.variables['mood'] = oldMood < 50 and 'sadly' or 'sunny'
     end
