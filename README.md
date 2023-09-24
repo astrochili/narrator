@@ -27,15 +27,15 @@ Narrator allows to convert raw Ink scripts to the book (a lua table) and play it
 local narrator = require('narrator.narrator')
 
 -- Parse a book from the Ink file.
-local book = narrator.parseFile('stories.game')
+local book = narrator.parse_file('stories.game')
 
 -- Init a story from the book
-local story = narrator.initStory(book)
+local story = narrator.init_story(book)
 
 -- Begin the story
 story:begin()
 
-while story:canContinue() do
+while story:can_continue() do
 
   -- Get current paragraphs to output
   local paragraphs = story:continue()
@@ -53,10 +53,10 @@ while story:canContinue() do
   end
 
   -- If there is no choice it seems like the game is over
-  if not story:canChoose() then break end
+  if not story:can_choose() then break end
 
   -- Get available choices and output them to the player
-  local choices = story:getChoices()
+  local choices = story:get_choices()
   for i, choice in ipairs(choices) do
     print(i .. ') ' .. choice.text)
   end
@@ -136,7 +136,7 @@ local narrator = require('narrator.narrator')
 
 ## Documentation
 
-### narrator.parseFile(path, params)
+### narrator.parse_file(path, params)
 
 Parses the Ink file at path with all the inclusions and returns a book instance. Path notations ```'stories/game.ink'```, ```'stories/game'``` and ```'stories.game'``` are valid.
 
@@ -144,15 +144,15 @@ You can save a parsed book to the lua file with the same path by passing ```{ sa
 
 ```lua
 -- Parse a Ink file at path 'stories/game.ink'
-local book = narrator.parseFile('stories.game')
+local book = narrator.parse_file('stories.game')
 
 -- Parse a Ink file at path 'stories/game.ink'
 -- and save the book at path 'stories/game.lua'
-local book = narrator.parseFile('stories.game', { save = true })
+local book = narrator.parse_file('stories.game', { save = true })
 ```
-Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parseBook()```.
+Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parse_book()```.
 
-### narrator.parseBook(content, inclusions)
+### narrator.parse_book(content, inclusions)
 
 Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
@@ -164,15 +164,15 @@ local inclusions = {
 }
 
 -- Parse a string with Ink content
-local book = narrator.parseBook(content)
+local book = narrator.parse_book(content)
 
 -- Parse a string with Ink content and inclusions
-local book = narrator.parseBook(content, inclusions)
+local book = narrator.parse_book(content, inclusions)
 ```
 
 Content parsing is useful when you should manage files by your engine environment and don't want to use ```io``` module. For example, in Defold, you may want to load ink files as custom resources with [sys.load_resource()](https://defold.com/ref/sys/#sys.load_resource:filename).
 
-### narrator.initStory(book)
+### narrator.init_story(book)
 
 Inits a story instance from the book. This is aclual to use in production. For example, just load a book with ```require()``` and pass it to this function.
 
@@ -181,19 +181,19 @@ Inits a story instance from the book. This is aclual to use in production. For e
 local book = require('stories.game')
 
 -- Init a story instance
-local story = narrator.initStory(book)
+local story = narrator.init_story(book)
 ```
 
 ### story:begin()
 
 Begins the story. Generates the first chunk of paragraphs and choices.
 
-### story:canContinue()
+### story:can_continue()
 
 Returns a boolean, does the story have paragraphs to output or not.
 
 ```lua
-while story:canContinue() do
+while story:can_continue() do
   -- Get paragraphs?
 end
 ```
@@ -215,17 +215,17 @@ local paragraphs = story:continue()
 local paragraph = story:continue(1)
 ```
 
-### story:canChoose()
+### story:can_choose()
 
 Returns a boolean, does the story have choices to output or not. Also returns ```false``` if there are available paragraphs to continue.
 
 ```lua
-if story:canChoose() do
+if story:can_choose() do
   -- Get choices?
 end
 ```
 
-### story:getChoices()
+### story:get_choices()
 
 Returns an array of available choices. Returns an empty array if there are available paragraphs to continue.
 
@@ -235,7 +235,7 @@ Choice tags are not an official feature of Ink, but it's a Narrator feature. The
 
 ```lua
   -- Get available choices and output them to the player
-  local choices = story:getChoices()
+  local choices = story:get_choices()
   for i, choice in ipairs(choices) do
     print(i .. ') ' .. choice.text)
   end
@@ -243,7 +243,7 @@ Choice tags are not an official feature of Ink, but it's a Narrator feature. The
 
 ### story:choose(index)
 
-Make a choice to continue the story. Pass the ```index``` of the choice that you was received with ```getChoices()``` before. Will do nothing if ```canContinue()``` returns ```false```.
+Make a choice to continue the story. Pass the ```index``` of the choice that you was received with ```get_choices()``` before. Will do nothing if ```can_continue()``` returns ```false```.
 
 ```lua
   -- Get the answer from the player in the terminal
@@ -253,55 +253,55 @@ Make a choice to continue the story. Pass the ```index``` of the choice that you
   story:choose(answer)
 
   -- Get the new paragraphs
-  local newParagraphs = story:continue()
+  local new_paragraphs = story:continue()
 ```
 
-### story:jumpTo(pathString)
+### story:jump_to(path_string)
 
-Jumps to the path. The ```pathString``` param is a string like ```'knot.stitch.label'```.
+Jumps to the path. The ```path_string``` param is a string like ```'knot.stitch.label'```.
 
 ```lua
   -- Jump to the maze stitch in the adventure knot
-  story:jumpTo('adventure.maze')
+  story:jump_to('adventure.maze')
 
   -- Get the maze paragraphs
-  local mazeParagraphs = story:continue()
+  local maze_paragraphs = story:continue()
 ```
 
-### story:getVisits(pathString)
+### story:get_visits(path_string)
 
-Returns the number of visits to the path. The ```pathString``` param is a string like ```'knot.stitch.label'```.
+Returns the number of visits to the path. The ```path_string``` param is a string like ```'knot.stitch.label'```.
 
 ```lua
 -- Get the number of visits to the maze's red room
-local redRoomVisits = story:getVisits('adventure.maze.red_room')
+local red_room_visits = story:get_visits('adventure.maze.red_room')
 
 -- Get the number of adventures visited.
-local adventureVisits = story:getVisits('adventure')
+local adventure_visits = story:get_visits('adventure')
 ```
 
-### story:getTags(pathString)
+### story:get_tags(path_string)
 
-Returns tags for the path. The ```pathString``` param is a string like ```'knot.stitch'```. This function is useful when you want to get tags before continue the story and pull paragraphs. Read more about it [here](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#knot-tags).
+Returns tags for the path. The ```path_string``` param is a string like ```'knot.stitch'```. This function is useful when you want to get tags before continue the story and pull paragraphs. Read more about it [here](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#knot-tags).
 
 ```lua
 -- Get tags for the path 'adventure.maze'
-local mazeTags = story:getTags('adventure.maze')
+local mazeTags = story:get_tags('adventure.maze')
 ```
 
-### story:saveState()
+### story:save_state()
 
 Raturns a table with the story state that can be saved and restored later. Use it to save the game.
 
 ```lua
 -- Get the story's state
-local state = story:saveState()
+local state = story:save_state()
 
 -- Save the state to your local storage
 manager.save(state)
 ```
 
-### story:loadState(state)
+### story:load_state(state)
 
 Restores a story's state from the saved before state. Use it to load the game.
 
@@ -310,7 +310,7 @@ Restores a story's state from the saved before state. Use it to load the game.
 local state = manager.load()
 
 -- Restore the story's state
-story:loadState(state)
+story:load_state(state)
 
 ```
 
@@ -319,15 +319,15 @@ story:loadState(state)
 Assigns an observer function to the variable's changes.
 
 ```lua
-local function xDidChange(x)
+local function x_did_change(x)
   print('The x did change! Now it\'s ' .. x)
 end
 
 -- Start observing the variable 'x'
-story:observe('x', xDidChange)
+story:observe('x', x_did_change)
 ```
 
-### story:bind(funcName, handler)
+### story:bind(func_name, handler)
 
 Binds a function to external calling from the Ink. The function can returns the value or not.
 
@@ -347,16 +347,16 @@ story:bind('beep', beep)
 story:bind('sum', sum)
 ```
 
-### story.globalTags
+### story.global_tags
 
 An array with book's global tags. Tags are strings of course.
 
 ```lua
 -- Get the global tags
-local globalTags = story.globalTags
+local global_tags = story.global_tags
 
 -- A hacky way to get the same global tags
-local globalTags = story:getTags()
+local global_tags = story:get_tags()
 ```
 
 ### story.constants
@@ -388,30 +388,30 @@ This is the place where you can rename or change variables, visits, update the c
 
 ```lua
 -- Default implementation
-function(state, oldVersion, newVersion) return state end
+function(state, old_version, new_version) return state end
 ```
 
-The ```oldVersion``` is the version of the saved state, the ```newVersion``` is the version of the book. You can specify the verson of the book with the constant ```'version'``` in the Ink content, otherwise it's equal to ```0```.
+The ```old_version``` is the version of the saved state, the ```new_version``` is the version of the book. You can specify the verson of the book with the constant ```'version'``` in the Ink content, otherwise it's equal to ```0```.
 
 ```lua
 -- A migration function example
-local function migrate(state, oldVersion, newVersion)
+local function migrate(state, old_version, new_version)
 
   -- Check the need for migration
-  if newVersion == oldVersion then
+  if new_version == old_version then
     return state
   end
 
   -- Migration for the second version of the book
-  if newVersion == 2 then
+  if new_version == 2 then
 
     -- Get the old value
-    local oldMood = state.variables['mood']
+    local old_mood = state.variables['mood']
 
     -- If it exists then migrate ...
-    if oldMood then
+    if old_mood then
       -- ... migrate the old number value to the new string value
-      state.variables['mood'] = oldMood < 50 and 'sadly' or 'sunny'
+      state.variables['mood'] = old_mood < 50 and 'sadly' or 'sunny'
     end
   end
 
@@ -422,7 +422,7 @@ end
 story.migrate = migrate
 
 -- Load the game
-story:loadState(savedState)
+story:load_state(saved_state)
 ```
 
 ## Contribution

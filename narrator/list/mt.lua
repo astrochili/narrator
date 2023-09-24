@@ -11,20 +11,20 @@ local mt = { lists = { } }
 function mt.__tostring(self)
   local pool = { }
 
-  local listKeys = { }
+  local list_keys = { }
   for key, _ in pairs(self) do
-    table.insert(listKeys, key)
+    table.insert(list_keys, key)
   end
-  table.sort(listKeys)
+  table.sort(list_keys)
 
-  for i = 1, #listKeys do
-    local listName = listKeys[i]
-    local listItems = self[listName]
-    for index = 1, #mt.lists[listName] do
+  for i = 1, #list_keys do
+    local list_name = list_keys[i]
+    local list_items = self[list_name]
+    for index = 1, #mt.lists[list_name] do
       pool[index] = pool[index] or { }
-      local itemName = mt.lists[listName][index]
-      if listItems[itemName] == true then
-        table.insert(pool[index], 1, itemName)
+      local item_name = mt.lists[list_name][index]
+      if list_items[item_name] == true then
+        table.insert(pool[index], 1, item_name)
       end
     end
   end
@@ -45,9 +45,9 @@ end
 
 function mt.__add(lhs, rhs) -- +
   if type(rhs) == 'table' then
-    return mt.__addList(lhs, rhs)
+    return mt.__add_list(lhs, rhs)
   elseif type(rhs) == 'number' then
-    return mt.__shiftByNumber(lhs, rhs)
+    return mt.__shift_by_number(lhs, rhs)
   else
     error('Attempt to sum the list with ' .. type(rhs))
   end
@@ -57,7 +57,7 @@ function mt.__sub(lhs, rhs) -- -
   if type(rhs) == 'table' then
     return mt.__subList(lhs, rhs)
   elseif type(rhs) == 'number' then
-    return mt.__shiftByNumber(lhs, -rhs)
+    return mt.__shift_by_number(lhs, -rhs)
   else
     error('Attempt to sub the list with ' .. type(rhs))
   end
@@ -68,10 +68,10 @@ function mt.__mod(lhs, rhs) -- % (contain)
     error('Attempt to check content of the list for ' .. type(rhs))
   end
 
-  for listName, listItems in pairs(rhs) do
-    if lhs[listName] == nil then return false end
-    for itemName, itemValue in pairs(listItems) do
-      if (lhs[listName][itemName] or false) ~= itemValue then return false end
+  for list_name, list_items in pairs(rhs) do
+    if lhs[list_name] == nil then return false end
+    for item_name, item_value in pairs(list_items) do
+      if (lhs[list_name][item_name] or false) ~= item_value then return false end
     end
   end
 
@@ -85,13 +85,13 @@ function mt.__pow(lhs, rhs) -- ^ (intersection)
 
   local intersection = { }
 
-  for listName, listItems in pairs(lhs) do
-    for itemName, itemValue in pairs(listItems) do
-      local left = lhs[listName][itemName]
-      local right = (rhs[listName] or { })[itemName]
+  for list_name, list_items in pairs(lhs) do
+    for item_name, item_value in pairs(list_items) do
+      local left = lhs[list_name][item_name]
+      local right = (rhs[list_name] or { })[item_name]
       if left == true and right == true then
-        intersection[listName] = intersection[listName] or { }
-        intersection[listName][itemName] = true
+        intersection[list_name] = intersection[list_name] or { }
+        intersection[list_name][item_name] = true
       end
     end
   end
@@ -103,9 +103,9 @@ end
 function mt.__len(self) -- #
   local len = 0
 
-  for listName, listItems in pairs(self) do
-    for itemName, itemValue in pairs(listItems) do
-      if itemValue == true then len = len + 1 end
+  for list_name, list_items in pairs(self) do
+    for item_name, item_value in pairs(list_items) do
+      if item_value == true then len = len + 1 end
     end
   end
 
@@ -117,7 +117,7 @@ function mt.__eq(lhs, rhs) -- ==
     error('Attempt to compare the list with ' .. type(rhs))
   end
 
-  local function keysCount(object)
+  local function keys_count(object)
     local count = 0
     for _, _ in pairs(object) do
       count = count + 1
@@ -125,22 +125,22 @@ function mt.__eq(lhs, rhs) -- ==
     return count
   end
 
-  local leftListsCount = keysCount(lhs)
-  local rightListsCount = keysCount(rhs)
-  if leftListsCount ~= rightListsCount then
+  local left_lists_count = keys_count(lhs)
+  local right_lists_count = keys_count(rhs)
+  if left_lists_count ~= right_lists_count then
     return false
   end
 
-  for listName, leftItems in pairs(lhs) do
-    local rightItems = rhs[listName]
-    if rightItems == nil then
+  for list_name, left_items in pairs(lhs) do
+    local right_items = rhs[list_name]
+    if right_items == nil then
       return false
     end
 
-    local leftItemsCount = keysCount(leftItems)
-    local rightItemsCount = keysCount(rightItems)
+    local left_items_count = keys_count(left_items)
+    local right_items_count = keys_count(right_items)
 
-    if leftItemsCount ~= rightItemsCount then
+    if left_items_count ~= right_items_count then
       return false
     end
   end
@@ -155,8 +155,8 @@ function mt.__lt(lhs, rhs) -- <
 
   -- LEFT < RIGHT means "the smallest value in RIGHT is bigger than the largest values in LEFT"
 
-  local minLeft = mt.minValueOf(lhs, true)
-  local maxRight = mt.maxValueOf(rhs, true)
+  local minLeft = mt.min_value_of(lhs, true)
+  local maxRight = mt.max_value_of(rhs, true)
 
   return minLeft < maxRight
 end
@@ -169,10 +169,10 @@ function mt.__le(lhs, rhs) -- <=
   -- LEFT => RIGHT means "the smallest value in RIGHT is at least the smallest value in LEFT,
   --                  and the largest value in RIGHT is at least the largest value in LEFT".
 
-  local minRight = mt.minValueOf(rhs, true)
-  local minLeft = mt.minValueOf(lhs, true)
-  local maxRight = mt.maxValueOf(rhs, true)
-  local maxLeft = mt.maxValueOf(lhs, true)
+  local minRight = mt.min_value_of(rhs, true)
+  local minLeft = mt.min_value_of(lhs, true)
+  local maxRight = mt.max_value_of(rhs, true)
+  local maxLeft = mt.max_value_of(lhs, true)
 
   return minRight >= minLeft and maxRight >= maxLeft
 end
@@ -180,13 +180,13 @@ end
 --
 -- Custom operators
 
-function mt.__addList(lhs, rhs)
+function mt.__add_list(lhs, rhs)
   local result = lume.clone(lhs)
 
-  for listName, listItems in pairs(rhs) do
-    result[listName] = result[listName] or { }
-    for itemName, itemValue in pairs(listItems) do
-      result[listName][itemName] = itemValue
+  for list_name, list_items in pairs(rhs) do
+    result[list_name] = result[list_name] or { }
+    for item_name, item_value in pairs(list_items) do
+      result[list_name][item_name] = item_value
     end
   end
 
@@ -196,143 +196,143 @@ end
 function mt.__subList(lhs, rhs)
   local result = lume.clone(lhs)
 
-  for listName, listItems in pairs(rhs) do
-    if lhs[listName] ~= nil then
-      for itemName, _ in pairs(listItems) do
-        lhs[listName][itemName] = nil
+  for list_name, list_items in pairs(rhs) do
+    if lhs[list_name] ~= nil then
+      for item_name, _ in pairs(list_items) do
+        lhs[list_name][item_name] = nil
       end
     end
   end
 
-  return mt.removeEmptiesInList(result)
+  return mt.remove_empties_in_list(result)
 end
 
-function mt.__shiftByNumber(list, number)
+function mt.__shift_by_number(list, number)
   local result = { }
 
-  for listName, listItems in pairs(list) do
-    result[listName] = { }
-    for index, itemName in ipairs(mt.lists[listName]) do
-      if listItems[itemName] == true then
-        local nextItem = mt.lists[listName][index + number]
+  for list_name, list_items in pairs(list) do
+    result[list_name] = { }
+    for index, item_name in ipairs(mt.lists[list_name]) do
+      if list_items[item_name] == true then
+        local nextItem = mt.lists[list_name][index + number]
         if nextItem ~= nil then
-          result[listName][nextItem] = true
+          result[list_name][nextItem] = true
         end
       end
     end
   end
 
-  return mt.removeEmptiesInList(result)
+  return mt.remove_empties_in_list(result)
 end
 
 --
 -- Helpers
 
-function mt.removeEmptiesInList(list)
+function mt.remove_empties_in_list(list)
   local result = lume.clone(list)
 
-  for listName, listItems in pairs(list) do
-    if next(listItems) == nil then
-      result[listName] = nil
+  for list_name, list_items in pairs(list) do
+    if next(list_items) == nil then
+      result[list_name] = nil
     end
   end
 
   return result
 end
 
-function mt.minValueOf(list, raw)
-  local minIndex = 0
-  local minValue = { }
+function mt.min_value_of(list, raw)
+  local min_index = 0
+  local min_value = { }
 
-  local listKeys = { }
+  local list_keys = { }
   for key, _ in pairs(list) do
-    table.insert(listKeys, key)
+    table.insert(list_keys, key)
   end
-  table.sort(listKeys)
+  table.sort(list_keys)
 
-  for i = 1, #listKeys do
-    local listName = listKeys[i]
-    local listItems = list[listName]
-    for itemName, itemValue in pairs(listItems) do
-      if itemValue == true then
-        local index = lume.find(mt.lists[listName], itemName)
-        if index and index < minIndex or minIndex == 0 then
-          minIndex = index
-          minValue = { [listName] = { [itemName] = true } }
+  for i = 1, #list_keys do
+    local list_name = list_keys[i]
+    local list_items = list[list_name]
+    for item_name, item_value in pairs(list_items) do
+      if item_value == true then
+        local index = lume.find(mt.lists[list_name], item_name)
+        if index and index < min_index or min_index == 0 then
+          min_index = index
+          min_value = { [list_name] = { [item_name] = true } }
         end
       end
     end
   end
 
-  return raw and minIndex or minValue
+  return raw and min_index or min_value
 end
 
-function mt.maxValueOf(list, raw)
-  local maxIndex = 0
-  local maxValue = { }
+function mt.max_value_of(list, raw)
+  local max_index = 0
+  local max_value = { }
 
-  local listKeys = { }
+  local list_keys = { }
   for key, _ in pairs(list) do
-    table.insert(listKeys, key)
+    table.insert(list_keys, key)
   end
-  table.sort(listKeys)
+  table.sort(list_keys)
 
-  for i = 1, #listKeys do
-    local listName = listKeys[i]
-    local listItems = list[listName]
-    for itemName, itemValue in pairs(listItems) do
-      if itemValue == true then
-        local index = lume.find(mt.lists[listName], itemName)
-        if index and index > maxIndex or maxIndex == 0 then
-          maxIndex = index
-          maxValue = { [listName] = { [itemName] = true } }
+  for i = 1, #list_keys do
+    local list_name = list_keys[i]
+    local list_items = list[list_name]
+    for item_name, item_value in pairs(list_items) do
+      if item_value == true then
+        local index = lume.find(mt.lists[list_name], item_name)
+        if index and index > max_index or max_index == 0 then
+          max_index = index
+          max_value = { [list_name] = { [item_name] = true } }
         end
       end
     end
   end
 
-  return raw and maxIndex or maxValue
+  return raw and max_index or max_value
 end
 
-function mt.randomValueOf(list)
+function mt.random_value_of(list)
   local items = { }
 
-  local listKeys = { }
+  local list_keys = { }
   for key, _ in pairs(list) do
-    table.insert(listKeys, key)
+    table.insert(list_keys, key)
   end
-  table.sort(listKeys)
+  table.sort(list_keys)
 
-  for i = 1, #listKeys do
-    local listName = listKeys[i]
-    local listItems = list[listName]
-    local itemsKeys = { }
-    for key, _ in pairs(listItems) do
-      table.insert(itemsKeys, key)
+  for i = 1, #list_keys do
+    local list_name = list_keys[i]
+    local list_items = list[list_name]
+    local items_keys = { }
+    for key, _ in pairs(list_items) do
+      table.insert(items_keys, key)
     end
-    table.sort(itemsKeys)
+    table.sort(items_keys)
 
-    for i = 1, #itemsKeys do
-      local itemName = itemsKeys[i]
-      local itemValue = listItems[itemName]
-      if itemValue == true then
-        local result = { [listName] = { [itemName] = true } }
+    for i = 1, #items_keys do
+      local item_name = items_keys[i]
+      local item_value = list_items[item_name]
+      if item_value == true then
+        local result = { [list_name] = { [item_name] = true } }
         table.insert(items, result)
       end
     end
   end
 
-  local randomIndex = math.random(1, #items)
-  return items[randomIndex]
+  local random_index = math.random(1, #items)
+  return items[random_index]
 end
 
-function mt.firstRawValueOf(list)
+function mt.first_raw_value_of(list)
   local result = 0
 
-  for listName, listItems in pairs(list) do
-    for itemName, itemValue in pairs(listItems) do
-      if itemValue == true then
-        local index = lume.find(mt.lists[listName], itemName)
+  for list_name, list_items in pairs(list) do
+    for item_name, item_value in pairs(list_items) do
+      if item_value == true then
+        local index = lume.find(mt.lists[list_name], item_name)
         if index then
           result = index
           break
@@ -344,21 +344,21 @@ function mt.firstRawValueOf(list)
   return result
 end
 
-function mt.posibleValuesOf(list)
+function mt.posible_values_of(list)
   local result = { }
 
-  for listName, listItems in pairs(list) do
+  for list_name, list_items in pairs(list) do
     local subList = { }
-    for _, itemName in ipairs(mt.lists[listName]) do
-      subList[itemName] = true
+    for _, item_name in ipairs(mt.lists[list_name]) do
+      subList[item_name] = true
     end
-    result[listName] = subList
+    result[list_name] = subList
   end
 
   return result
 end
 
-function mt.rangeOf(list, min, max)
+function mt.range_of(list, min, max)
   if type(min) ~= 'table' and type(min) ~= 'number' then
     error('Attempt to get a range with incorrect min value of type ' .. type(min))
   end
@@ -367,16 +367,16 @@ function mt.rangeOf(list, min, max)
   end
 
   local result = { }
-  local allList = mt.posibleValuesOf(list)
-  local minIndex = type(min) == 'number' and min or mt.firstRawValueOf(min)
-  local maxIndex = type(max) == 'number' and max or mt.firstRawValueOf(max)
+  local allList = mt.posible_values_of(list)
+  local min_index = type(min) == 'number' and min or mt.first_raw_value_of(min)
+  local max_index = type(max) == 'number' and max or mt.first_raw_value_of(max)
 
-  for listName, listItems in pairs(allList) do
-    for itemName, itemValue in pairs(listItems) do
-      local index = lume.find(mt.lists[listName], itemName)
-      if index and index >= minIndex and index <= maxIndex and list[listName][itemName] == true then
-        result[listName] = result[listName] or { }
-        result[listName][itemName] = true
+  for list_name, list_items in pairs(allList) do
+    for item_name, item_value in pairs(list_items) do
+      local index = lume.find(mt.lists[list_name], item_name)
+      if index and index >= min_index and index <= max_index and list[list_name][item_name] == true then
+        result[list_name] = result[list_name] or { }
+        result[list_name][item_name] = true
       end
     end
   end
@@ -385,12 +385,12 @@ function mt.rangeOf(list, min, max)
 end
 
 function mt.invert(list)
-  local result = mt.posibleValuesOf(list)
+  local result = mt.posible_values_of(list)
 
-  for listName, listItems in pairs(list) do
-    for itemName, itemValue in pairs(listItems) do
-      if itemValue == true then
-        result[listName][itemName] = nil
+  for list_name, list_items in pairs(list) do
+    for item_name, item_value in pairs(list_items) do
+      if item_value == true then
+        result[list_name][item_name] = nil
       end
     end
   end

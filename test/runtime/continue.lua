@@ -9,8 +9,8 @@ local content = [[
   Line 6
 ]]
 
-local book = narrator.parseBook(content)
-local story = narrator.initStory(book)
+local book = narrator.parse_book(content)
+local story = narrator.init_story(book)
 
 story:begin()
 

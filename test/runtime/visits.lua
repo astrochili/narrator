@@ -11,18 +11,18 @@ local content = [[
   + (choice) Go to root -> _._
 ]]
 
-local book = narrator.parseBook(content)
-local story = narrator.initStory(book)
+local book = narrator.parse_book(content)
+local story = narrator.init_story(book)
 
 story:begin()
 
 local function visits()
   local visits = {
-    root = story:getVisits(''),
-    knot = story:getVisits('knot'),
-    stitch = story:getVisits('knot.stitch'),
-    label = story:getVisits('knot.stitch.label'),
-    choice = story:getVisits('knot.stitch.choice')
+    root = story:get_visits(''),
+    knot = story:get_visits('knot'),
+    stitch = story:get_visits('knot.stitch'),
+    label = story:get_visits('knot.stitch.label'),
+    choice = story:get_visits('knot.stitch.choice')
   }
   return visits
 end
@@ -33,8 +33,8 @@ for cycle = 1, 3 do
   describe('Visits with cycle ' .. cycle .. '.', function()
     story:continue()
 
-    for placeIndex = 1, #places do
-      local place = places[placeIndex]
+    for place_index = 1, #places do
+      local place = places[place_index]
 
       it('Visit the ' .. place .. '.', function()
         story:continue()
@@ -42,19 +42,19 @@ for cycle = 1, 3 do
         local place = place
         local divert = story.choices[1].divert
 
-        local expectedRoot = cycle
-        local expectedKnot = placeIndex > 1 and cycle or cycle - 1
-        local expectedStitch = placeIndex > 2 and cycle or cycle - 1
-        local expectedLabel = placeIndex > 3 and cycle or cycle - 1
-        local expectedChoice = placeIndex > 4 and cycle or cycle - 1
+        local expected_root = cycle
+        local expected_knot = place_index > 1 and cycle or cycle - 1
+        local expected_stitch = place_index > 2 and cycle or cycle - 1
+        local expected_label = place_index > 3 and cycle or cycle - 1
+        local expected_choice = place_index > 4 and cycle or cycle - 1
 
         local visits = visits()
 
-        assert.equal(visits.root, expectedRoot)
-        assert.equal(visits.knot, expectedKnot)
-        assert.equal(visits.stitch, expectedStitch)
-        assert.equal(visits.label, expectedLabel)
-        assert.equal(visits.choice, expectedChoice)
+        assert.equal(visits.root, expected_root)
+        assert.equal(visits.knot, expected_knot)
+        assert.equal(visits.stitch, expected_stitch)
+        assert.equal(visits.label, expected_label)
+        assert.equal(visits.choice, expected_choice)
 
         story:choose(1)
       end)

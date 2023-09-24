@@ -4,7 +4,7 @@
 local enums = {
 
   -- Release version of Narrator
-  engineVersion = 1,
+  engine_version = 1,
 
   -- Story item type
   item = {
@@ -23,7 +23,7 @@ local enums = {
   },
 
   -- Runtime reading mode
-  readMode = {
+  read_mode = {
     text = 1,
     choices = 2,
     gathers = 3,

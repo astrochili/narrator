@@ -13,8 +13,8 @@ local content = [[
   A stitch line # line 3 tag
 ]]
 
-local book = narrator.parseBook(content)
-local story = narrator.initStory(book)
+local book = narrator.parse_book(content)
+local story = narrator.init_story(book)
 
 story:begin()
 
@@ -22,22 +22,22 @@ local paragraphs = story:continue()
 
 it('Global tags.', function()
   local expected = { 'global tag 1', 'global tag 2', 'global tag 3' }
-  assert.are.same(expected, story.globalTags)
+  assert.are.same(expected, story.global_tags)
 
-  local globalTags = story:getTags()
-  assert.are.same(expected, globalTags)
+  local global_tags = story:get_tags()
+  assert.are.same(expected, global_tags)
 end)
 
 it('Knot tags.', function()
   local expected = { 'knot tag' }
-  local knotTags = story:getTags('knot')
-  assert.are.same(expected, knotTags)
+  local knot_tags = story:get_tags('knot')
+  assert.are.same(expected, knot_tags)
 end)
 
 it('Stitch tags.', function()
   local expected = { 'stitch tag' }
-  local stitchTags = story:getTags('knot.stitch')
-  assert.are.same(expected, stitchTags)
+  local stitch_tags = story:get_tags('knot.stitch')
+  assert.are.same(expected, stitch_tags)
 end)
 
 it('Paragraph tags.', function()

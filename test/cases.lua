@@ -66,13 +66,13 @@ local cases = {
   stories = stories
 }
 
-local folderSeparator = package.config:sub(1, 1)
-for folderName, folderCases in pairs(cases) do
-  local itemsWithFoldes = { }
-  for _, case in ipairs(folderCases) do
-    table.insert(itemsWithFoldes, folderName .. folderSeparator .. case)
+local folder_separator = package.config:sub(1, 1)
+for folder_name, folder_cases in pairs(cases) do
+  local items_with_foldes = { }
+  for _, case in ipairs(folder_cases) do
+    table.insert(items_with_foldes, folder_name .. folder_separator .. case)
   end
-  cases[folderName] = itemsWithFoldes
+  cases[folder_name] = items_with_foldes
 end
 
 return cases

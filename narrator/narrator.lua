@@ -9,17 +9,17 @@ local Story = require('narrator.story')
 --
 -- Private
 
-local folderSeparator = package.config:sub(1, 1)
+local folder_separator = package.config:sub(1, 1)
 
 --- Clears path from '.lua' and '.ink' extensions and replace '.' to '/' or '\'
 -- @param path string: path to clear
 -- @return string: a clean path
-local function clearPath(path)
+local function clear_path(path)
   local path = path:gsub('.lua$', '')
   local path = path:gsub('.ink$', '')
 
-  if path:match('%.') and not path:match(folderSeparator) then
-    path = path:gsub('%.', folderSeparator)
+  if path:match('%.') and not path:match(folder_separator) then
+    path = path:gsub('%.', folder_separator)
   end
 
   return path
@@ -28,8 +28,8 @@ end
 --- Parse an Ink file to a string content
 -- @param path string: path to an Ink file
 -- @return string: a content string
-local function readFile(path)
-  local path = clearPath(path) .. '.ink'
+local function read_file(path)
+  local path = clear_path(path) .. '.ink'
 
   local file = io.open(path, 'r')
   assert(file, 'File doesn\'t exist: ' .. path)
@@ -44,8 +44,8 @@ end
 -- @param book table: a book
 -- @param path string: a path to save
 -- @return boolean: success
-local function saveBook(book, path)
-  local path = clearPath(path)  .. '.lua'
+local function save_book(book, path)
+  local path = clear_path(path)  .. '.lua'
 
   local data = lume.serialize(book)
   data = data:gsub('%[%d+%]=', '')
@@ -70,8 +70,8 @@ end
 -- @return table: a book
 local function merge(book, chapter)
   -- Check a engine version compatibility
-  if chapter.version.engine and chapter.version.engine ~= enums.engineVersion then
-    assert('Version ' .. chapter.version.engine .. ' of book isn\'t equal to the version ' .. enums.engineVersion .. ' of Narrator.')
+  if chapter.version.engine and chapter.version.engine ~= enums.engine_version then
+    assert('Version ' .. chapter.version.engine .. ' of book isn\'t equal to the version ' .. enums.engine_version .. ' of Narrator.')
   end
 
   -- Merge the root knot and it's stitch
@@ -93,7 +93,7 @@ end
 --
 -- Public
 
-local Narrator = { }
+local narrator = { }
 
 --- Parse a book from an Ink file
 -- Use parsing in development, but prefer already parsed and stored books in production
@@ -102,22 +102,22 @@ local Narrator = { }
 -- @param params table: parameters { save }
 -- @param params.save boolean: save a parsed book to a lua file
 -- @return a book
-function Narrator.parseFile(path, params)
+function narrator.parse_file(path, params)
   local params = params or { save = false }
   assert(parser, "Can't parse anything without lpeg, sorry.")
 
-  local content = readFile(path)
+  local content = read_file(path)
   local book = parser.parse(content)
 
   for _, inclusion in ipairs(book.inclusions) do
-    local folderPath = clearPath(path):match('(.*' .. folderSeparator .. ')')
-    local inclusionPath = folderPath .. clearPath(inclusion) .. '.ink'
-    local chapter = Narrator.parseFile(inclusionPath)
+    local folder_path = clear_path(path):match('(.*' .. folder_separator .. ')')
+    local inclusion_path = folder_path .. clear_path(inclusion) .. '.ink'
+    local chapter = narrator.parse_file(inclusion_path)
     merge(book, chapter)
   end
 
   if params.save then
-    saveBook(book, path)
+    save_book(book, path)
   end
 
   return book
@@ -129,7 +129,7 @@ end
 -- @param content string: root Ink content
 -- @param inclusions table: an array of strings with Ink content inclusions
 -- @return table: a book
-function Narrator.parseBook(content, inclusions)
+function narrator.parse_book(content, inclusions)
   local inclusions = inclusions or { }
   assert(parser, "Can't parse anything without a parser.")
 
@@ -146,9 +146,9 @@ end
 --- Init a story from a book
 -- @param book table: a book
 -- @return table: a story
-function Narrator.initStory(book)
+function narrator.init_story(book)
   local story = Story(book)
   return story
 end
 
-return Narrator
+return narrator

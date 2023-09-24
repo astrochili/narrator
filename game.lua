@@ -5,10 +5,10 @@
 local narrator = require('narrator.narrator')
 
 -- Parse a book from the Ink file and save as module 'stories.game.lua'
-local book = narrator.parseFile('stories.game', { save = true })
+local book = narrator.parse_file('stories.game', { save = true })
 
 -- Init a story from the book
-local story = narrator.initStory(book)
+local story = narrator.init_story(book)
 
 -- Start observing the Ink variable 'x'
 story:observe('x', function(x) print('The x did change! Now it\'s ' .. x) end)
@@ -22,7 +22,7 @@ story:begin()
 
 print('--- Game started ---\n')
 
-while story:canContinue() do
+while story:can_continue() do
 
   -- Get current paragraphs to output
   local paragraphs = story:continue()
@@ -40,11 +40,11 @@ while story:canContinue() do
   end
 
   -- If there is no choice, it seems the game is over
-  if not story:canChoose() then break end
+  if not story:can_choose() then break end
   print('')
 
   -- Get available choices and output them to the player
-  local choices = story:getChoices()
+  local choices = story:get_choices()
   for i, choice in ipairs(choices) do
     print(i .. ') ' .. choice.text)
   end

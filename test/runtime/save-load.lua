@@ -16,43 +16,43 @@ local content = [[
   * The best road to hell -> END
 ]]
 
-local book = narrator.parseBook(content)
+local book = narrator.parse_book(content)
 
-local savedState
+local saved_state
 
 it('Saving', function()
-  local story = narrator.initStory(book)
+  local story = narrator.init_story(book)
   story:begin()
   story:continue()
   story:choose(1)
   story:continue(2)
 
-  savedState = story:saveState()
+  saved_state = story:save_state()
 
-  local expectedPath = { knot = 'knot', stitch = 'stitch' }
-  assert.are.same(savedState.path, expectedPath)
-  assert.equal(savedState.variables['x'], 2)
-  assert.equal(savedState.temp['y'], 3)
-  assert.equal(savedState.visits._._.hello, 1)
-  assert.equal(#savedState.output, 2)
-  assert.equal(#savedState.paragraphs, 2)
-  assert.equal(#savedState.choices, 2)
+  local expected_path = { knot = 'knot', stitch = 'stitch' }
+  assert.are.same(saved_state.path, expected_path)
+  assert.equal(saved_state.variables['x'], 2)
+  assert.equal(saved_state.temp['y'], 3)
+  assert.equal(saved_state.visits._._.hello, 1)
+  assert.equal(#saved_state.output, 2)
+  assert.equal(#saved_state.paragraphs, 2)
+  assert.equal(#saved_state.choices, 2)
 end)
 
 it('Loading.', function()
-  local story = narrator.initStory(book)
+  local story = narrator.init_story(book)
   story:begin()
-  story:loadState(savedState)
+  story:load_state(saved_state)
 
-  local expectedPath = { knot = 'knot', stitch = 'stitch' }
-  assert.are.same(story.currentPath, expectedPath)
+  local expected_path = { knot = 'knot', stitch = 'stitch' }
+  assert.are.same(story.current_path, expected_path)
   assert.equal(story.variables['x'], 2)
   assert.equal(story.temp['y'], 3)
-  assert.equal(story:getVisits('hello'), 1)
+  assert.equal(story:get_visits('hello'), 1)
   assert.equal(#story.output, 2)
 
   local paragraphs = story:continue()
-  local choices = story:getChoices()
+  local choices = story:get_choices()
 
   assert.equal(#paragraphs, 2)
   assert.equal(#choices, 2)

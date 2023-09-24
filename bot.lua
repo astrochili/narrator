@@ -1,14 +1,14 @@
 --
 -- Bot for story playing
 
-local Bot = { }
+local bot = { }
 
 --- Play a story by bot
 -- @param story Story: a story instance
 -- @param instructor function: function that will be return the answer index
 -- @param params.print boolean: print a game log to console or not, false by default
 -- @return string: a log of the game
-function Bot.play(story, instructor, params)
+function bot.play(story, instructor, params)
   local params = params or { print = false }
 
   local log = { }
@@ -21,7 +21,7 @@ function Bot.play(story, instructor, params)
 
   story:begin()
 
-  while story:canContinue() or story:canChoose() do
+  while story:can_continue() or story:can_choose() do
     local paragraphs = story:continue()
     for _, paragraph in ipairs(paragraphs or { }) do
       local text = paragraph.text or ''
@@ -32,9 +32,9 @@ function Bot.play(story, instructor, params)
       output(text)
     end
 
-    if not story:canChoose() then break end
+    if not story:can_choose() then break end
 
-    local choices = story:getChoices()
+    local choices = story:get_choices()
     local answer = instructor(choices, step)
     step = step + 1
 
@@ -60,4 +60,4 @@ function Bot.play(story, instructor, params)
   return table.concat(log, '\n')
 end
 
-return Bot
+return bot

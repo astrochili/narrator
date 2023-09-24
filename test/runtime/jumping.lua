@@ -10,29 +10,29 @@ local content = [[
   - (label) A label line
 ]]
 
-local book = narrator.parseBook(content)
-local story = narrator.initStory(book)
+local book = narrator.parse_book(content)
+local story = narrator.init_story(book)
 
 story:begin()
 
 local paragraphs = story:continue()
 
 it('Jump to label.', function()
-  story:jumpTo('somewhere.label')
+  story:jump_to('somewhere.label')
   local paragraphs = story:continue()
   assert.equal(#paragraphs, 1)
   assert.equal(paragraphs[1].text, 'A label line')
 end)
 
 it('Jump to stitch.', function()
-  story:jumpTo('knot.stitch')
+  story:jump_to('knot.stitch')
   local paragraphs = story:continue()
   assert.equal(#paragraphs, 1)
   assert.equal(paragraphs[1].text, 'A stitch line')
 end)
 
 it('Jump to knot.', function()
-  story:jumpTo('knot')
+  story:jump_to('knot')
   local paragraphs = story:continue()
   assert.equal(#paragraphs, 1)
   assert.equal(paragraphs[1].text, 'A knot line')
