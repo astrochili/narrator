@@ -16,7 +16,7 @@ local content = [[
   * The best road to hell -> END
 ]]
 
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 
 local saved_state
 

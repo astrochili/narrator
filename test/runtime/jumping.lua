@@ -10,7 +10,7 @@ local content = [[
   - (label) A label line
 ]]
 
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 local story = narrator.init_story(book)
 
 story:begin()

@@ -1,10 +1,10 @@
---
--- Dependencies
-
 local lume = require('narrator.libs.lume')
 local enums = require('narrator.enums')
 
--- Safe lpeg requiring
+--
+-- LPeg
+
+-- To allow to build in Defold
 local lpeg_name = 'lpeg'
 
 if not pcall(require, lpeg_name) then
@@ -12,9 +12,6 @@ if not pcall(require, lpeg_name) then
 end
 
 local lpeg = require(lpeg_name)
-
---
--- LPeg
 
 local S, C, P, V = lpeg.S, lpeg.C, lpeg.P, lpeg.V
 local Cb, Ct, Cc, Cg = lpeg.Cb, lpeg.Ct, lpeg.Cc, lpeg.Cg
@@ -28,15 +25,17 @@ lpeg.locale(lpeg)
 local parser = { }
 local constructor = { }
 
---- Parse Ink content
--- @param content string: ink content to parse
--- @return table: a book
+---Parse ink content string
+---@param content string
+---@return Narrator.Book
 function parser.parse(content)
 
   --
   -- Basic patterns
 
-  local function get_length(array) return #array end
+  local function get_length(array) return
+    #array
+  end
 
   local eof = -1
   local sp = S(' \t') ^ 0
@@ -56,9 +55,15 @@ function parser.parse(content)
   local label = Cg('(' * sp * C(id) * sp * ')', 'label')
   local address = id * ('.' * id) ^ -2
 
+  ---Something for tunnels
+  local function check_tunnel(s, i, a)
+    local r = lpeg.match (sp * divert_sign, s, i)
+    return i, r ~= nil
+  end
+
   -- TODO: Clean divert expression to divert and tunnel
   local divert = divert_sign * sp * Cg(address, 'path') -- base search for divert symbol and path to follow
-  local check_tunnel = Cg(Cmt(Cb('path'), function(s, i, a) local r = lpeg.match (sp * divert_sign, s, i) return i, r ~= nil end),'tunnel') -- a weird way to to check tunnel
+  local check_tunnel = Cg(Cmt(Cb('path'), check_tunnel), 'tunnel') -- a weird way to to check tunnel
   local opt_tunnel_sign = (sp * divert_sign * sp * (#nl + #S'#') ) ^ -1 -- tunnel sign in end of string, keep newline not consumed
   divert = Cg(Ct(divert * sp * check_tunnel * opt_tunnel_sign), 'divert')
 
@@ -103,6 +108,14 @@ function parser.parse(content)
     unwrapped = unwrapped:gsub('([%w_]*)%s*([%+%-])=%s*(.*)', '%1 = %1 %2 %3')
     local name, value = unwrapped:match('([%w_]*)%s*=%s*(.*)')
     return name or '', value or assignment
+  end
+
+  local function check_special_escape(s, i, a)
+    if string.sub(s, i - 2, i - 2) == '\\' then
+      return
+    end
+
+    return i
   end
 
   --
@@ -186,7 +199,7 @@ function parser.parse(content)
       Cg(V'text' + ' ', 'text') * (exit_tunnel ^ -1) * (divert ^ -1) + exit_tunnel + divert
     ) - V'multiline_item') ^ 1),
 
-    special_check_escape = Cmt(S("{|}"), function(s,i,a) if string.sub(s, i-2, i-2) == '\\' then return end return i end),
+    special_check_escape = Cmt(S("{|}"), check_special_escape),
 
     text = sentence_before(nl + exit_tunnel + divert + comment + tag + V'special_check_escape', true) - V'statement',
     -- Inline expressions, conditions, sequences
@@ -271,10 +284,13 @@ end
 -- A book construction
 
 function constructor.unescape(text)
-  local s = string.gsub(text, "\\|", "|")
-  s = string.gsub(s, "\\{", "{")
-  s = string.gsub(s, "\\}", "}")
-  return s
+  local result = text
+
+  result = result:gsub('\\|', '|')
+  result = result:gsub('\\{', '{')
+  result = result:gsub('\\}', '}')
+
+  return result
 end
 
 function constructor.construct_book(items)
@@ -480,7 +496,7 @@ end
 
 function constructor:add_return(value)
   local item = {
-    return_val = value
+    return_value = value
   }
 
   constructor.add_item(self, nil, item)

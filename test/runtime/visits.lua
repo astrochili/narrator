@@ -11,7 +11,7 @@ local content = [[
   + (choice) Go to root -> _._
 ]]
 
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 local story = narrator.init_story(book)
 
 story:begin()
@@ -24,6 +24,7 @@ local function visits()
     label = story:get_visits('knot.stitch.label'),
     choice = story:get_visits('knot.stitch.choice')
   }
+
   return visits
 end
 

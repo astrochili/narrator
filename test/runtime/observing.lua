@@ -5,7 +5,7 @@ local content = [[
   ~ mood = "sunny"
 ]]
 
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 local story = narrator.init_story(book)
 
 local mood

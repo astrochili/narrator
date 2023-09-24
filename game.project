@@ -15,7 +15,7 @@ input_method = HiddenInputField
 [project]
 title = Narrator
 custom_resources = example-defold/book.ink
-dependencies#0 = https://github.com/astrochili/defold-lpeg/archive/1.0.1.zip
+dependencies#0 = https://github.com/astrochili/defold-lpeg/archive/1.0.4.zip
 
 [library]
 include_dirs = narrator

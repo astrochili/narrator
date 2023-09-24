@@ -6,7 +6,7 @@ local content = [[
   { did_solve_puzzle("labirint") }
 ]]
 
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 local story = narrator.init_story(book)
 
 local is_beeped = false

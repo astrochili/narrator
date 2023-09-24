@@ -5,7 +5,7 @@
             "type": "lua-local",
             "request": "launch",
             "program": {
-              "lua": "lua5.1",
+              "lua": "lua",
               "file": "${workspaceFolder}/debug.lua"
             }
         },

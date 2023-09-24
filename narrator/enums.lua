@@ -1,12 +1,9 @@
---
--- Enums
-
 local enums = {
 
-  -- Release version of Narrator
-  engine_version = 1,
+  ---Bump it when the state structure is changed
+  engine_version = 2,
 
-  -- Story item type
+  ---@enum Narrator.ItemType
   item = {
     text = 1,
     alts = 2,
@@ -15,14 +12,14 @@ local enums = {
     variable = 5
   },
 
-  -- Alternatives sequence type
+  ---@enum Narrator.Sequence
   sequence = {
     cycle = 1,
     stopping = 2,
     once = 3
   },
 
-  -- Runtime reading mode
+  ---@enum Narrator.ReadMode
   read_mode = {
     text = 1,
     choices = 2,

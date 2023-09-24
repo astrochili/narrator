@@ -94,12 +94,25 @@ end
 ### Unsupported
 
 - [ ] Threads
-- [ ] Divert targets as variable's type
+- [ ] Divert target as variable type
 - [ ] Assigning string evaluations to variables
+- [ ] Multiple parallel flows
 
-### Roadmap
+### Known limitations
 
-The separated [roadmap](ROADMAP.md) contains the full list of planned tasks, ideas and [known limitations](ROADMAP.md#known-limitations).
+- Choice's title can't contain inline conditions or alternatives
+- Choice can't have few conditions like ```* { a } { b }```. *The solution is using ```* { a && b } ``` instead.*
+- There is no query functions ```TURNS()``` and ```TURNS_SINCE()```
+- A list uses only standard numerical values ```1, 2, 3...```. Can't define your own numerical values like ```4, 7, 12...```.
+- A comment in the middle of the paragraph ```before /* comment */ and after``` splits it into two paragraphs ```before``` and ```and after```
+
+## Alternatives
+
+- [defold-ink](https://github.com/abadonna/defold-ink) — The Ink language runtime implementation in Lua based on parsing compiled JSON files.
+
+## Showcase
+
+- [Cat's Day](https://astronachos.com/catsday/) — A short card game about one furry.
 
 ## Installation
 
@@ -150,9 +163,9 @@ local book = narrator.parse_file('stories.game')
 -- and save the book at path 'stories/game.lua'
 local book = narrator.parse_file('stories.game', { save = true })
 ```
-Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parse_book()```.
+Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parse_content()```.
 
-### narrator.parse_book(content, inclusions)
+### narrator.parse_content(content, inclusions)
 
 Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
@@ -164,10 +177,10 @@ local inclusions = {
 }
 
 -- Parse a string with Ink content
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 
 -- Parse a string with Ink content and inclusions
-local book = narrator.parse_book(content, inclusions)
+local book = narrator.parse_content(content, inclusions)
 ```
 
 Content parsing is useful when you should manage files by your engine environment and don't want to use ```io``` module. For example, in Defold, you may want to load ink files as custom resources with [sys.load_resource()](https://defold.com/ref/sys/#sys.load_resource:filename).

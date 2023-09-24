@@ -18,7 +18,7 @@ local answers = { }
 local function instructor(choices, step)
   local answer = answers[step]
   if answer == nil then
-    math.randomseed(os.clock() * 1000)
+    math.randomseed(os.time() * 10000000)
     answer = math.random(1, #choices)
   end
   return answer

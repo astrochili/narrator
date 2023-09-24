@@ -7,6 +7,11 @@
     ],
     "Lua.diagnostics.disable": [
         "trailing-space",
-        "redefined-local"
-    ]
+        "redefined-local",
+        "deprecated"
+    ],
+    "Lua.completion.callSnippet": "Replace",
+    "Lua.completion.keywordSnippet": "Replace",
+    "Lua.completion.showWord": "Fallback",
+    "Lua.completion.autoRequire": false
 }

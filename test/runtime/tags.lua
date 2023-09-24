@@ -13,7 +13,7 @@ local content = [[
   A stitch line # line 3 tag
 ]]
 
-local book = narrator.parse_book(content)
+local book = narrator.parse_content(content)
 local story = narrator.init_story(book)
 
 story:begin()
