@@ -18,8 +18,8 @@ Ink is a powerful narrative scripting language. You can find more information ab
 
 Narrator allows to convert raw Ink scripts to the book (a lua table) and play it as story.
 
-- A book is a passive model on the shelf like a game level.
-- A story is a runtime state of the book reading like a game process.
+- 📖 A book is a passive model on the shelf like a game level.
+- ✨ A story is a runtime state of the book reading like a game process.
 
 ## Quick example
 
@@ -85,7 +85,7 @@ end
 - [x] Multiline conditions: all the same + elseif statements, switches, nesting
 - [x] Variables: assignments, constants, global variables, temporary variables, visits, lists
 - [x] Lists: logical operations, multivalued lists, multi-list lists, all the queries, work with numbers
-- [x] Game queries: all the queries without ```TURNS()``` and ```TURNS_SINCE()```
+- [x] Game queries: all the queries without `TURNS()` and `TURNS_SINCE()```
 - [x] State: saving and loading
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
@@ -101,10 +101,10 @@ end
 ### Known limitations
 
 - Choice's title can't contain inline conditions or alternatives
-- Choice can't have few conditions like ```* { a } { b }```. *The solution is using ```* { a && b } ``` instead.*
-- There is no query functions ```TURNS()``` and ```TURNS_SINCE()```
-- A list uses only standard numerical values ```1, 2, 3...```. Can't define your own numerical values like ```4, 7, 12...```.
-- A comment in the middle of the paragraph ```before /* comment */ and after``` splits it into two paragraphs ```before``` and ```and after```
+- Choice can't have few conditions like `* { a } { b }`. *The solution is using `* { a && b } ` instead.*
+- There is no query functions `TURNS()` and `TURNS_SINCE()```
+- A list uses only standard numerical values `1, 2, 3...`. Can't define your own numerical values like `4, 7, 12...`.
+- A comment in the middle of the paragraph `before /* comment */ and after` splits it into two paragraphs `before` and `and after```
 
 ## Alternatives
 
@@ -118,7 +118,7 @@ end
 
 ### Common case (Löve, pure Lua, etc.)
 
-Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the ```narrator``` module.
+Download the latest [release archive](https://github.com/astrochili/narrator/releases) and require the `narrator` module.
 
 ```lua
 local narrator = require('narrator.narrator')
@@ -130,7 +130,7 @@ Narrator requires [lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/) as dependency
 $ luarocks install lpeg
 ```
 
-In fact, you don't need ```lpeg``` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game. Use parsing in development only, prefer already parsed and stored books in production.
+In fact, you don't need `lpeg` in the release, but you need it locally to parse Ink content and generate lua versions of books to play in your game. Use parsing in development only, prefer already parsed and stored books in production.
 
 ### Defold
 
@@ -141,7 +141,7 @@ https://github.com/astrochili/narrator/archive/master.zip
 https://github.com/astrochili/defold-lpeg/archive/master.zip
 ```
 
-Then you can require the ```narrator``` module.
+Then you can require the `narrator` module.
 
 ```lua
 local narrator = require('narrator.narrator')
@@ -151,9 +151,9 @@ local narrator = require('narrator.narrator')
 
 ### narrator.parse_file(path, params)
 
-Parses the Ink file at path with all the inclusions and returns a book instance. Path notations ```'stories/game.ink'```, ```'stories/game'``` and ```'stories.game'``` are valid.
+Parses the Ink file at path with all the inclusions and returns a book instance. Path notations `'stories/game.ink'`, `'stories/game'` and `'stories.game'` are valid.
 
-You can save a parsed book to the lua file with the same path by passing ```{ save = true }``` as ```params``` table. By default, the ```params``` table is ```{ save = false }```.
+You can save a parsed book to the lua file with the same path by passing `{ save = true }` as `params` table. By default, the `params` table is `{ save = false }`.
 
 ```lua
 -- Parse a Ink file at path 'stories/game.ink'
@@ -163,11 +163,11 @@ local book = narrator.parse_file('stories.game')
 -- and save the book at path 'stories/game.lua'
 local book = narrator.parse_file('stories.game', { save = true })
 ```
-Reading and saving files required ```io``` so if you can't work with files by this way use ```narrator.parse_content()```.
+Reading and saving files required `io` so if you can't work with files by this way use `narrator.parse_content()`.
 
 ### narrator.parse_content(content, inclusions)
 
-Parses the string with Ink content and returns a book instance. The ```inclusions``` param is optional and can be used to pass an array of strings with Ink content of inclusions.
+Parses the string with Ink content and returns a book instance. The `inclusions` param is optional and can be used to pass an array of strings with Ink content of inclusions.
 
 ```lua
 local content = 'Content of a root Ink file'
@@ -183,11 +183,11 @@ local book = narrator.parse_content(content)
 local book = narrator.parse_content(content, inclusions)
 ```
 
-Content parsing is useful when you should manage files by your engine environment and don't want to use ```io``` module. For example, in Defold, you may want to load ink files as custom resources with [sys.load_resource()](https://defold.com/ref/sys/#sys.load_resource:filename).
+Content parsing is useful when you should manage files by your engine environment and don't want to use `io` module. For example, in Defold, you may want to load ink files as custom resources with [sys.load_resource()](https://defold.com/ref/sys/#sys.load_resource:filename).
 
 ### narrator.init_story(book)
 
-Inits a story instance from the book. This is aclual to use in production. For example, just load a book with ```require()``` and pass it to this function.
+Inits a story instance from the book. This is aclual to use in production. For example, just load a book with `require()` and pass it to this function.
 
 ```lua
 -- Require a parsed and saved before book
@@ -213,11 +213,11 @@ end
 
 ### story:continue(steps)
 
-Get the next paragraphs. You can specify the number of paragraphs that you want to pull by the ```steps``` param.
-- Pass nothing if you want to get all the currently available paragraphs. ```0``` also works.
-- Pass ```1``` if you want to get one next paragraph without wrapping to array.
+Get the next paragraphs. You can specify the number of paragraphs that you want to pull by the `steps` param.
+- Pass nothing if you want to get all the currently available paragraphs. `0` also works.
+- Pass `1` if you want to get one next paragraph without wrapping to array.
 
-A paragraph is a table like ```{ text = 'Hello.', tags = { 'tag1', 'tag2' } }```. Most of the paragraphs do not have tags so ```tags``` can be ```nil```.
+A paragraph is a table like `{ text = 'Hello.', tags = { 'tag1', 'tag2' } }`. Most of the paragraphs do not have tags so `tags` can be `nil`.
 
 
 ```lua
@@ -230,7 +230,7 @@ local paragraph = story:continue(1)
 
 ### story:can_choose()
 
-Returns a boolean, does the story have choices to output or not. Also returns ```false``` if there are available paragraphs to continue.
+Returns a boolean, does the story have choices to output or not. Also returns `false` if there are available paragraphs to continue.
 
 ```lua
 if story:can_choose() do
@@ -242,9 +242,9 @@ end
 
 Returns an array of available choices. Returns an empty array if there are available paragraphs to continue.
 
-A choice is a table like ```{ text = 'Bye.', tags = { 'tag1', 'tag2' } }```. Most of the choices do not have tags so ```tags``` can be ```nil```.
+A choice is a table like `{ text = 'Bye.', tags = { 'tag1', 'tag2' } }`. Most of the choices do not have tags so `tags` can be `nil`.
 
-Choice tags are not an official feature of Ink, but it's a Narrator feature. These tags also will appear in the answer paragraph as it works in Ink by default. But if you have a completely eaten choice like ```'[Answer] #tag'``` you will receive tags only in the choice.
+Choice tags are not an official feature of Ink, but it's a Narrator feature. These tags also will appear in the answer paragraph as it works in Ink by default. But if you have a completely eaten choice like `'[Answer] #tag'` you will receive tags only in the choice.
 
 ```lua
   -- Get available choices and output them to the player
@@ -256,7 +256,7 @@ Choice tags are not an official feature of Ink, but it's a Narrator feature. The
 
 ### story:choose(index)
 
-Make a choice to continue the story. Pass the ```index``` of the choice that you was received with ```get_choices()``` before. Will do nothing if ```can_continue()``` returns ```false```.
+Make a choice to continue the story. Pass the `index` of the choice that you was received with `get_choices()` before. Will do nothing if `can_continue()` returns `false`.
 
 ```lua
   -- Get the answer from the player in the terminal
@@ -271,7 +271,7 @@ Make a choice to continue the story. Pass the ```index``` of the choice that you
 
 ### story:jump_to(path_string)
 
-Jumps to the path. The ```path_string``` param is a string like ```'knot.stitch.label'```.
+Jumps to the path. The `path_string` param is a string like `'knot.stitch.label'`.
 
 ```lua
   -- Jump to the maze stitch in the adventure knot
@@ -283,7 +283,7 @@ Jumps to the path. The ```path_string``` param is a string like ```'knot.stitch.
 
 ### story:get_visits(path_string)
 
-Returns the number of visits to the path. The ```path_string``` param is a string like ```'knot.stitch.label'```.
+Returns the number of visits to the path. The `path_string` param is a string like `'knot.stitch.label'`.
 
 ```lua
 -- Get the number of visits to the maze's red room
@@ -295,7 +295,7 @@ local adventure_visits = story:get_visits('adventure')
 
 ### story:get_tags(path_string)
 
-Returns tags for the path. The ```path_string``` param is a string like ```'knot.stitch'```. This function is useful when you want to get tags before continue the story and pull paragraphs. Read more about it [here](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#knot-tags).
+Returns tags for the path. The `path_string` param is a string like `'knot.stitch'`. This function is useful when you want to get tags before continue the story and pull paragraphs. Read more about it [here](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#knot-tags).
 
 ```lua
 -- Get tags for the path 'adventure.maze'
@@ -404,7 +404,7 @@ This is the place where you can rename or change variables, visits, update the c
 function(state, old_version, new_version) return state end
 ```
 
-The ```old_version``` is the version of the saved state, the ```new_version``` is the version of the book. You can specify the verson of the book with the constant ```'version'``` in the Ink content, otherwise it's equal to ```0```.
+The `old_version` is the version of the saved state, the `new_version` is the version of the book. You can specify the verson of the book with the constant `'version'` in the Ink content, otherwise it's equal to `0`.
 
 ```lua
 -- A migration function example
@@ -446,9 +446,9 @@ There are some useful extensions and configs for [VSCode](https://code.visualstu
 
 - [Local Lua Debugger](https://github.com/tomblind/local-lua-debugger-vscode) by [tomblind](https://github.com/tomblind/).
 - [Lua Language Server](https://github.com/sumneko/lua-language-server) by [sunmeko](https://github.com/sumneko).
-- A task named ```Busted``` runs tests with ```tests/run.lua```.
-- A lunch configuration named ```Busted``` runs the debugger with ```tests/run.lua```.
-- A lunch configuration named ```Debug``` runs the debugger with ```debug.lua```.
+- A task named `Busted` runs tests with `tests/run.lua`.
+- A lunch configuration named `Busted` runs the debugger with `tests/run.lua`.
+- A lunch configuration named `Debug` runs the debugger with `debug.lua`.
 
 ### Testing
 
