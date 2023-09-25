@@ -4,10 +4,11 @@
 --
 -- Dependencies
 
-require('busted.runner')()
+local import = require
+import('busted.runner')()
 
 if os.getenv('LOCAL_LUA_DEBUGGER_VSCODE') == '1' then
-  require("lldebugger").start()
+  import('lldebugger').start()
 end
 
 local bot = require('bot')
@@ -41,7 +42,7 @@ end
 local function txt_path(case, answers)
   local path = tests_folder .. case
   if answers and #answers > 0 then
-    path = path .. folder_separator .. table.concat(answers, "-")
+    path = path .. folder_separator .. table.concat(answers, '-')
   end
   path = path .. '.txt'
   return path
@@ -158,7 +159,7 @@ local function test_ink_case(case)
 
     local results = get_possible_results(case)
     for _, result in ipairs(results) do
-      describe('Sequence is [' .. table.concat(result.sequence, "-") .. '].', function()
+      describe('Sequence is [' .. table.concat(result.sequence, '-') .. '].', function()
         local txt_path = txt_path(case, #results > 1 and result.sequence or nil)
         local file = io.open(txt_path, 'r')
 

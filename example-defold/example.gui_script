@@ -1,0 +1,167 @@
+local narrator = require('narrator.narrator')
+
+---@class Self
+---@field paragraph_template node
+---@field paragraph_initial_position vector3
+---@field paragraph_nodes node[]
+---@field choice_template node
+---@field choice_initial_position vector3
+---@field choice_nodes node[]
+---@field book Narrator.Book
+---@field story Narrator.Story
+
+---@param node node
+---@param text string
+---@return integer height
+local function estimated_height(node, text)
+  local font_name = gui.get_font(node)
+  local font = gui.get_font_resource(font_name)
+
+  local metrics = resource.get_text_metrics(font, text, {
+    width = gui.get_size(node).x,
+    line_break = true
+  })
+
+  return metrics.height
+end
+
+---@param self Self
+local function clear_output(self)
+  for index = #self.paragraph_nodes, 1, -1 do
+    local node = self.paragraph_nodes[index]
+    table.remove(self.paragraph_nodes, index)
+
+    gui.animate(node, 'color.w', 0, gui.EASING_LINEAR, 0.5, 0, function(_, node)
+      gui.delete_node(node)
+    end)
+  end
+
+  for index = #self.choice_nodes, 1, -1 do
+    local node = self.choice_nodes[index]
+    table.remove(self.choice_nodes, index)
+
+    gui.animate(node, 'color.w', 0, gui.EASING_LINEAR, 0.5, 0, function(_, node)
+      gui.delete_node(node)
+    end)
+  end
+end
+
+---@param self Self
+local function display_output(self)
+  clear_output(self)
+
+  -- Pull all the paragraphs
+  local paragraphs = self.story:continue()
+
+  -- Get the available choices
+  local choices = self.story:get_choices()
+
+  local paragraph_position = vmath.vector3(self.paragraph_initial_position)
+  local choice_position = vmath.vector3(self.choice_initial_position)
+
+  for index = #paragraphs, 1, -1 do
+    local paragraph = paragraphs[index]
+    local node = gui.clone(self.paragraph_template)
+    gui.set_text(node, paragraph.text)
+
+    local height = estimated_height(node, paragraph.text)
+    if index < #paragraphs then
+      paragraph_position.y = paragraph_position.y + height / 2 + 16
+    end
+
+    gui.set_position(node, paragraph_position)
+    gui.set_enabled(node, true)
+    gui.set_alpha(node, 0)
+    gui.animate(node, 'color.w', 1, go.EASING_LINEAR, 0.5, index / 2)
+
+    table.insert(self.paragraph_nodes, node)
+  end
+
+  for index = 1, #choices do
+    local choice = choices[index]
+    local node = gui.clone(self.choice_template)
+    gui.set_text(node, choice.text)
+
+    local height = estimated_height(node, choice.text)
+    if index > 1 then
+      choice_position.y = choice_position.y - height / 2 - 16
+    end
+
+    gui.set_enabled(node, true)
+    gui.set_position(node, choice_position)
+
+    local size = gui.get_size(node)
+    size.y = height
+    gui.set_size(node, size)
+
+    gui.set_alpha(node, 0)
+    gui.animate(node, 'color.w', 1, go.EASING_LINEAR, 0.5, (#paragraphs + 1) / 2)
+
+    table.insert(self.choice_nodes, node)
+  end
+end
+
+---@param self Self
+function init(self)
+  msg.post('@render:', 'clear_color', { color = vmath.vector4(1, 1, 1, 1)})
+  msg.post('.', 'acquire_input_focus')
+
+  self.paragraph_template = gui.get_node('paragraph')
+  self.paragraph_initial_position = gui.get_position(self.paragraph_template)
+  self.paragraph_nodes = {}
+
+  self.choice_template = gui.get_node('choice')
+  self.choice_initial_position = gui.get_position(self.choice_template)
+  self.choice_nodes = {}
+
+  -- Parse and save a book
+  self.book = narrator.parse_file('example-defold.book', { save = true })
+
+  -- Or load and parse the Ink file from the custom resources
+  -- local content = sys.load_resource('/example-defold/book.ink')
+  -- self.book = narrator.parseBook(content)
+
+  -- Or load a book from the saved lua module
+  -- self.book = require('example-defold.book')
+
+  -- Or parse a book from the string with Ink content
+  -- self.book = narrator.parseBook('Hello world!')
+
+  -- Init a story
+  self.story = narrator.init_story(self.book)
+
+  -- Begin the story
+  self.story:begin()
+
+  display_output(self)
+end
+
+---@param self Self
+---@param action_id hash|string
+---@param action table
+function on_input(self, action_id, action)
+  if action_id ~= hash 'touch' or not action.pressed then
+    return
+  end
+
+  if not self.story:can_choose() then
+    -- Begin a new story
+    self.story = narrator.init_story(self.book)
+    self.story:begin()
+
+    display_output(self)
+
+    return true
+  end
+
+  for index, node in ipairs(self.choice_nodes) do
+    if gui.pick_node(node, action.x, action.y) then
+      -- Make a choice
+      self.story:choose(index)
+
+      display_output(self)
+
+      return true
+    end
+  end
+end

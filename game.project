@@ -6,7 +6,7 @@ render = /builtins/render/default.renderc
 shared_state = 1
 
 [display]
-width = 960
+width = 640
 height = 640
 
 [android]
