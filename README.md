@@ -85,7 +85,7 @@ end
 - [x] Multiline conditions: all the same + elseif statements, switches, nesting
 - [x] Variables: assignments, constants, global variables, temporary variables, visits, lists
 - [x] Lists: logical operations, multivalued lists, multi-list lists, all the queries, work with numbers
-- [x] Game queries: all the queries without `TURNS()` and `TURNS_SINCE()```
+- [x] Game queries: all the queries without `TURNS()` and `TURNS_SINCE()`
 - [x] State: saving and loading
 - [x] Integration: external functions, variables observing, jumping
 - [x] Migration: the ability to implement the migration of player's saves after the book update
@@ -93,18 +93,12 @@ end
 
 ### Unsupported
 
-- [ ] Threads
-- [ ] Divert target as variable type
-- [ ] Assigning string evaluations to variables
-- [ ] Multiple parallel flows
+- [ ] [Threads](https://github.com/astrochili/narrator/issues/22)
+- [ ] [Divert target as variable type](https://github.com/astrochili/narrator/issues/23)
+- [ ] [Assigning string evaluations to variables](https://github.com/astrochili/narrator/issues/24)
+- [ ] [Multiple parallel flows](https://github.com/astrochili/narrator/issues/25)
 
-### Known limitations
-
-- Choice's title can't contain inline conditions or alternatives
-- Choice can't have few conditions like `* { a } { b }`. *The solution is using `* { a && b } ` instead.*
-- There is no query functions `TURNS()` and `TURNS_SINCE()```
-- A list uses only standard numerical values `1, 2, 3...`. Can't define your own numerical values like `4, 7, 12...`.
-- A comment in the middle of the paragraph `before /* comment */ and after` splits it into two paragraphs `before` and `and after```
+Also there is a list of [known limitations](https://github.com/astrochili/narrator/labels/known%20limitation) on the issues page.
 
 ## Alternatives
 
