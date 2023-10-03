@@ -107,6 +107,7 @@ Also there is a list of [known limitations](https://github.com/astrochili/narrat
 ## Showcase
 
 - [Cat's Day](https://astronachos.com/catsday/) — A short card game about one furry.
+- [The Secret Laboratory](https://astrochili.itch.io/the-secret-laboratory) — A short card game about the labaratory director.
 
 ## Installation
 
